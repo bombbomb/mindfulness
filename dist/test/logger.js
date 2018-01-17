@@ -48,6 +48,9 @@ test('Logger with POST layer gets correct layer', () => {
         }]);
     expect(l.layers).toHaveLength(1);
 });
+test('Logger with incorrect layer throws error', () => {
+    const l = new index_1.Logger([{ type: 'fake_logger' }]);
+});
 test('Logger handles "before" callbacks', (done) => __awaiter(this, void 0, void 0, function* () {
     const before = function (message, payload) {
         return new Promise((resolve) => {
@@ -69,10 +72,14 @@ test('Logger handles a call-specific "before" callback', (done) => __awaiter(thi
             resolve(result);
         });
     };
+    // don't pass the "before" function here
     const l = new index_1.Logger(['console']);
+    // but pass it on the call
     yield l.log('hi', null, { before });
     expect(spies.log).toHaveBeenCalled();
     expect(spies.log.mock.calls[0]).toContain('hi!');
+    // logger options should not be changed by the before handler.
+    expect(l.options).not.toHaveProperty('before');
     done();
 }));
 test('Logger handlers "after" callbacks', (done) => __awaiter(this, void 0, void 0, function* () {

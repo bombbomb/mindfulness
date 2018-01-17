@@ -1,5 +1,3 @@
-import nock from 'nock';
-
 import {Logger} from '../src/index';
 
 const spies = {
@@ -48,6 +46,10 @@ test('Logger with POST layer gets correct layer', () => {
   expect(l.layers).toHaveLength(1);
 });
 
+test('Logger with incorrect layer throws error', () => {
+  const l = new Logger([{type: 'fake_logger'}]);
+});
+
 test('Logger handles "before" callbacks', async (done) => {
   const before = function (message: string, payload?: object) {
     return new Promise((resolve) => {
@@ -72,11 +74,17 @@ test('Logger handles a call-specific "before" callback', async (done) => {
       resolve(result);
     });
   };
+
+  // don't pass the "before" function here
   const l = new Logger(['console']);
 
+  // but pass it on the call
   await l.log('hi', null, { before });
+
   expect(spies.log).toHaveBeenCalled();
   expect(spies.log.mock.calls[0]).toContain('hi!');
+  // logger options should not be changed by the before handler.
+  expect(l.options).not.toHaveProperty('before');
   done();
 });
 

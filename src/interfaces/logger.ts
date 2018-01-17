@@ -23,10 +23,18 @@ export interface LoggerAfterCallback {
 }
 
 export interface LoggerOptions {
-  type?: string,
-  logLevel?: number,
-  before?: LoggerBeforeCallback,
-  after?: LoggerAfterCallback,
+  type?: string;
+  logLevel?: number;
+  before?: LoggerBeforeCallback;
+  after?: LoggerAfterCallback;
+  [propName: string]: any;
+};
+
+export interface LoggerLayer {
+  type: string;
+  handler?: LoggerInterface;
+  logLevel?: number;
+  [propName: string]: any;
 };
 
 export interface L {

@@ -1,6 +1,6 @@
 import {ConsoleLogger} from './contrib/console';
 import {JsonPostLogger} from './contrib/json_post';
-import {LoggerOptions, L} from './interfaces/logger';
+import {LoggerOptions, L, LoggerLayer} from './interfaces/logger';
 
 const contrib = {
   console: ConsoleLogger,
@@ -22,7 +22,7 @@ export class Logger implements L {
    *
    * @param layers The logging layers to include.
    */
-  constructor(layers = [], options = {}) {
+  constructor(layers: (string|LoggerLayer)[] = [], options = {}) {
     this.options = {...options};
 
     // default for logging is just to use the console
@@ -32,15 +32,16 @@ export class Logger implements L {
 
     // add any layers that may exist
     layers.forEach((layer) => {
-      const layerIsString = typeof layer == 'string';
-      if (layerIsString && contrib.hasOwnProperty(layer)) {
+      // user passed in a string
+      if (typeof layer === 'string') {
+        if (!contrib.hasOwnProperty(layer)) {
+          throw new Error('Could not find layer type: ' + layer);
+        }
         this.layers.push(new contrib[layer](this));
         return;
       }
-      else if (layerIsString) {
-        throw new Error('Could not find layer type: ' + layer);
-      }
 
+      // this is a LoggerLayer
       if (layer.type && contrib.hasOwnProperty(layer.type)) {
         this.layers.push(new contrib[layer.type](this, layer));
         return;
@@ -52,6 +53,8 @@ export class Logger implements L {
 
   /**
    * Handle an "after" function.
+   *
+   * Runs after all layers have finished.
    *
    * @param results Results from all logging layers
    */
@@ -112,7 +115,6 @@ export class Logger implements L {
     return new Promise((resolve, reject) => {
       Promise.all(promises)
         .then((results) => {
-          console.log('calling after');
           this.after(results)
             .then(resolve);
         })

@@ -27,11 +27,6 @@ afterAll(() => {
         spies[spy].mockRestore();
     });
 });
-test('ConsoleLogger.getLogLevelConstant', () => {
-    const l = new console_1.ConsoleLogger(null);
-    expect(l.getLogLevelConstant('log')).toBe(logger_1.LOG_LEVELS.LOG_LOG);
-    expect(l.getLogLevelConstant('info')).toBe(logger_1.LOG_LEVELS.LOG_INFO);
-});
 test('ConsoleLogger logs to the console', (done) => __awaiter(this, void 0, void 0, function* () {
     const l = new console_1.ConsoleLogger(null);
     const message = 'my message';

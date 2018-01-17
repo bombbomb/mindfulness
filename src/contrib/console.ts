@@ -1,4 +1,5 @@
 import {LoggerInterface, LOG_LEVELS, LoggerOptions, L} from '../interfaces/logger';
+import {getLogLevelConstant} from '../util/logging';
 
 export class ConsoleLogger implements LoggerInterface {
   options: LoggerOptions;
@@ -12,10 +13,10 @@ export class ConsoleLogger implements LoggerInterface {
     };
   }
 
-  call(level: string, message: string, payload?: object, options?: object): Promise<any> {
+  async call(level: string, message: string, payload?: object, options?: object): Promise<any> {
     return new Promise((resolve, reject) => {
       const callOptions: LoggerOptions = (options) ? options : this.options;
-      if (callOptions.logLevel != LOG_LEVELS.LOG_NONE && callOptions.logLevel & this.getLogLevelConstant(level)) {
+      if (callOptions.logLevel != LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
         const args: (string|object)[] = [message];
         if (payload) {
           args.push(payload);
@@ -24,11 +25,6 @@ export class ConsoleLogger implements LoggerInterface {
       }
       resolve();
     });
-  }
-
-  getLogLevelConstant(level: string) {
-    const levelName = 'LOG_' + level.toUpperCase();
-    return LOG_LEVELS[levelName];
   }
 
   log(message: string, payload?: object): Promise<any> {

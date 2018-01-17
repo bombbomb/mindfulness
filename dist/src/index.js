@@ -15,7 +15,10 @@ const contrib = {
     json_post: json_post_1.JsonPostLogger,
 };
 /**
- * The main logger class.
+ * Logger class.
+ *
+ * A logger instance may represent one or more layers of logging. Each
+ * layer represents an output (console, POST request, file, etc).
  */
 class Logger {
     /**
@@ -27,9 +30,11 @@ class Logger {
         this.layers = [];
         this.options = {};
         this.options = Object.assign({}, options);
+        // default for logging is just to use the console
         if (layers.length == 0) {
             layers = ['console'];
         }
+        // add any layers that may exist
         layers.forEach((layer) => {
             const layerIsString = typeof layer == 'string';
             if (layerIsString && contrib.hasOwnProperty(layer)) {

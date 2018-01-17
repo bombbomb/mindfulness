@@ -11,7 +11,7 @@ A simple interface for logging and metrics endpoints.
 ```javascript
 const Logger = require('bmindful').Logger;
 
-const logger = new Logger('myapp', [
+const logger = new Logger([
   'console',
   {
     type: 'json_post',
@@ -20,6 +20,7 @@ const logger = new Logger('myapp', [
   }
 ]);
 
+// sends logs to console & logging.example.com
 logger.log('Message', {payload: 123});
 logger.logWarn('Message', {payload: 123});
 logger.logError('Message', {payload: 123});

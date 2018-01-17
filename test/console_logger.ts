@@ -21,12 +21,6 @@ afterAll(() => {
   });
 });
 
-test('ConsoleLogger.getLogLevelConstant', () => {
-  const l = new ConsoleLogger(null);
-  expect(l.getLogLevelConstant('log')).toBe(LOG_LEVELS.LOG_LOG);
-  expect(l.getLogLevelConstant('info')).toBe(LOG_LEVELS.LOG_INFO);
-});
-
 test('ConsoleLogger logs to the console', async (done) => {
   const l = new ConsoleLogger(null);
   const message = 'my message';

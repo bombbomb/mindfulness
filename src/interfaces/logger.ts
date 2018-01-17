@@ -1,8 +1,8 @@
 export interface LoggerInterface {
-  log(message: string, payload?: object, options?: object): Promise<any>
-  logError(message: string, payload?: object, options?: object): Promise<string>
-  logInfo(message: string, payload?: object, options?: object): Promise<string>
-  logWarn(message: string, payload?: object, options?: object): Promise<string>
+  log(message: any, payload?: object, options?: object): Promise<any>
+  logError(message: any, payload?: object, options?: object): Promise<string>
+  logInfo(message: any, payload?: object, options?: object): Promise<string>
+  logWarn(message: any, payload?: object, options?: object): Promise<string>
 }
 
 export const LOG_LEVELS = {

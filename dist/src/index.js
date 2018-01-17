@@ -109,7 +109,6 @@ class Logger {
         return __awaiter(this, void 0, void 0, function* () {
             // call & wait for our before handlers
             const beforeResult = yield this.before(message, payload, options);
-            // console.log({beforeResult});
             // call the log function on each layer
             const promises = this.layers.map((layer) => layer[logLevel](beforeResult.message, beforeResult.payload, beforeResult.options));
             // return a promise that will resolve when all layers are finished

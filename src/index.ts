@@ -76,7 +76,7 @@ export class Logger implements L {
    * @param payload The payload being logged
    * @param options The settings for this call
    */
-  async before(message: string, payload?: object, options?: object): Promise<any> {
+  async before(message: any, payload?: object, options?: object): Promise<any> {
     const before = async () => {
       return new Promise(async (resolve, reject) => {
         let callOptions = this.options;
@@ -104,10 +104,10 @@ export class Logger implements L {
    * @param message The message
    * @param payload optional payload object
    */
-  async call(logLevel: string, message: string, payload?: object, options?: object) {
+  async call(logLevel: string, message: any, payload?: object, options?: object) {
     // call & wait for our before handlers
     const beforeResult = await this.before(message, payload, options);
-    // console.log({beforeResult});
+
     // call the log function on each layer
     const promises = this.layers.map((layer) => layer[logLevel](beforeResult.message, beforeResult.payload, beforeResult.options));
 
@@ -116,6 +116,7 @@ export class Logger implements L {
       Promise.all(promises)
         .then((results) => {
           this.after(results)
+
             .then(resolve);
         })
         .catch(reject);
@@ -128,7 +129,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  log(message: string, payload?: object, options?: object) {
+  log(message: any, payload?: object, options?: object) {
     return this.call('log', message, payload, options);
   }
 
@@ -138,7 +139,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logError(message: string, payload?: object, options?: object) {
+  logError(message: any, payload?: object, options?: object) {
     return this.call('logError', message, payload, options);
   }
 
@@ -148,7 +149,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logInfo(message: string, payload?: object, options?: object) {
+  logInfo(message: any, payload?: object, options?: object) {
     return this.call('logInfo', message, payload, options);
   }
 
@@ -158,7 +159,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logWarn(message: string, payload?: object, options?: object) {
+  logWarn(message: any, payload?: object, options?: object) {
     return this.call('logWarn', message, payload, options);
   }
 };

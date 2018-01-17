@@ -12,20 +12,37 @@ A simple interface for logging and metrics endpoints.
 const Logger = require('bmindful').Logger;
 
 const logger = new Logger([
+  // log to the console
   'console',
+
+  // post to http://logging.example.com/
   {
     type: 'json_post',
     host: 'logging.example.com',
-    path: '/',
   }
 ]);
 
-// sends logs to console & logging.example.com
+// e.g.:
+//   console.log('Message', {payload: 123})
+//   request('http://logging.example.com').post({
+//     severity: 'log',
+//     type: 'log',
+//     message: 'Message',
+//     info: { payload: 123}
+//   })
 logger.log('Message', {payload: 123});
 logger.logWarn('Message', {payload: 123});
 logger.logError('Message', {payload: 123});
-logger.logInfo('Message', {payload: 123});
+
+// send the log request and catch any errors
+try {
+  await logger.logInfo('Message', {payload: 123});
+}
+catch (err) {
+}
 ```
+
+**Note:** logging methods are _asynchronous_ and return a `Promise`. So you can use `await` or handle the `Promise` if you want to ensure things worked.
 
 ## Metrics usage
 
@@ -44,3 +61,14 @@ const metrics = new Metrics('myapp', [
 metrics.increase('category', 'metric');
 metrics.decrease('category', 'metric');
 ```
+
+## Development
+
+```
+nvm use
+npm install
+```
+
+To build from Typescript: `npm build` or `npm build-watch`
+
+To test: `npm test` or `npm test-watch`

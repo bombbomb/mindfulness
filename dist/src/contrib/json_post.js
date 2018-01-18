@@ -92,7 +92,7 @@ class JsonPostLogger {
             message,
             info: (payload) ? payload : {},
             severity: level,
-            type: level,
+            type: level
         };
         const callOptions = this.getCallOptions(options);
         if (callOptions.requestHandler) {
@@ -117,24 +117,24 @@ class JsonPostLogger {
         url += path;
         return url;
     }
-    log(message, payload) {
+    log(message, payload, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.call('log', message, payload);
+            return this.call('log', message, payload, options);
         });
     }
-    logError(message, payload) {
+    logError(message, payload, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.call('error', message, payload);
+            return this.call('error', message, payload, options);
         });
     }
-    logInfo(message, payload) {
+    logInfo(message, payload, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.call('info', message, payload);
+            return this.call('info', message, payload, options);
         });
     }
-    logWarn(message, payload) {
+    logWarn(message, payload, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.call('warn', message, payload);
+            return this.call('warn', message, payload, options);
         });
     }
 }

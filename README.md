@@ -40,6 +40,15 @@ try {
 }
 catch (err) {
 }
+
+// change the request body with the post logger:
+logger.log('Message', {payload: 123}, {requestHandler: (body, details) => {
+  return {
+    ...body,
+    // add .environment to the body
+    environment: process.env.NODE_ENV
+  };
+}});
 ```
 
 **Note:** logging methods are _asynchronous_ and return a `Promise`. So you can use `await` or handle the `Promise` if you want to ensure things worked.

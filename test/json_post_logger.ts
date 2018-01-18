@@ -124,3 +124,37 @@ test('can change request body', async (done) => {
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
 });
+
+test('can change request body on a call', async (done) => {
+  const l = new Logger([
+    {
+      type: 'json_post',
+      host: 'logging.example.com',
+    }
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', (req) => {
+      expect(req).toMatchObject({
+        severity: 'log',
+        type: 'log',
+        message: 'Error doing things',
+        injected: 123,
+        info: {
+          payload: 234,
+        }
+      })
+      return true;
+    })
+    .reply(200, {});
+
+  await l.log('Error doing things', { payload: 234 }, { requestHandler: (body, details) => {
+    return {
+      ...body,
+      injected: 123
+    }
+  }});
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});

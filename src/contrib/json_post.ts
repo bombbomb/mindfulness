@@ -97,7 +97,7 @@ export class JsonPostLogger implements LoggerInterface {
       message,
       info: (payload) ? payload : {},
       severity: level,
-      type: level,
+      type: level
     };
 
     const callOptions = this.getCallOptions(options);
@@ -132,19 +132,19 @@ export class JsonPostLogger implements LoggerInterface {
     return url;
   }
 
-  async log(message: any, payload?: object): Promise<any> {
-    return this.call('log', message, payload);
+  async log(message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+    return this.call('log', message, payload, options);
   }
 
-  async logError(message: any, payload?: object): Promise<any> {
-    return this.call('error', message, payload);
+  async logError(message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+    return this.call('error', message, payload, options);
   }
 
-  async logInfo(message: any, payload?: object): Promise<any> {
-    return this.call('info', message, payload);
+  async logInfo(message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+    return this.call('info', message, payload, options);
   }
 
-  async logWarn(message: any, payload?: object): Promise<any> {
-    return this.call('warn', message, payload);
+  async logWarn(message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+    return this.call('warn', message, payload, options);
   }
 }

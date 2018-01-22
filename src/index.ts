@@ -21,6 +21,7 @@ const contribMetrics = {
  * layer represents an output (console, POST request, file, etc).
  */
 export class Logger implements L {
+  errors = [];
   layers = [];
   options: LoggerOptions = {};
 
@@ -30,7 +31,10 @@ export class Logger implements L {
    * @param layers The logging layers to include.
    */
   constructor(layers: (string|LoggerLayer)[] = [], options = {}) {
-    this.options = {...options};
+    this.options = {
+      silent: false,
+      ...options
+    };
 
     // default for logging is just to use the console
     if (layers.length == 0) {
@@ -125,11 +129,20 @@ export class Logger implements L {
       Promise.all(promises)
         .then((results) => {
           this.after(results)
-
             .then(resolve);
         })
         .catch(reject);
-    });
+    })
+      .then(() => {
+        this.options.silent = false;
+      })
+      .catch((err) => {
+        this.errors.push(err);
+        if (!this.options.silent) {
+          throw err;
+        }
+        this.options.silent = false;
+      });
   }
 
   /**
@@ -187,14 +200,23 @@ export class Logger implements L {
   logWarn(message: any, payload?: object, options?: object) {
     return this.call('logWarn', message, payload, options);
   }
+
+  silent() {
+    this.options.silent = true;
+    return this;
+  }
 };
 
 export class Metrics implements M {
+  errors = [];
   layers = [];
   options: MetricsOptions = {};
 
   constructor(layers = [], options: MetricsOptions = {}) {
-    this.options = options;
+    this.options = {
+      silent: false,
+      ...options
+    };
 
     // default for logging is just to use the console
     if (layers.length == 0) {
@@ -225,15 +247,20 @@ export class Metrics implements M {
   async after(results: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.options.after) {
-        await this.options.after(results);
+        await this.options.after.apply(this, results);
       }
       resolve();
     });
   }
 
-  async before(metric: MetricInterface, options?: MetricsOptions): Promise<any> {
+  async before(metricType: string, metric: MetricInterface, options?: MetricsOptions): Promise<any> {
     const before = async () => {
       return new Promise(async (resolve, reject) => {
+        if (options.before) {
+          const result = await options.before.apply(this, [metricType, metric, options]);
+          metric = result.metric;
+          options = result.options;
+        }
         resolve({metric, options});
       });
     };
@@ -241,12 +268,16 @@ export class Metrics implements M {
     return await before();
   }
 
-  async decrement(...args: any[]) {
+  async call(metricType: string, ...args: any[]): Promise<any> {
+    if (['increment', 'decrement', 'timing'].indexOf(metricType) < 0) {
+      return Promise.reject(new Error(`Invalid metric type: ${metricType}`));
+    }
+
     const length = args.length;
 
     let options = this.options;
     if (length <= 0) {
-      throw new Error('Invalid arguments for decrement');
+      throw new Error(`Invalid arguments for ${metricType}`);
     }
     else if (length == 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
       options = {
@@ -257,11 +288,15 @@ export class Metrics implements M {
 
     const metric = new Metric(...args);
 
+    if (metricType === 'timing' && !metric.value) {
+      return Promise.reject(new Error('No value specified for a timing metric'));
+    }
+
     // call & wait for our before handlers
-    const beforeResult = await this.before(metric, options);
+    const beforeResult = await this.before(metricType, metric, options);
 
     // call the log function on each layer
-    const promises = this.layers.map((layer) => layer.decrement(metric, beforeResult.options));
+    const promises = this.layers.map((layer) => layer[metricType](metric, beforeResult.options));
 
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {
@@ -271,40 +306,27 @@ export class Metrics implements M {
             .then(resolve);
         })
         .catch(reject);
-    });
+    })
+      .then(() => { this.options.silent = false; })
+      .catch((err) => {
+        this.errors.push(err);
+        if (!this.options.silent) {
+          throw err;
+        }
+        this.options.silent = false;
+      });
   }
 
-  async increment(...args: any[]) {
-    const length = args.length;
+  async decrement(...args: any[]) {
+    return this.call('decrement', ...args);
+  }
 
-    let options = this.options;
-    if (length <= 0) {
-      throw new Error('Invalid arguments for increment');
-    }
-    else if (length == 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
-      options = {
-        ...this.options,
-        ...args[1]
-      };
-    }
+  async increment(...args: any[]): Promise<any> {
+    return this.call('increment', ...args);
+  }
 
-    const metric = new Metric(...args);
-
-    // call & wait for our before handlers
-    const beforeResult = await this.before(metric, options);
-
-    // call the log function on each layer
-    const promises = this.layers.map((layer) => layer.increment(metric, beforeResult.options));
-
-    // return a promise that will resolve when all layers are finished
-    return new Promise((resolve, reject) => {
-      Promise.all(promises)
-        .then((results) => {
-          this.after(results)
-            .then(resolve);
-        })
-        .catch(reject);
-    });
+  async timing(...args: any[]): Promise<any> {
+    return this.call('timing', ...args);
   }
 
   silent() {

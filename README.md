@@ -53,23 +53,80 @@ logger.log('Message', {payload: 123}, {requestHandler: (body, details) => {
 
 **Note:** logging methods are _asynchronous_ and return a `Promise`. So you can use `await` or handle the `Promise` if you want to ensure things worked.
 
+The `Logger` interface also supports "log levels". This allows you to specify the output levels you would like via flags. By default everything is logged.
+
+```javascript
+import {LOG_LEVELS} from 'bmindful/interfaces/logger';
+const l = new Logger(['console'], {
+  // logLevel can be a single level or multiple:
+  //   LOG_LEVELS.LOG_ERROR | LOG_LEVELS.LOG_LOG
+  // log only errors:
+  logLevel: LOG_LEVELS.LOG_ERROR,
+});
+```
+
 ## Metrics usage
 
 ```javascript
 const Metrics = require('bmindful').Metrics;
 
-const metrics = new Metrics('myapp', [
-  'console',
+const metrics = new Metrics([
   {
     type: 'json_post',
     host: 'metrics.example.com',
-    path: '/',
+    // specify distinct paths for each type of metric call
+    paths: {
+      increase: '/increase',
+      decrease: '/decrease',
+      // also supports $category and $metric variables to replace path with those items
+      timing: '/feature/$category/$metric',
+    }
   }
 ]);
 
 metrics.increase('category', 'metric');
 metrics.decrease('category', 'metric');
 metrics.timing('category', 'metric', value);
+```
+
+Metrics JSON POST can handle multiple paths for each metric type:
+
+```javascript
+const metrics = new Metrics()
+```
+
+## Error handling
+
+All logging & metrics calls are asynchronous, which also means that errors may occur. Since this package uses native Promises these need to be handled or you will get warnings about unhandled rejections.
+
+To do this, you can either implement your own error handling _or_ use the `silent()` option:
+
+```javascript
+// this will silence any errors that come from sending this metric
+metrics.silent().increase('metric');
+
+// you can still view errors in the metrics object if you want:
+if (metrics.errors) {
+  console.warn('There were errors sending metrics');
+}
+```
+
+`.silent()` only works on the current request: it will only stop an error from the current call, not subsequent calls.
+
+## Before/After
+
+Both `Metrics` and `Logging` support before and after hooks:
+
+```javascript
+const logging = new Logging(['console'], {
+  before: (message, payload, options) => {
+    return [message.toUpperCase(), payload, options];
+  }
+});
+
+const metrics = new Metrics(['console'], {
+  before: (message)
+});
 ```
 
 ## Development

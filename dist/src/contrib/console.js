@@ -45,7 +45,7 @@ class ConsoleMetrics extends contrib_metrics_1.default {
             return new Promise((resolve, reject) => {
                 const m = new metric_1.default(...args);
                 console.info('metrics: ' + m.toString() + ': -' + (m.value) ? Math.abs(Number(m.value)) : 1);
-                resolve();
+                resolve({ metric: m });
             });
         });
     }
@@ -54,7 +54,7 @@ class ConsoleMetrics extends contrib_metrics_1.default {
             return new Promise((resolve, reject) => {
                 const m = new metric_1.default(...args);
                 console.info('metrics: ' + m.toString() + ': +' + (m.value) ? Math.abs(Number(m.value)) : 1);
-                resolve();
+                resolve({ metric: m });
             });
         });
     }
@@ -63,7 +63,7 @@ class ConsoleMetrics extends contrib_metrics_1.default {
             return new Promise((resolve, reject) => {
                 const m = new metric_1.default(...args);
                 console.info('metrics: ' + m.toString() + ': ' + m.value);
-                resolve();
+                resolve({ metric: m });
             });
         });
     }

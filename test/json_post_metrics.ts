@@ -187,35 +187,89 @@ test('Metric post failure should throw an error', async (done) => {
     })
     .reply(500, {});
 
-  expect(() => {
-    m.increment('awesome', 'myMetric', 10)
-  }).rejects.toThrowError();
+  await expect(m.increment('awesome', 'myMetric', 10))
+    .rejects.toThrowError();
 
   done();
 });
 
-test('Metric silent() stops errors', async (done) => {
-  const m = new Metrics([
-    {
-      type: 'json_post',
-      host: 'metrics.example.com',
-      paths: {
-        increment: '/path/$category/$metric',
-      },
-    }
-  ]);
+describe('Metric silent()', () => {
+  test('stops errors from propegating', async (done) => {
+    const m = new Metrics([
+      {
+        type: 'json_post',
+        host: 'metrics.example.com',
+        paths: {
+          increment: '/path/$category/$metric',
+        },
+      }
+    ]);
 
-  const correctEndpoint = nock('http://metrics.example.com')
-    .post('/path/awesome/myMetric', {
-      environment: 'test',
-      type: 'increment',
-      value: 10,
-    })
-    .reply(500, {});
+    const correctEndpoint = nock('http://metrics.example.com')
+      .post('/path/awesome/myMetric', {
+        environment: 'test',
+        type: 'increment',
+        value: 10,
+      })
+      .reply(500, {});
 
-  expect(() => {
-    m.silent().increment('awesome', 'myMetric', 10);
-  }).rejects.not.toThrowError();
+    await expect(m.silent().increment('awesome', 'myMetric', 10))
+      .resolves.not.toThrowError();
+    // errors are still captured in the object...
+    expect(m.errors).toHaveLength(1);
+    done();
+  });
 
-  done();
+  test('only stops one error from propegating', async (done) => {
+    const m = new Metrics([
+      {
+        type: 'json_post',
+        host: 'metrics.example.com',
+        paths: {
+          increment: '/path/$category/$metric',
+        },
+      }
+    ]);
+
+    const correctEndpoint = nock('http://metrics.example.com')
+      .post('/path/awesome/myMetric', {
+        environment: 'test',
+        type: 'increment',
+        value: 10,
+      })
+      .reply(500, {});
+
+    await expect(m.silent().increment('awesome', 'myMetric', 10))
+      .resolves.not.toThrowError();
+    expect(m.options.silent).toBe(false);
+    await expect(m.increment('awesome', 'myMetric', 10))
+      .rejects.toThrowError();
+
+    done();
+  });
+
+  test('does not stop successful calls', async (done) => {
+    const m = new Metrics([
+      {
+        type: 'json_post',
+        host: 'metrics.example.com',
+        paths: {
+          increment: '/path/$category/$metric',
+        },
+      }
+    ]);
+
+    const correctEndpoint = nock('http://metrics.example.com')
+      .post('/path/awesome/myMetric', {
+        environment: 'test',
+        type: 'increment',
+        value: 10,
+      })
+      .reply(200, {});
+
+    await expect(m.silent().increment('awesome', 'myMetric', 10))
+      .resolves.not.toThrowError();
+
+    done();
+  });
 });

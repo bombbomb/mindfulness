@@ -158,3 +158,43 @@ test('can change request body on a call', async (done) => {
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
 });
+
+test('log fails on post error', async (done) => {
+  const l = new Logger([
+    { type: 'json_post', host: 'logging.example.com' }
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', {
+      severity: 'log',
+      type: 'log',
+      message: 'Hello!',
+      info: {},
+    })
+    .reply(500, {});
+
+  await expect(l.log('Hello!')).rejects.toThrow();
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});
+
+describe('log silent()', () => {
+  test('stops an error from propegating', async (done) => {
+    const l = new Logger([
+      { type: 'json_post', host: 'logging.example.com' }
+    ]);
+
+    const loggingEndpoint = nock('http://logging.example.com')
+      .post('/', {
+        severity: 'log',
+        type: 'log',
+        message: 'Hello!',
+        info: {},
+      })
+      .reply(500, {});
+
+    await expect(l.silent().log('Hello!')).resolves.not.toThrow();
+    done();
+  });
+});

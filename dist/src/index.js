@@ -32,9 +32,10 @@ class Logger {
      * @param layers The logging layers to include.
      */
     constructor(layers = [], options = {}) {
+        this.errors = [];
         this.layers = [];
         this.options = {};
-        this.options = Object.assign({}, options);
+        this.options = Object.assign({ silent: false }, options);
         // default for logging is just to use the console
         if (layers.length == 0) {
             layers = ['console'];
@@ -125,6 +126,16 @@ class Logger {
                         .then(resolve);
                 })
                     .catch(reject);
+            })
+                .then(() => {
+                this.options.silent = false;
+            })
+                .catch((err) => {
+                this.errors.push(err);
+                if (!this.options.silent) {
+                    throw err;
+                }
+                this.options.silent = false;
             });
         });
     }
@@ -176,14 +187,19 @@ class Logger {
     logWarn(message, payload, options) {
         return this.call('logWarn', message, payload, options);
     }
+    silent() {
+        this.options.silent = true;
+        return this;
+    }
 }
 exports.Logger = Logger;
 ;
 class Metrics {
     constructor(layers = [], options = {}) {
+        this.errors = [];
         this.layers = [];
         this.options = {};
-        this.options = options;
+        this.options = Object.assign({ silent: false }, options);
         // default for logging is just to use the console
         if (layers.length == 0) {
             layers = ['console'];
@@ -210,37 +226,48 @@ class Metrics {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 if (this.options.after) {
-                    yield this.options.after(results);
+                    yield this.options.after.apply(this, results);
                 }
                 resolve();
             }));
         });
     }
-    before(metric, options) {
+    before(metricType, metric, options) {
         return __awaiter(this, void 0, void 0, function* () {
             const before = () => __awaiter(this, void 0, void 0, function* () {
                 return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                    if (options.before) {
+                        const result = yield options.before.apply(this, [metricType, metric, options]);
+                        metric = result.metric;
+                        options = result.options;
+                    }
                     resolve({ metric, options });
                 }));
             });
             return yield before();
         });
     }
-    decrement(...args) {
+    call(metricType, ...args) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (['increment', 'decrement', 'timing'].indexOf(metricType) < 0) {
+                return Promise.reject(new Error(`Invalid metric type: ${metricType}`));
+            }
             const length = args.length;
             let options = this.options;
             if (length <= 0) {
-                throw new Error('Invalid arguments for decrement');
+                throw new Error(`Invalid arguments for ${metricType}`);
             }
             else if (length == 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
                 options = Object.assign({}, this.options, args[1]);
             }
             const metric = new metric_1.default(...args);
+            if (metricType === 'timing' && !metric.value) {
+                return Promise.reject(new Error('No value specified for a timing metric'));
+            }
             // call & wait for our before handlers
-            const beforeResult = yield this.before(metric, options);
+            const beforeResult = yield this.before(metricType, metric, options);
             // call the log function on each layer
-            const promises = this.layers.map((layer) => layer.decrement(metric, beforeResult.options));
+            const promises = this.layers.map((layer) => layer[metricType](metric, beforeResult.options));
             // return a promise that will resolve when all layers are finished
             return new Promise((resolve, reject) => {
                 Promise.all(promises)
@@ -249,33 +276,30 @@ class Metrics {
                         .then(resolve);
                 })
                     .catch(reject);
+            })
+                .then(() => { this.options.silent = false; })
+                .catch((err) => {
+                this.errors.push(err);
+                if (!this.options.silent) {
+                    throw err;
+                }
+                this.options.silent = false;
             });
+        });
+    }
+    decrement(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.call('decrement', ...args);
         });
     }
     increment(...args) {
         return __awaiter(this, void 0, void 0, function* () {
-            const length = args.length;
-            let options = this.options;
-            if (length <= 0) {
-                throw new Error('Invalid arguments for increment');
-            }
-            else if (length == 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
-                options = Object.assign({}, this.options, args[1]);
-            }
-            const metric = new metric_1.default(...args);
-            // call & wait for our before handlers
-            const beforeResult = yield this.before(metric, options);
-            // call the log function on each layer
-            const promises = this.layers.map((layer) => layer.increment(metric, beforeResult.options));
-            // return a promise that will resolve when all layers are finished
-            return new Promise((resolve, reject) => {
-                Promise.all(promises)
-                    .then((results) => {
-                    this.after(results)
-                        .then(resolve);
-                })
-                    .catch(reject);
-            });
+            return this.call('increment', ...args);
+        });
+    }
+    timing(...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.call('timing', ...args);
         });
     }
     silent() {

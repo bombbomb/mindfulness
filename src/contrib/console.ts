@@ -37,7 +37,7 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
     return new Promise((resolve, reject) => {
       const m = new Metric(...args);
       console.info('metrics: ' + m.toString() + ': -' + (m.value) ? Math.abs(Number(m.value)) : 1);
-      resolve();
+      resolve({metric: m});
     });
   }
 
@@ -45,7 +45,7 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
     return new Promise((resolve, reject) => {
       const m = new Metric(...args);
       console.info('metrics: ' + m.toString() + ': +' + (m.value) ? Math.abs(Number(m.value)) : 1);
-      resolve();
+      resolve({ metric: m });
     });
   }
 
@@ -53,7 +53,7 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
     return new Promise((resolve, reject) => {
       const m = new Metric(...args);
       console.info('metrics: ' + m.toString() + ': ' + m.value);
-      resolve();
+      resolve({ metric: m });
     });
   }
 }

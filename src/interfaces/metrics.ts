@@ -7,7 +7,7 @@ export interface MetricInterface {
 };
 
 export interface MetricsBeforeCallback {
-  (metric: MetricInterface): Promise<{ metric: MetricInterface, options: MetricsOptions }>;
+  (metricType: string, metric: MetricInterface, options: MetricsOptions): Promise<any>;
 }
 
 export interface MetricsAfterCallback {
@@ -27,7 +27,7 @@ export interface MetricsOptions {
 
 export interface M {
   layers: object[];
-  before: (metric: MetricInterface) => Promise<{ metric: MetricInterface, options: object }>;
+  before: (metricType: string, metric: MetricInterface) => Promise<{ metric: MetricInterface, options: object }>;
   after: (err: object) => Promise<any>;
 };
 

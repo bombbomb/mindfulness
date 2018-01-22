@@ -159,31 +159,78 @@ test('Metric post failure should throw an error', (done) => __awaiter(this, void
         value: 10,
     })
         .reply(500, {});
-    expect(() => {
-        m.increment('awesome', 'myMetric', 10);
-    }).rejects.toThrowError();
+    yield expect(m.increment('awesome', 'myMetric', 10))
+        .rejects.toThrowError();
     done();
 }));
-test('Metric silent() stops errors', (done) => __awaiter(this, void 0, void 0, function* () {
-    const m = new index_1.Metrics([
-        {
-            type: 'json_post',
-            host: 'metrics.example.com',
-            paths: {
-                increment: '/path/$category/$metric',
-            },
-        }
-    ]);
-    const correctEndpoint = nock_1.default('http://metrics.example.com')
-        .post('/path/awesome/myMetric', {
-        environment: 'test',
-        type: 'increment',
-        value: 10,
-    })
-        .reply(500, {});
-    expect(() => {
-        m.silent().increment('awesome', 'myMetric', 10);
-    }).rejects.not.toThrowError();
-    done();
-}));
+describe('Metric silent()', () => {
+    test('stops errors from propegating', (done) => __awaiter(this, void 0, void 0, function* () {
+        const m = new index_1.Metrics([
+            {
+                type: 'json_post',
+                host: 'metrics.example.com',
+                paths: {
+                    increment: '/path/$category/$metric',
+                },
+            }
+        ]);
+        const correctEndpoint = nock_1.default('http://metrics.example.com')
+            .post('/path/awesome/myMetric', {
+            environment: 'test',
+            type: 'increment',
+            value: 10,
+        })
+            .reply(500, {});
+        yield expect(m.silent().increment('awesome', 'myMetric', 10))
+            .resolves.not.toThrowError();
+        // errors are still captured in the object...
+        expect(m.errors).toHaveLength(1);
+        done();
+    }));
+    test('only stops one error from propegating', (done) => __awaiter(this, void 0, void 0, function* () {
+        const m = new index_1.Metrics([
+            {
+                type: 'json_post',
+                host: 'metrics.example.com',
+                paths: {
+                    increment: '/path/$category/$metric',
+                },
+            }
+        ]);
+        const correctEndpoint = nock_1.default('http://metrics.example.com')
+            .post('/path/awesome/myMetric', {
+            environment: 'test',
+            type: 'increment',
+            value: 10,
+        })
+            .reply(500, {});
+        yield expect(m.silent().increment('awesome', 'myMetric', 10))
+            .resolves.not.toThrowError();
+        expect(m.options.silent).toBe(false);
+        yield expect(m.increment('awesome', 'myMetric', 10))
+            .rejects.toThrowError();
+        done();
+    }));
+    test('does not stop successful calls', (done) => __awaiter(this, void 0, void 0, function* () {
+        const m = new index_1.Metrics([
+            {
+                type: 'json_post',
+                host: 'metrics.example.com',
+                paths: {
+                    increment: '/path/$category/$metric',
+                },
+            }
+        ]);
+        const correctEndpoint = nock_1.default('http://metrics.example.com')
+            .post('/path/awesome/myMetric', {
+            environment: 'test',
+            type: 'increment',
+            value: 10,
+        })
+            .reply(200, {});
+        yield expect(m.silent().increment('awesome', 'myMetric', 10))
+            .resolves.not.toThrowError();
+        done();
+    }));
+});
 //# sourceMappingURL=json_post_metrics.js.map

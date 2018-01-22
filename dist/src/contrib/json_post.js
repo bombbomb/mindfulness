@@ -68,7 +68,7 @@ class JsonPostLogger extends contrib_logger_1.default {
         });
     }
     /**
-     * Build the request body and hand off to a requestHandler if specified.
+     * Build the request body and hand off to a requestBodyCallback if specified.
      *
      * @param level Log level string
      * @param message Message being logged
@@ -83,8 +83,8 @@ class JsonPostLogger extends contrib_logger_1.default {
             type: level
         };
         const callOptions = this.getCallOptions(options);
-        if (callOptions.requestHandler) {
-            body = callOptions.requestHandler(body, { level, message, payload, callOptions });
+        if (callOptions.requestBodyCallback) {
+            body = callOptions.requestBodyCallback(body, { level, message, payload, callOptions });
         }
         return body;
     }
@@ -180,7 +180,7 @@ class JsonPostMetrics extends contrib_metrics_1.default {
         return 'production';
     }
     /**
-     * Build the request body and hand off to a requestHandler if specified.
+     * Build the request body and hand off to a requestBodyCallback if specified.
      *
      * @param metricType The type of call being made
      * @param metric The metric object being sent

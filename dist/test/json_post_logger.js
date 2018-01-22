@@ -88,7 +88,7 @@ test('can change request body', (done) => __awaiter(this, void 0, void 0, functi
         {
             type: 'json_post',
             host: 'logging.example.com',
-            requestHandler: (body, details) => {
+            requestBodyCallback: (body, details) => {
                 return Object.assign({}, body, { injected: 123 });
             }
         }
@@ -132,7 +132,7 @@ test('can change request body on a call', (done) => __awaiter(this, void 0, void
         return true;
     })
         .reply(200, {});
-    yield l.log('Error doing things', { payload: 234 }, { requestHandler: (body, details) => {
+    yield l.log('Error doing things', { payload: 234 }, { requestBodyCallback: (body, details) => {
             return Object.assign({}, body, { injected: 123 });
         } });
     expect(loggingEndpoint.isDone()).toBe(true);

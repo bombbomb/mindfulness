@@ -42,7 +42,7 @@ catch (err) {
 }
 
 // change the request body with the post logger:
-logger.log('Message', {payload: 123}, {requestHandler: (body, details) => {
+logger.log('Message', {payload: 123}, {requestBodyCallback: (body, details) => {
   return {
     ...body,
     // add .environment to the body
@@ -128,6 +128,25 @@ const metrics = new Metrics(['console'], {
   before: (message)
 });
 ```
+
+## JSON POST
+
+JSON POST also can also be modified/customized in a few ways:
+
+```javascript
+
+const l = new Logger([{
+  type: 'json_post',
+  requestBodyCallback: (body, details) => {
+    return {
+      ...body,
+      anotherThing: 123,
+    }
+  }
+}]);
+```
+
+
 
 ## Development
 

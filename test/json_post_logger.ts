@@ -95,7 +95,7 @@ test('can change request body', async (done) => {
     {
       type: 'json_post',
       host: 'logging.example.com',
-      requestHandler: (body, details) => {
+      requestBodyCallback: (body, details) => {
         return {
           ...body,
           injected: 123
@@ -148,7 +148,7 @@ test('can change request body on a call', async (done) => {
     })
     .reply(200, {});
 
-  await l.log('Error doing things', { payload: 234 }, { requestHandler: (body, details) => {
+  await l.log('Error doing things', { payload: 234 }, { requestBodyCallback: (body, details) => {
     return {
       ...body,
       injected: 123

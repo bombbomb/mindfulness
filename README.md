@@ -69,6 +69,7 @@ const metrics = new Metrics('myapp', [
 
 metrics.increase('category', 'metric');
 metrics.decrease('category', 'metric');
+metrics.timing('category', 'metric', value);
 ```
 
 ## Development

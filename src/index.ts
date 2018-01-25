@@ -139,7 +139,7 @@ export class Logger implements L {
       })
       .catch((err) => {
         this.errors.push(err);
-        if (!this.options.silent && !this.options.alwaysSilent) {
+        if (!this.options.alwaysSilent && !this.options.silent) {
           throw err;
         }
         this.options.silent = false;

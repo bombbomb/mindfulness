@@ -3,7 +3,7 @@ import {LoggerInterface, LOG_LEVELS, LoggerOptions, L} from '../interfaces/logge
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import {getLogLevelConstant} from '../util/logging';
-import { MetricsInterface, MetricsOptions } from '../interfaces/metrics';
+import { MetricsInterface, MetricsOptions, M } from '../interfaces/metrics';
 import Metric from "../models/metric";
 
 /**
@@ -12,6 +12,13 @@ import Metric from "../models/metric";
  * Passes off a log message to a remote endpoint.
  */
 export class JsonPostLogger extends ContribLogger implements LoggerInterface {
+  constructor(parent: L, options?: LoggerOptions) {
+    options = {
+      ...options
+    }
+    super(parent, options);
+  }
+
   /**
    * Send the POST request.
    *
@@ -41,12 +48,10 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
           reject(e);
         }
 
-        const requestOptions = {
-          body: this.getRequestBody(level, message, payload, options),
-          method: 'POST',
-          uri: this.getRequestUri(options),
-          json: true
-        };
+        const requestOptions: object = this.getRequestOptions({
+          json: true,
+          resolveWithFullResponse: true
+        }, level, message, payload, callOptions);
 
         try {
           const response = await request(requestOptions);
@@ -88,15 +93,47 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
   }
 
   /**
+   * Get the request() options.
+   *
+   * @param request The current request() options
+   * @param metricType The metric type being called
+   * @param metric The metric being updated
+   * @param options Call-specific options.
+   */
+  getRequestOptions(request: object, level: string, message: any, payload: object, options: LoggerOptions): object {
+    if (options.requestOptionsCallback) {
+      const result = options.requestOptionsCallback(request, level, message, payload, options);
+      if (result && typeof result === 'object') {
+        request = result;
+      }
+      else {
+        console.warn('The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: ' + typeof result);
+      }
+    }
+
+    let thisRequest: { method: string, uri: string, body: (string | object), json?: boolean } = {
+      ...request,
+      method: 'POST',
+      uri: this.getRequestUri(level, message, payload, options),
+      body: this.getRequestBody(level, message, payload, options),
+    };
+
+    if (typeof thisRequest.body === 'object') {
+      thisRequest.json = true;
+    }
+
+    return thisRequest;
+  }
+
+  /**
    * Get the request URI based on options.
    */
-  getRequestUri(options?: LoggerOptions): string {
+  getRequestUri(level: string, message: any, payload: object, options?: LoggerOptions): string {
     const callOptions = this.getCallOptions(options);
-
     let url = '';
 
     const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
-    const host = (callOptions.host) ? String(callOptions.host) : 'localhost';
+    const host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
     const path = (callOptions.path) ? String(callOptions.path) : '/';
 
@@ -106,6 +143,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     }
 
     url += path;
+    url = url.replace(/\$level(\/)?/, level + '$1');
 
     return url;
   }
@@ -117,6 +155,13 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
  * Passes off a metrics request to a remote endpoint.
  */
 export class JsonPostMetrics extends ContribMetrics implements MetricsInterface {
+  constructor(parent: M, options?: LoggerOptions) {
+    options = {
+      ...options
+    }
+    super(parent, options);
+  }
+
   /**
    * Send the POST request.
    *
@@ -127,8 +172,9 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
   async call(metricType: string, metric: Metric, options?: MetricsOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
-      const requestOptions = this.getRequestOptions({
-        json: true
+      const requestOptions: object = this.getRequestOptions({
+        json: true,
+        resolveWithFullResponse: true
       }, metricType, metric, callOptions);
 
       try {

@@ -71,6 +71,7 @@ const l = new Logger(['console'], {
 const Metrics = require('bb-mindful').Metrics;
 
 const metrics = new Metrics([
+  // post metrics to metrics.example.com
   {
     type: 'json_post',
     host: 'metrics.example.com',
@@ -113,6 +114,8 @@ if (metrics.errors) {
 
 `.silent()` only works on the current request: it will only stop an error from the current call, not subsequent calls.
 
+Additionally, you can configure both classes to always supress errors with `alwaysSilent: true` in it's options.
+
 ## Before/After
 
 Both `Metrics` and `Logging` support before and after hooks:
@@ -139,7 +142,6 @@ const metrics = new Metrics(['console'], {
 JSON POST also can also be modified/customized in a few ways:
 
 ```javascript
-
 const l = new Logger([{
   type: 'json_post',
   // modify the "body" that is posted to the endpoint...

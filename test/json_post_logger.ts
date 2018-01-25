@@ -179,6 +179,26 @@ test('log fails on post error', async (done) => {
   done();
 });
 
+test('$level variables is processed in the url', async (done) => {
+  const l = new Logger([
+    { type: 'json_post', host: 'logging.example.com', path: '/$level' }
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/log', {
+      severity: 'log',
+      type: 'log',
+      message: 'Hello!',
+      info: {},
+    })
+    .reply(200, {});
+
+  await l.log('Hello!');
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});
+
 describe('log silent()', () => {
   test('stops an error from propegating', async (done) => {
     const l = new Logger([

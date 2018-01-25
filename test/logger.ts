@@ -1,3 +1,4 @@
+import nock from 'nock';
 import {Logger} from '../src/index';
 
 const spies = {
@@ -104,5 +105,26 @@ test('Logger handlers "after" callbacks', async (done) => {
   await l.log('hi');
   expect(spies.log).toHaveBeenCalled();
   expect(spy).toHaveBeenCalled();
+  done();
+});
+
+test('Logger alwaysSilent option stops all request errors', async (done) => {
+  const loggingEndpoint = nock('http://logging.example.com')
+    .persist(true)
+    .post('/')
+    .reply(500, {});
+  const l = new Logger([{type: 'json_post', host: 'http://logging.example.com'}], {alwaysSilent: true});
+  await expect(l.log('Message 1')).resolves.not.toThrow();
+  await expect(l.log('Message 2')).resolves.not.toThrow();
+  done();
+});
+
+test('Logger without alwaysSilent fails on request errors', async (done) => {
+  const loggingEndpoint = nock('http://logging.example.com')
+    .persist(true)
+    .post('/')
+    .reply(500, {});
+  const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }], { alwaysSilent: false });
+  await expect(l.log('Message 1')).rejects.toThrow();
   done();
 });

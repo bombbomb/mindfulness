@@ -35,7 +35,7 @@ class Logger {
         this.errors = [];
         this.layers = [];
         this.options = {};
-        this.options = Object.assign({ silent: false }, options);
+        this.options = Object.assign({ alwaysSilent: false, silent: false }, options);
         // default for logging is just to use the console
         if (layers.length == 0) {
             layers = ['console'];
@@ -132,7 +132,7 @@ class Logger {
             })
                 .catch((err) => {
                 this.errors.push(err);
-                if (!this.options.silent) {
+                if (!this.options.silent && !this.options.alwaysSilent) {
                     throw err;
                 }
                 this.options.silent = false;
@@ -199,7 +199,7 @@ class Metrics {
         this.errors = [];
         this.layers = [];
         this.options = {};
-        this.options = Object.assign({ silent: false }, options);
+        this.options = Object.assign({ alwaysSilent: false, silent: false }, options);
         // default for logging is just to use the console
         if (layers.length == 0) {
             layers = ['console'];
@@ -280,7 +280,7 @@ class Metrics {
                 .then(() => { this.options.silent = false; })
                 .catch((err) => {
                 this.errors.push(err);
-                if (!this.options.silent) {
+                if (!this.options.silent && !this.options.alwaysSilent) {
                     throw err;
                 }
                 this.options.silent = false;

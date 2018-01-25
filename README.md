@@ -1,15 +1,15 @@
-# bmindful
+# bb-mindful
 
 A simple interface for logging and metrics endpoints.
 
 ## Install
 
-    npm install --save bmindful
+    npm install --save bb-mindful
 
 ## Logging usage
 
 ```javascript
-const Logger = require('bmindful').Logger;
+const Logger = require('bb-mindful').Logger;
 
 const logger = new Logger([
   // log to the console
@@ -56,7 +56,7 @@ logger.log('Message', {payload: 123}, {requestBodyCallback: (body, details) => {
 The `Logger` interface also supports "log levels". This allows you to specify the output levels you would like via flags. By default everything is logged.
 
 ```javascript
-import {LOG_LEVELS} from 'bmindful/interfaces/logger';
+import {LOG_LEVELS} from 'bb-mindful/interfaces/logger';
 const l = new Logger(['console'], {
   // logLevel can be a single level or multiple:
   //   LOG_LEVELS.LOG_ERROR | LOG_LEVELS.LOG_LOG
@@ -68,7 +68,7 @@ const l = new Logger(['console'], {
 ## Metrics usage
 
 ```javascript
-const Metrics = require('bmindful').Metrics;
+const Metrics = require('bb-mindful').Metrics;
 
 const metrics = new Metrics([
   {
@@ -125,7 +125,12 @@ const logging = new Logging(['console'], {
 });
 
 const metrics = new Metrics(['console'], {
-  before: (message)
+  before: (metricType, metric) => {
+    if (!metric.value) {
+      metric.value = 1;
+    }
+    return {metric};
+  }
 });
 ```
 
@@ -137,6 +142,7 @@ JSON POST also can also be modified/customized in a few ways:
 
 const l = new Logger([{
   type: 'json_post',
+  // modify the "body" that is posted to the endpoint...
   requestBodyCallback: (body, details) => {
     return {
       ...body,
@@ -146,7 +152,7 @@ const l = new Logger([{
 }]);
 ```
 
-
+The JSON POST functionality will also default to `localhost` if you do not specify a host.
 
 ## Development
 
@@ -158,3 +164,7 @@ npm install
 To build from Typescript: `npm build` or `npm build-watch`
 
 To test: `npm test` or `npm test-watch`
+
+## Future
+
+* Custom metrics/logger outputs? e.g. `new Metrics([MySpecialMetricsHandler])`

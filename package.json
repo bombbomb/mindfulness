@@ -1,5 +1,5 @@
 {
-  "name": "bmindful",
+  "name": "bb-mindful",
   "version": "1.0.0",
   "description": "Simple logging and metrics interfaces",
   "main": "dist/index.js",

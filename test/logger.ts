@@ -57,7 +57,7 @@ test('Logger with incorrect layer throws error', () => {
 test('Logger handles "before" callbacks', async (done) => {
   const before = function (message: string, payload?: object) {
     return new Promise((resolve) => {
-      const result = {payload, message: message + '!', options: this.options};
+      const result = {payload, message: `${message}!`, options: this.options};
       resolve(result);
     });
   };
@@ -74,7 +74,7 @@ test('Logger handles "before" callbacks', async (done) => {
 test('Logger handles a call-specific "before" callback', async (done) => {
   const before = function (message: string, payload?: object) {
     return new Promise((resolve) => {
-      const result = { payload, message: message + '!', options: this.options };
+      const result = { payload, message: `${message}!`, options: this.options };
       resolve(result);
     });
   };
@@ -94,9 +94,8 @@ test('Logger handles a call-specific "before" callback', async (done) => {
 
 test('Logger handlers "after" callbacks', async (done) => {
   const after = function (message: string, payload?: object) {
-    console.log('after');
     return new Promise((resolve) => {
-      const result = { payload, message: message + '!', options: this.options };
+      const result = { payload, message: `${message}!`, options: this.options };
       resolve(result);
     });
   };
@@ -116,7 +115,7 @@ test('Logger alwaysSilent option stops all request errors', async (done) => {
     .persist(true)
     .post('/')
     .reply(500, {});
-  const l = new Logger([{type: 'json_post', host: 'http://logging.example.com'}], {alwaysSilent: true});
+  const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }], { alwaysSilent: true });
   await expect(l.log('Message 1')).resolves.not.toThrow();
   await expect(l.log('Message 2')).resolves.not.toThrow();
   done();
@@ -148,7 +147,7 @@ test('Logger filterLayers with callback', () => {
   expect(l.layers[0].active).toBe(true);
   expect(l.layers[1].active).toBe(true);
 
-  l.filterLayers((layer) => layer instanceof JsonPostLogger);
+  l.filterLayers(layer => layer instanceof JsonPostLogger);
 
   expect(l.layers[0].active).toBe(false);
   expect(l.layers[1].active).toBe(true);
@@ -179,7 +178,7 @@ test('Logger calls can specify which layer to use for this call only', async (do
   expect(loggingEndpoint.isDone()).toBe(false);
 
   // all layers should be active...
-  for (let index = 0; index < l.layers.length; index++) {
+  for (let index = 0; index < l.layers.length; index += 1) {
     expect(l.layers[index].active).toBe(true);
   }
 

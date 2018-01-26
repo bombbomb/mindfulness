@@ -56,8 +56,9 @@ test('Metrics.timing() fails with no value', async (done) => {
 test('Metrics handles "before" calls', async (done) => {
   const before = (metricType: string, metric: MetricInterface) => (
     new Promise((resolve) => {
-      metric.value = 10;
-      const result = { metric };
+      const thisMetric = metric;
+      thisMetric.value = 10;
+      const result = { thisMetric };
       resolve(result);
     })
   );

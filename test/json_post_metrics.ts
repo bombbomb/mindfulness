@@ -18,20 +18,20 @@ test('JsonPostMetrics.getRequestOptions returns object', () => {
       method: 'POST',
       uri: 'http://metrics.example.com/',
       body: {
-        environment: 'test'
+        environment: 'test',
       },
     });
 });
 
 test('send metrics via post request to example.com', async (done) => {
   const m = new Metrics([
-    {type: 'json_post', host: 'metrics.example.com'}
+    { type: 'json_post', host: 'metrics.example.com' }
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
       environment: 'test',
-      type: 'increment'
+      type: 'increment',
     })
     .reply(200, {});
 
@@ -50,10 +50,10 @@ test('Can modify the request body with requestBodyCallback', async (done) => {
         const newBody = {
           ...body,
           newElement: 123,
-        }
+        };
         return newBody;
-      }
-    }
+      },
+    },
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')
@@ -75,7 +75,7 @@ test('Decrement requests include a different type', async (done) => {
     {
       type: 'json_post',
       host: 'metrics.example.com',
-    }
+    },
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')
@@ -100,7 +100,7 @@ test('Decrement requests to a different URL', async (done) => {
       paths: {
         decrement: '/decrement',
       },
-    }
+    },
   ]);
 
   const incorrectEndpoint = nock('http://metrics.example.com')
@@ -130,7 +130,7 @@ test('Include metric value in the request URL', async (done) => {
       paths: {
         increment: '/path/$category/$metric',
       },
-    }
+    },
   ]);
 
   const correctEndpoint = nock('http://metrics.example.com')
@@ -155,7 +155,7 @@ test('Include metric and category value in the request URL', async (done) => {
       paths: {
         increment: '/path/$category/$metric',
       },
-    }
+    },
   ]);
 
   const correctEndpoint = nock('http://metrics.example.com')
@@ -180,7 +180,7 @@ test('Metric post failure should throw an error', async (done) => {
       paths: {
         increment: '/path/$category/$metric',
       },
-    }
+    },
   ]);
 
   const correctEndpoint = nock('http://metrics.example.com')
@@ -206,7 +206,7 @@ describe('Metric silent()', () => {
         paths: {
           increment: '/path/$category/$metric',
         },
-      }
+      },
     ]);
 
     const correctEndpoint = nock('http://metrics.example.com')
@@ -232,7 +232,7 @@ describe('Metric silent()', () => {
         paths: {
           increment: '/path/$category/$metric',
         },
-      }
+      },
     ]);
 
     const correctEndpoint = nock('http://metrics.example.com')
@@ -260,7 +260,7 @@ describe('Metric silent()', () => {
         paths: {
           increment: '/path/$category/$metric',
         },
-      }
+      },
     ]);
 
     const correctEndpoint = nock('http://metrics.example.com')

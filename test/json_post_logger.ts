@@ -7,7 +7,7 @@ afterEach(() => {
 
 test('log via post request to example.com', async (done) => {
   const l = new Logger([
-    {type: 'json_post', host: 'logging.example.com'}
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -27,7 +27,7 @@ test('log via post request to example.com', async (done) => {
 
 test('log via post payload request to example.com', async (done) => {
   const l = new Logger([
-    {type: 'json_post', host: 'logging.example.com'}
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -35,11 +35,11 @@ test('log via post payload request to example.com', async (done) => {
       severity: 'log',
       type: 'log',
       message: 'Hello!',
-      info: {example:123},
+      info: { example: 123 },
     })
     .reply(200, {});
 
-  await l.log('Hello!', {example: 123});
+  await l.log('Hello!', { example: 123 });
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -47,7 +47,7 @@ test('log via post payload request to example.com', async (done) => {
 
 test('log object for message', async (done) => {
   const l = new Logger([
-    {type: 'json_post', host: 'logging.example.com'}
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -56,13 +56,13 @@ test('log object for message', async (done) => {
         severity: 'log',
         type: 'log',
         message: '{"example":123}',
-        info: {}
-      })
+        info: {},
+      });
       return true;
     })
     .reply(200, {});
 
-  await l.log({example: 123});
+  await l.log({ example: 123 });
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -70,7 +70,7 @@ test('log object for message', async (done) => {
 
 test('log error for payload', async (done) => {
   const l = new Logger([
-    { type: 'json_post', host: 'logging.example.com' }
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -82,8 +82,8 @@ test('log error for payload', async (done) => {
         info: {
           message: 'You did everything wrong',
           stack: expect.any(String),
-        }
-      })
+        },
+      });
       return true;
     })
     .reply(200, {});
@@ -99,13 +99,11 @@ test('can change request body', async (done) => {
     {
       type: 'json_post',
       host: 'logging.example.com',
-      requestBodyCallback: (body, details) => {
-        return {
-          ...body,
-          injected: 123
-        }
-      }
-    }
+      requestBodyCallback: (body, details) => ({
+        ...body,
+        injected: 123,
+      }),
+    },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -117,8 +115,8 @@ test('can change request body', async (done) => {
         injected: 123,
         info: {
           payload: 234,
-        }
-      })
+        },
+      });
       return true;
     })
     .reply(200, {});
@@ -134,7 +132,7 @@ test('can change request body on a call', async (done) => {
     {
       type: 'json_post',
       host: 'logging.example.com',
-    }
+    },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -146,18 +144,18 @@ test('can change request body on a call', async (done) => {
         injected: 123,
         info: {
           payload: 234,
-        }
-      })
+        },
+      });
       return true;
     })
     .reply(200, {});
 
-  await l.log('Error doing things', { payload: 234 }, { requestBodyCallback: (body, details) => {
-    return {
+  await l.log('Error doing things', { payload: 234 }, {
+    requestBodyCallback: (body, details) => ({
       ...body,
-      injected: 123
-    }
-  }});
+      injected: 123,
+    }),
+  });
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -165,7 +163,7 @@ test('can change request body on a call', async (done) => {
 
 test('log fails on post error', async (done) => {
   const l = new Logger([
-    { type: 'json_post', host: 'logging.example.com' }
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -185,7 +183,7 @@ test('log fails on post error', async (done) => {
 
 test('$level variables is processed in the url', async (done) => {
   const l = new Logger([
-    { type: 'json_post', host: 'logging.example.com', path: '/$level' }
+    { type: 'json_post', host: 'logging.example.com', path: '/$level' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
@@ -206,7 +204,7 @@ test('$level variables is processed in the url', async (done) => {
 describe('log silent()', () => {
   test('stops an error from propegating', async (done) => {
     const l = new Logger([
-      { type: 'json_post', host: 'logging.example.com' }
+      { type: 'json_post', host: 'logging.example.com' },
     ]);
 
     const loggingEndpoint = nock('http://logging.example.com')

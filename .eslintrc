@@ -1,9 +1,16 @@
 {
   "extends": "airbnb-base",
-  "overrides": [
-    {
-      "files": "examples/**/*.js",
-      "excludedFiles": "dist/**/*.js"
-    }
-  ]
+  "parser": "typescript-eslint-parser",
+  "rules": {
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    "import/extensions": "off",
+    "import/no-unresolved": "off",
+    "max-len": "warn",
+    "indent": "off",
+    "brace-style": ["error", "stroustrup"],
+    "no-bitwise": "off",
+    "no-console": "off",
+    "class-methods-use-this": "off"
+  }
 }

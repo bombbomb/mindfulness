@@ -54,30 +54,30 @@ test('Metrics.timing() fails with no value', async (done) => {
 });
 
 test('Metrics handles "before" calls', async (done) => {
-  const before = function (metricType: string, metric: MetricInterface) {
-    return new Promise((resolve) => {
+  const before = (metricType: string, metric: MetricInterface) => (
+    new Promise((resolve) => {
       metric.value = 10;
-      const result = {metric};
+      const result = { metric };
       resolve(result);
-    });
-  };
+    })
+  );
 
   const m = new Metrics(['console'], { before });
   await m.increment('metric');
 
-  expect(spies.info.mock.calls[0]).toContain(10);
+  expect(spies.info.mock.calls[0][0]).toMatch(/10$/);
 
   done();
 });
 
 test('Metrics handles "after" calls', async (done) => {
   let afterCalled = false;
-  const after = function (results) {
-    return new Promise((resolve) => {
+  const after = results => (
+    new Promise((resolve) => {
       afterCalled = true;
       resolve(results);
-    });
-  };
+    })
+  );
 
   const m = new Metrics(['console'], { after });
   await m.increment('metric');

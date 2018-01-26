@@ -1,17 +1,20 @@
 import nock from 'nock';
 import {Logger} from '../src/index';
+import { JsonPostLogger } from '../src/contrib/json_post';
 
 const spies = {
   log: jest.spyOn(global.console, 'log'),
   info: jest.spyOn(global.console, 'info'),
   error: jest.spyOn(global.console, 'error'),
-  warn: jest.spyOn(global.console, 'warn'),
+  // warn: jest.spyOn(global.console, 'warn'),
 };
 
 afterEach(() => {
   Object.keys(spies).forEach((spy) => {
     spies[spy].mockReset();
   });
+
+  nock.cleanAll();
 });
 
 afterAll(() => {
@@ -126,5 +129,63 @@ test('Logger without alwaysSilent fails on request errors', async (done) => {
     .reply(500, {});
   const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }], { alwaysSilent: false });
   await expect(l.log('Message 1')).rejects.toThrow();
+  done();
+});
+
+test('Logger filterLayers with string', () => {
+  const l = new Logger(['console', {type: 'json_post'}]);
+  expect(l.layers[0].active).toBe(true);
+  expect(l.layers[1].active).toBe(true);
+
+  l.filterLayers('console');
+
+  expect(l.layers[0].active).toBe(true);
+  expect(l.layers[1].active).toBe(false);
+});
+
+test('Logger filterLayers with callback', () => {
+  const l = new Logger(['console', { type: 'json_post' }]);
+  expect(l.layers[0].active).toBe(true);
+  expect(l.layers[1].active).toBe(true);
+
+  l.filterLayers((layer) => layer instanceof JsonPostLogger);
+
+  expect(l.layers[0].active).toBe(false);
+  expect(l.layers[1].active).toBe(true);
+});
+
+test('Logger calls can specify which layer to use for this call', async (done) => {
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/')
+    .reply(200, {});
+  const l = new Logger(['console', { type: 'json_post', host: 'http://logging.example.com' }]);
+
+  await l.filterLayers('console').logError('Something went wrong');
+  expect(spies.error).toHaveBeenCalled();
+  expect(loggingEndpoint.isDone()).toBe(false);
+
+  done();
+});
+
+test('Logger calls can specify which layer to use for this call only', async (done) => {
+  const loggingEndpoint = nock('http://logging.example.com')
+    .persist()
+    .post('/')
+    .reply(200, {});
+  const l = new Logger(['console', { type: 'json_post', host: 'http://logging.example.com' }]);
+
+  await l.filterLayers('console').logError('Something went wrong');
+  expect(spies.error).toHaveBeenCalled();
+  expect(loggingEndpoint.isDone()).toBe(false);
+
+  // all layers should be active...
+  for (let index = 0; index < l.layers.length; index++) {
+    expect(l.layers[index].active).toBe(true);
+  }
+
+  await l.log('Message');
+  expect(spies.log).toHaveBeenCalled();
+  expect(loggingEndpoint.isDone()).toBe(true);
+
   done();
 });

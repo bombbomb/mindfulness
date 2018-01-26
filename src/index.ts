@@ -1,7 +1,7 @@
-import {ConsoleLogger, ConsoleMetrics} from './contrib/console';
-import {JsonPostLogger, JsonPostMetrics} from './contrib/json_post';
-import {LoggerOptions, L, LoggerLayer} from './interfaces/logger';
-import {M, MetricsOptions, MetricInterface} from './interfaces/metrics';
+import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
+import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
+import { LoggerOptions, L, LoggerLayer } from './interfaces/logger';
+import { M, MetricsOptions, MetricInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 
 const contribLoggers = {
@@ -34,33 +34,44 @@ export class Logger implements L {
     this.options = {
       alwaysSilent: false,
       silent: false,
-      ...options
+      ...options,
     };
 
     // default for logging is just to use the console
-    if (layers.length == 0) {
-      layers = ['console'];
+    let callLayers = layers;
+    if (layers.length === 0) {
+      callLayers = ['console'];
     }
 
     // add any layers that may exist
-    layers.forEach((layer) => {
+    callLayers.forEach((layer) => {
+      let thisLayer = layer;
+
       // user passed in a string
       if (typeof layer === 'string') {
-        if (!contribLoggers.hasOwnProperty(layer)) {
-          throw new Error('Could not find layer type: ' + layer);
+        if (Object.keys(contribLoggers).indexOf(layer) < 0) {
+          throw new Error(`Could not find layer type: ${layer}`);
         }
-        this.layers.push(new contribLoggers[layer](this));
-        return;
+        thisLayer = new contribLoggers[layer]();
       }
-
       // this is a LoggerLayer
-      if (layer.type && contribLoggers.hasOwnProperty(layer.type)) {
-        this.layers.push(new contribLoggers[layer.type](this, layer));
-        return;
+      else if (typeof layer === 'object' && layer.type && Object.keys(contribLoggers).indexOf(layer.type) >= 0) {
+        thisLayer = new contribLoggers[layer.type](layer);
       }
 
-      this.layers.push(layer);
+      if (typeof thisLayer === 'object') {
+        thisLayer.active = true;
+      }
+
+      this.layers.push(thisLayer);
     });
+  }
+
+  activateAllLayers() {
+    for (let index = 0; index < this.layers.length; index += 1) {
+      this.layers[index].active = true;
+    }
+    return this;
   }
 
   /**
@@ -89,24 +100,23 @@ export class Logger implements L {
    * @param options The settings for this call
    */
   async before(message: any, payload?: object, options?: object): Promise<any> {
-    const before = async () => {
-      return new Promise(async (resolve, reject) => {
-        let callOptions = this.getCallOptions(options);
+    const before = async () => (
+      new Promise(async (resolve, reject) => {
+        const callOptions = this.getCallOptions(options);
 
         // make sure we're not passing a reference if we don't need to...
-        if (payload && !(payload instanceof Error)) {
-          payload = {...payload};
-        }
+        const thisPayload = (payload && !(payload instanceof Error)) ? { ...payload } : payload;
 
         if (callOptions && callOptions.before) {
-          const result = await callOptions.before(message, payload, callOptions);
-          [message, payload, callOptions] = [result.message, result.payload, result.options];
+          const result = await callOptions.before(message, thisPayload, callOptions);
+          return resolve({ message: result.message, payload: result.payload, options: callOptions });
         }
-        return resolve({ message, payload, options: callOptions });
-      });
-    }
 
-    return await before();
+        return resolve({ message, payload: thisPayload, options: callOptions });
+      })
+    );
+
+    return before();
   }
 
   /**
@@ -123,16 +133,27 @@ export class Logger implements L {
     const beforeResult = await this.before(message, payload, options);
 
     // call the log function on each layer
-    const promises = this.layers.map((layer) => layer[logLevel](beforeResult.message, beforeResult.payload, beforeResult.options));
+    const promises = this.layers
+      .filter(layer => layer.active === true)
+      .map(layer => layer[logLevel](
+        beforeResult.message,
+        beforeResult.payload,
+        beforeResult.options,
+      ));
 
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {
       Promise.all(promises)
         .then((results) => {
-          this.after(results)
+          this
+            .activateAllLayers()
+            .after(results)
             .then(resolve);
         })
-        .catch(reject);
+        .catch((err) => {
+          this.activateAllLayers();
+          reject(err);
+        });
     })
       .then(() => {
         this.options.silent = false;
@@ -147,6 +168,28 @@ export class Logger implements L {
   }
 
   /**
+   * Filter the active layers for one call.
+   *
+   * @param filter A string or a callback to filter with
+   */
+  filterLayers(filter: any) {
+    let callback = filter;
+    if (typeof filter === 'string') {
+      callback = layer => layer instanceof contribLoggers[filter];
+    }
+
+    this.layers = this.layers.map((layer) => {
+      const thisLayer = layer;
+      if (typeof layer.active === 'boolean') {
+        thisLayer.active = callback(layer);
+      }
+      return thisLayer;
+    });
+
+    return this;
+  }
+
+  /**
    * Get the options for a specific call.
    *
    * Basically will return an options object for a specific call merged with the logger's
@@ -158,7 +201,7 @@ export class Logger implements L {
     // if we have call options, override the defaults or just return the defaults.
     return (options) ? {
       ...this.options,
-      ...options
+      ...options,
     } : { ...this.options };
   }
 
@@ -206,7 +249,7 @@ export class Logger implements L {
     this.options.silent = true;
     return this;
   }
-};
+}
 
 export class Metrics implements M {
   errors = [];
@@ -217,28 +260,29 @@ export class Metrics implements M {
     this.options = {
       alwaysSilent: false,
       silent: false,
-      ...options
+      ...options,
     };
 
     // default for logging is just to use the console
-    if (layers.length == 0) {
-      layers = ['console'];
+    let callLayers = layers;
+    if (layers.length === 0) {
+      callLayers = ['console'];
     }
 
     // add any layers that may exist
-    layers.forEach((layer) => {
+    callLayers.forEach((layer) => {
       // user passed in a string
       if (typeof layer === 'string') {
-        if (!contribMetrics.hasOwnProperty(layer)) {
-          throw new Error('Could not find layer type: ' + layer);
+        if (Object.keys(contribMetrics).indexOf(layer) < 0) {
+          throw new Error(`Could not find layer type: ${layer}`);
         }
-        this.layers.push(new contribMetrics[layer](this));
+        this.layers.push(new contribMetrics[layer]());
         return;
       }
 
-      // this is a LoggerLayer
-      if (layer.type && contribMetrics.hasOwnProperty(layer.type)) {
-        this.layers.push(new contribMetrics[layer.type](this, layer));
+      // this is a MetricLayer
+      if (layer.type && Object.keys(contribMetrics).indexOf(layer.type) >= 0) {
+        this.layers.push(new contribMetrics[layer.type](layer));
         return;
       }
 
@@ -256,18 +300,18 @@ export class Metrics implements M {
   }
 
   async before(metricType: string, metric: MetricInterface, options?: MetricsOptions): Promise<any> {
-    const before = async () => {
-      return new Promise(async (resolve, reject) => {
+    const before = async () => (
+      new Promise(async (resolve, reject) => {
         if (options.before) {
           const result = await options.before.apply(this, [metricType, metric, options]);
-          metric = result.metric;
-          options = result.options;
+          return resolve({ metric: result.metric, options: result.options });
         }
-        resolve({metric, options});
-      });
-    };
 
-    return await before();
+        return resolve({ metric, options });
+      })
+    );
+
+    return before();
   }
 
   async call(metricType: string, ...args: any[]): Promise<any> {
@@ -275,16 +319,16 @@ export class Metrics implements M {
       return Promise.reject(new Error(`Invalid metric type: ${metricType}`));
     }
 
-    const length = args.length;
+    const { length } = args;
 
-    let options = this.options;
+    let { options } = this;
     if (length <= 0) {
       throw new Error(`Invalid arguments for ${metricType}`);
     }
-    else if (length == 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
+    else if (length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
       options = {
         ...this.options,
-        ...args[1]
+        ...args[1],
       };
     }
 
@@ -298,7 +342,7 @@ export class Metrics implements M {
     const beforeResult = await this.before(metricType, metric, options);
 
     // call the log function on each layer
-    const promises = this.layers.map((layer) => layer[metricType](metric, beforeResult.options));
+    const promises = this.layers.map(layer => layer[metricType](metric, beforeResult.options));
 
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {
@@ -309,7 +353,9 @@ export class Metrics implements M {
         })
         .catch(reject);
     })
-      .then(() => { this.options.silent = false; })
+      .then(() => {
+        this.options.silent = false;
+      })
       .catch((err) => {
         this.errors.push(err);
         if (!this.options.silent && !this.options.alwaysSilent) {
@@ -335,5 +381,4 @@ export class Metrics implements M {
     this.options.silent = true;
     return this;
   }
-
 }

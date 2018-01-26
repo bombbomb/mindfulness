@@ -1,4 +1,4 @@
-import {ConsoleLogger} from '../src/contrib/console';
+import { ConsoleLogger } from '../src/contrib/console';
 import { LOG_LEVELS } from '../src/interfaces/logger';
 
 const spies = {
@@ -22,7 +22,7 @@ afterAll(() => {
 });
 
 test('ConsoleLogger logs to the console', async (done) => {
-  const l = new ConsoleLogger(null);
+  const l = new ConsoleLogger();
   const message = 'my message';
   await l.log(message);
   expect(spies.log).toHaveBeenCalled();
@@ -31,7 +31,7 @@ test('ConsoleLogger logs to the console', async (done) => {
 });
 
 test('ConsoleLogger logInfo sends info log', async (done) => {
-  const l = new ConsoleLogger(null);
+  const l = new ConsoleLogger();
   const message = 'info message';
   await l.logInfo(message);
   expect(spies.info).toHaveBeenCalled();
@@ -41,7 +41,7 @@ test('ConsoleLogger logInfo sends info log', async (done) => {
 });
 
 test('ConsoleLogger logWarn sends warn log', async (done) => {
-  const l = new ConsoleLogger(null);
+  const l = new ConsoleLogger();
   const message = 'warn message';
   await l.logWarn(message);
   expect(spies.warn).toHaveBeenCalled();
@@ -51,7 +51,7 @@ test('ConsoleLogger logWarn sends warn log', async (done) => {
 });
 
 test('ConsoleLogger logError sends error log', async (done) => {
-  const l = new ConsoleLogger(null);
+  const l = new ConsoleLogger();
   const message = 'error message';
   await l.logError(message);
   expect(spies.error).toHaveBeenCalled();
@@ -61,7 +61,7 @@ test('ConsoleLogger logError sends error log', async (done) => {
 });
 
 test('ConsoleLogger honors log level', async (done) => {
-  const l = new ConsoleLogger(null, {logLevel: LOG_LEVELS.LOG_NONE});
+  const l = new ConsoleLogger({ logLevel: LOG_LEVELS.LOG_NONE });
   await l.log('message');
   expect(spies.log).toHaveBeenCalledTimes(0);
 

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const metric_1 = require("../src/models/metric");
-describe('Creating Metric instances from arrays', () => {
+var metric_1 = require("../src/models/metric");
+describe('Creating Metric instances from arrays', function () {
     [
         {
             test: ['metric'],
@@ -19,16 +19,16 @@ describe('Creating Metric instances from arrays', () => {
                 value: null,
             }
         }
-    ].forEach((testCase, ix) => {
-        test(ix + ': Create Metric instance from ' + JSON.stringify(testCase.test), () => {
-            const m = new metric_1.default(...testCase.test);
+    ].forEach(function (testCase, ix) {
+        test(ix + ': Create Metric instance from ' + JSON.stringify(testCase.test), function () {
+            var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(testCase.test)))();
             expect(m).toMatchObject(testCase.expected);
         });
     });
 });
-test('Create Metric instance from Metric instance', () => {
-    const m = new metric_1.default('metric');
-    const m2 = new metric_1.default(m);
+test('Create Metric instance from Metric instance', function () {
+    var m = new metric_1.default('metric');
+    var m2 = new metric_1.default(m);
     expect(m2.metric).toBe('metric');
 });
 //# sourceMappingURL=metric.js.map

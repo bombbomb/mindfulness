@@ -1,12 +1,10 @@
-import {MetricsOptions, M} from '../interfaces/metrics';
+import { MetricsOptions, M } from '../interfaces/metrics';
 
 export default class ContribMetrics {
   options: MetricsOptions;
-  parent: M;
 
-  constructor(parent: M, options?: MetricsOptions) {
-    this.parent = parent;
-    this.options = {...options};
+  constructor(options?: MetricsOptions) {
+    this.options = { ...options };
   }
 
   /**
@@ -21,7 +19,7 @@ export default class ContribMetrics {
     // if we have call options, override the defaults or just return the defaults.
     return (options) ? {
       ...this.options,
-      ...options
+      ...options,
     } : { ...this.options };
   }
 }

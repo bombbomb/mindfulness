@@ -4,7 +4,7 @@ export default class Metric {
   value: any = null;
 
   constructor(...args) {
-    const length = args.length;
+    const { length } = args;
 
     if (length > 0 && args[0] instanceof Metric) {
       [this.metric, this.category, this.value] = (<Metric>args[0]).toArray();
@@ -17,7 +17,7 @@ export default class Metric {
         break;
 
       case 2:
-        if (typeof args[0] == 'string' && typeof args[1] == 'string') {
+        if (typeof args[0] === 'string' && typeof args[1] === 'string') {
           [this.category, this.metric] = args;
         }
         else {
@@ -32,7 +32,6 @@ export default class Metric {
       default:
         break;
     }
-
   }
 
   toArray(): [string, string, any] {
@@ -43,6 +42,6 @@ export default class Metric {
     if (!this.category) {
       return this.metric;
     }
-    return this.category + '.' + this.metric;
+    return `${this.category}.${this.metric}`;
   }
 }

@@ -1,6 +1,10 @@
 import nock from 'nock';
 import { Logger } from '../src/index';
 
+afterEach(() => {
+  nock.cleanAll();
+});
+
 test('log via post request to example.com', async (done) => {
   const l = new Logger([
     {type: 'json_post', host: 'logging.example.com'}

@@ -28,14 +28,14 @@ export interface LoggerOptions {
   before?: LoggerBeforeCallback;
   after?: LoggerAfterCallback;
   [propName: string]: any;
-};
+}
 
 export interface LoggerLayer {
   type: string;
   handler?: LoggerInterface;
   logLevel?: number;
   [propName: string]: any;
-};
+}
 
 export interface L {
   layers: object[];

@@ -2,13 +2,11 @@ import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/log
 
 export default class ContribLogger {
   options: LoggerOptions;
-  parent: L;
 
-  constructor(parent: L, options?: LoggerOptions) {
-    this.parent = parent;
+  constructor(options?: LoggerOptions) {
     this.options = {
       logLevel: LOG_LEVELS.LOG_ALL,
-      ...options
+      ...options,
     };
   }
 
@@ -30,7 +28,7 @@ export default class ContribLogger {
     // if we have call options, override the defaults or just return the defaults.
     return (options) ? {
       ...this.options,
-      ...options
+      ...options,
     } : { ...this.options };
   }
 

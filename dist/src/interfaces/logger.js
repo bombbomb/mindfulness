@@ -8,6 +8,4 @@ exports.LOG_LEVELS = {
     LOG_INFO: 8,
     LOG_ALL: 1 | 2 | 4 | 8,
 };
-;
-;
 //# sourceMappingURL=logger.js.map

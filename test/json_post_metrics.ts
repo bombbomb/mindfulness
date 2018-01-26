@@ -2,6 +2,10 @@ import nock from 'nock';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
 
+afterEach(() => {
+  nock.cleanAll();
+});
+
 test('JsonPostMetrics.getRequestOptions returns object', () => {
   const m = new Metrics([{type: 'json_post', host: 'metrics.example.com'}]);
   const jsonMetrics = m.layers[0];

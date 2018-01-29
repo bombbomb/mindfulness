@@ -5,6 +5,9 @@ import ContribMetrics from './contrib_metrics';
 import { MetricsInterface } from '../interfaces/metrics';
 import Metric from '../models/metric';
 
+/**
+ * Log messages to the console.
+ */
 export class ConsoleLogger extends ContribLogger implements LoggerInterface {
   options: LoggerOptions;
 
@@ -34,30 +37,40 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
   }
 }
 
+/**
+ * Log metrics out to the console.
+ */
 export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
-  async decrement(...args: any[]): Promise<any> {
+  async call(metricType: string, ...args: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
       const m = new Metric(...args);
       const value = (m.value) ? Math.abs(Number(m.value)) : 1;
-      console.info(`metrics: ${m.toString()}: -${value}`);
+      let message = '';
+      switch (metricType) {
+        case 'decrement':
+          message = `metrics: ${m.toString()}: -${value}`;
+          break;
+        case 'increment':
+          message = `metrics: ${m.toString()}: +${value}`;
+          break;
+        default:
+          message = `metrics: ${m.toString()}: ${m.value}`;
+      }
+
+      console.info(message);
       resolve({ metric: m });
     });
+  }
+
+  async decrement(...args: any[]): Promise<any> {
+    return this.call('decrement', ...args);
   }
 
   async increment(...args: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const m = new Metric(...args);
-      const value = (m.value) ? Math.abs(Number(m.value)) : 1;
-      console.info(`metrics: ${m.toString()}: +${value}`);
-      resolve({ metric: m });
-    });
+    return this.call('increment', ...args);
   }
 
   async timing(...args: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const m = new Metric(...args);
-      console.info(`metrics: ${m.toString()}: ${m.value}`);
-      resolve({ metric: m });
-    });
+    return this.call('timing', ...args);
   }
 }

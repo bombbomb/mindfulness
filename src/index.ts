@@ -290,6 +290,11 @@ export class Metrics implements M {
     });
   }
 
+  /**
+   * Handle any after metrics handlers.
+   *
+   * @param results Results from metrics handlers.
+   */
   async after(results: any): Promise<any> {
     return new Promise(async (resolve, reject) => {
       if (this.options.after) {
@@ -299,6 +304,13 @@ export class Metrics implements M {
     });
   }
 
+  /**
+   * Process any before handlers.
+   *
+   * @param metricType The metric type being called
+   * @param metric The Metric object
+   * @param options Current options for this call.
+   */
   async before(metricType: string, metric: MetricInterface, options?: MetricsOptions): Promise<any> {
     const before = async () => (
       new Promise(async (resolve, reject) => {
@@ -314,6 +326,15 @@ export class Metrics implements M {
     return before();
   }
 
+  /**
+   * Handle increment calls.
+   *
+   * This will handle the before & after functionality and pass this
+   * on to each metric layer as needed.
+   *
+   * @param metricType The metric type being called
+   * @param args Args
+   */
   async call(metricType: string, ...args: any[]): Promise<any> {
     if (['increment', 'decrement', 'timing'].indexOf(metricType) < 0) {
       return Promise.reject(new Error(`Invalid metric type: ${metricType}`));

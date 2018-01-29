@@ -177,7 +177,12 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     });
   }
 
-  async decrement(...args: any[]): Promise<any> {
+  /**
+   * Used to create the list of arguments each metric function uses
+   *
+   * @param args Arguments array
+   */
+  settleArguments(...args: any[]): {args: any[], metric: Metric, options: object} {
     const m = new Metric(...args);
     let { options } = this;
 
@@ -186,25 +191,27 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
       [, options] = args;
     }
-    return this.call('decrement', new Metric(...args), options);
+
+    return {
+      args,
+      metric: m,
+      options,
+    };
+  }
+
+  async decrement(...args: any[]): Promise<any> {
+    const { args: callArgs, metric, options } = this.settleArguments(...args);
+    return this.call('decrement', metric, options);
   }
 
   async increment(...args: any[]): Promise<any> {
-    const m = new Metric(...args);
-    let { options } = this;
-    if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
-      [, options] = args;
-    }
-    return this.call('increment', new Metric(...args), options);
+    const { args: callArgs, metric, options } = this.settleArguments(...args);
+    return this.call('increment', metric, options);
   }
 
   async timing(...args: any[]): Promise<any> {
-    const m = new Metric(...args);
-    let { options } = this;
-    if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
-      [, options] = args;
-    }
-    return this.call('timing', new Metric(...args), options);
+    const { args: callArgs, metric, options } = this.settleArguments(...args);
+    return this.call('timing', metric, options);
   }
 
   /**
@@ -230,6 +237,8 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
   getRequestBody(metricType: string, metric: Metric, options?: MetricsOptions): object {
     const callOptions = this.getCallOptions(options);
     const dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
+
+    // build our request body
     let body = {
       environment: this.getEnvironment(),
       type: metricType,

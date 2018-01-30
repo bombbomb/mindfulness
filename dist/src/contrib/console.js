@@ -58,6 +58,9 @@ var logging_1 = require("../util/logging");
 var contrib_logger_1 = require("./contrib_logger");
 var contrib_metrics_1 = require("./contrib_metrics");
 var metric_1 = require("../models/metric");
+/**
+ * Log messages to the console.
+ */
 var ConsoleLogger = /** @class */ (function (_super) {
     __extends(ConsoleLogger, _super);
     function ConsoleLogger() {
@@ -96,11 +99,41 @@ var ConsoleLogger = /** @class */ (function (_super) {
     return ConsoleLogger;
 }(contrib_logger_1.default));
 exports.ConsoleLogger = ConsoleLogger;
+/**
+ * Log metrics out to the console.
+ */
 var ConsoleMetrics = /** @class */ (function (_super) {
     __extends(ConsoleMetrics, _super);
     function ConsoleMetrics() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    ConsoleMetrics.prototype.call = function (metricType) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
+                        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
+                        var value = (m.value) ? Math.abs(Number(m.value)) : 1;
+                        var message = '';
+                        switch (metricType) {
+                            case 'decrement':
+                                message = "metrics: " + m.toString() + ": -" + value;
+                                break;
+                            case 'increment':
+                                message = "metrics: " + m.toString() + ": +" + value;
+                                break;
+                            default:
+                                message = "metrics: " + m.toString() + ": " + m.value;
+                        }
+                        console.info(message);
+                        resolve({ metric: m });
+                    })];
+            });
+        });
+    };
     ConsoleMetrics.prototype.decrement = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -108,12 +141,7 @@ var ConsoleMetrics = /** @class */ (function (_super) {
         }
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                        var value = (m.value) ? Math.abs(Number(m.value)) : 1;
-                        console.info("metrics: " + m.toString() + ": -" + value);
-                        resolve({ metric: m });
-                    })];
+                return [2 /*return*/, this.call.apply(this, ['decrement'].concat(args))];
             });
         });
     };
@@ -124,12 +152,7 @@ var ConsoleMetrics = /** @class */ (function (_super) {
         }
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                        var value = (m.value) ? Math.abs(Number(m.value)) : 1;
-                        console.info("metrics: " + m.toString() + ": +" + value);
-                        resolve({ metric: m });
-                    })];
+                return [2 /*return*/, this.call.apply(this, ['increment'].concat(args))];
             });
         });
     };
@@ -140,11 +163,7 @@ var ConsoleMetrics = /** @class */ (function (_super) {
         }
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                        console.info("metrics: " + m.toString() + ": " + m.value);
-                        resolve({ metric: m });
-                    })];
+                return [2 /*return*/, this.call.apply(this, ['timing'].concat(args))];
             });
         });
     };

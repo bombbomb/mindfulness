@@ -107,7 +107,7 @@ test('Logger handles "before" callbacks', function (done) { return __awaiter(_th
                 before = function (message, payload) {
                     var _this = this;
                     return new Promise(function (resolve) {
-                        var result = { payload: payload, message: message + '!', options: _this.options };
+                        var result = { payload: payload, message: message + "!", options: _this.options };
                         resolve(result);
                     });
                 };
@@ -131,7 +131,7 @@ test('Logger handles a call-specific "before" callback', function (done) { retur
                 before = function (message, payload) {
                     var _this = this;
                     return new Promise(function (resolve) {
-                        var result = { payload: payload, message: message + '!', options: _this.options };
+                        var result = { payload: payload, message: message + "!", options: _this.options };
                         resolve(result);
                     });
                 };
@@ -157,9 +157,8 @@ test('Logger handlers "after" callbacks', function (done) { return __awaiter(_th
             case 0:
                 after = function (message, payload) {
                     var _this = this;
-                    console.log('after');
                     return new Promise(function (resolve) {
-                        var result = { payload: payload, message: message + '!', options: _this.options };
+                        var result = { payload: payload, message: message + "!", options: _this.options };
                         resolve(result);
                     });
                 };
@@ -266,7 +265,7 @@ test('Logger calls can specify which layer to use for this call only', function 
                 expect(spies.error).toHaveBeenCalled();
                 expect(loggingEndpoint.isDone()).toBe(false);
                 // all layers should be active...
-                for (index = 0; index < l.layers.length; index++) {
+                for (index = 0; index < l.layers.length; index += 1) {
                     expect(l.layers[index].active).toBe(true);
                 }
                 return [4 /*yield*/, l.log('Message')];

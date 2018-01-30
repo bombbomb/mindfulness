@@ -57,7 +57,7 @@ test('JsonPostMetrics.getRequestOptions returns object', function () {
     var result = jsonMetrics.getRequestOptions(obj, 'increment', new metric_1.default('myMetric'), jsonMetrics.options);
     expect(result)
         .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
-            environment: 'test'
+            environment: 'test',
         } }));
 });
 test('send metrics via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
@@ -71,7 +71,7 @@ test('send metrics via post request to example.com', function (done) { return __
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
                     environment: 'test',
-                    type: 'increment'
+                    type: 'increment',
                 })
                     .reply(200, {});
                 return [4 /*yield*/, m.increment('myMetric')];
@@ -95,8 +95,8 @@ test('Can modify the request body with requestBodyCallback', function (done) { r
                         requestBodyCallback: function (body, details) {
                             var newBody = __assign({}, body, { newElement: 123 });
                             return newBody;
-                        }
-                    }
+                        },
+                    },
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
@@ -123,7 +123,7 @@ test('Decrement requests include a different type', function (done) { return __a
                     {
                         type: 'json_post',
                         host: 'metrics.example.com',
-                    }
+                    },
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
@@ -153,7 +153,7 @@ test('Decrement requests to a different URL', function (done) { return __awaiter
                         paths: {
                             decrement: '/decrement',
                         },
-                    }
+                    },
                 ]);
                 incorrectEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/')
@@ -187,7 +187,7 @@ test('Include metric value in the request URL', function (done) { return __await
                         paths: {
                             increment: '/path/$category/$metric',
                         },
-                    }
+                    },
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/myMetric', {
@@ -217,7 +217,7 @@ test('Include metric and category value in the request URL', function (done) { r
                         paths: {
                             increment: '/path/$category/$metric',
                         },
-                    }
+                    },
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
@@ -247,7 +247,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
                         paths: {
                             increment: '/path/$category/$metric',
                         },
-                    }
+                    },
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
@@ -278,7 +278,7 @@ describe('Metric silent()', function () {
                             paths: {
                                 increment: '/path/$category/$metric',
                             },
-                        }
+                        },
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
@@ -310,7 +310,7 @@ describe('Metric silent()', function () {
                             paths: {
                                 increment: '/path/$category/$metric',
                             },
-                        }
+                        },
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
@@ -345,7 +345,7 @@ describe('Metric silent()', function () {
                             paths: {
                                 increment: '/path/$category/$metric',
                             },
-                        }
+                        },
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {

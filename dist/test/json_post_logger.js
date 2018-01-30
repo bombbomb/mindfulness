@@ -55,7 +55,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com' }
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
@@ -80,7 +80,7 @@ test('log via post payload request to example.com', function (done) { return __a
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com' }
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
@@ -105,7 +105,7 @@ test('log object for message', function (done) { return __awaiter(_this, void 0,
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com' }
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', function (req) {
@@ -113,7 +113,7 @@ test('log object for message', function (done) { return __awaiter(_this, void 0,
                         severity: 'log',
                         type: 'log',
                         message: '{"example":123}',
-                        info: {}
+                        info: {},
                     });
                     return true;
                 })
@@ -133,7 +133,7 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com' }
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', function (req) {
@@ -144,7 +144,7 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
                         info: {
                             message: 'You did everything wrong',
                             stack: expect.any(String),
-                        }
+                        },
                     });
                     return true;
                 })
@@ -167,10 +167,8 @@ test('can change request body', function (done) { return __awaiter(_this, void 0
                     {
                         type: 'json_post',
                         host: 'logging.example.com',
-                        requestBodyCallback: function (body, details) {
-                            return __assign({}, body, { injected: 123 });
-                        }
-                    }
+                        requestBodyCallback: function (body, details) { return (__assign({}, body, { injected: 123 })); },
+                    },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', function (req) {
@@ -181,7 +179,7 @@ test('can change request body', function (done) { return __awaiter(_this, void 0
                         injected: 123,
                         info: {
                             payload: 234,
-                        }
+                        },
                     });
                     return true;
                 })
@@ -204,7 +202,7 @@ test('can change request body on a call', function (done) { return __awaiter(_th
                     {
                         type: 'json_post',
                         host: 'logging.example.com',
-                    }
+                    },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', function (req) {
@@ -215,14 +213,14 @@ test('can change request body on a call', function (done) { return __awaiter(_th
                         injected: 123,
                         info: {
                             payload: 234,
-                        }
+                        },
                     });
                     return true;
                 })
                     .reply(200, {});
-                return [4 /*yield*/, l.log('Error doing things', { payload: 234 }, { requestBodyCallback: function (body, details) {
-                            return __assign({}, body, { injected: 123 });
-                        } })];
+                return [4 /*yield*/, l.log('Error doing things', { payload: 234 }, {
+                        requestBodyCallback: function (body, details) { return (__assign({}, body, { injected: 123 })); },
+                    })];
             case 1:
                 _a.sent();
                 expect(loggingEndpoint.isDone()).toBe(true);
@@ -237,7 +235,7 @@ test('log fails on post error', function (done) { return __awaiter(_this, void 0
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com' }
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
@@ -262,7 +260,7 @@ test('$level variables is processed in the url', function (done) { return __awai
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com', path: '/$level' }
+                    { type: 'json_post', host: 'logging.example.com', path: '/$level' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/log', {
@@ -288,7 +286,7 @@ describe('log silent()', function () {
             switch (_a.label) {
                 case 0:
                     l = new index_1.Logger([
-                        { type: 'json_post', host: 'logging.example.com' }
+                        { type: 'json_post', host: 'logging.example.com' },
                     ]);
                     loggingEndpoint = nock_1.default('http://logging.example.com')
                         .post('/', {

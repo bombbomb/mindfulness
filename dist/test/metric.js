@@ -9,7 +9,7 @@ describe('Creating Metric instances from arrays', function () {
                 metric: 'metric',
                 category: null,
                 value: null,
-            }
+            },
         },
         {
             test: ['category', 'metric'],
@@ -17,10 +17,10 @@ describe('Creating Metric instances from arrays', function () {
                 metric: 'metric',
                 category: 'category',
                 value: null,
-            }
-        }
+            },
+        },
     ].forEach(function (testCase, ix) {
-        test(ix + ': Create Metric instance from ' + JSON.stringify(testCase.test), function () {
+        test(ix + ": Create Metric instance from " + JSON.stringify(testCase.test), function () {
             var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(testCase.test)))();
             expect(m).toMatchObject(testCase.expected);
         });

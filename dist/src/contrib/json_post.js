@@ -243,22 +243,39 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             });
         });
     };
+    /**
+     * Used to create the list of arguments each metric function uses
+     *
+     * @param args Arguments array
+     */
+    JsonPostMetrics.prototype.settleArguments = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
+        var options = this.options;
+        // in cases where the first argument is a Metric object and the second one is an object,
+        // we'll assume that it we're getting: (metric, options)
+        if (args.length === 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
+            options = args[1];
+        }
+        return {
+            args: args,
+            metric: m,
+            options: options,
+        };
+    };
     JsonPostMetrics.prototype.decrement = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
-            var m, options;
-            return __generator(this, function (_a) {
-                m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                options = this.options;
-                // in cases where the first argument is a Metric object and the second one is an object,
-                // we'll assume that it we're getting: (metric, options)
-                if (args.length === 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
-                    options = args[1];
-                }
-                return [2 /*return*/, this.call('decrement', new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))(), options)];
+            var _a, callArgs, metric, options;
+            return __generator(this, function (_b) {
+                _a = this.settleArguments.apply(this, args), callArgs = _a.args, metric = _a.metric, options = _a.options;
+                return [2 /*return*/, this.call('decrement', metric, options)];
             });
         });
     };
@@ -268,14 +285,10 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             args[_i] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
-            var m, options;
-            return __generator(this, function (_a) {
-                m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                options = this.options;
-                if (args.length === 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
-                    options = args[1];
-                }
-                return [2 /*return*/, this.call('increment', new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))(), options)];
+            var _a, callArgs, metric, options;
+            return __generator(this, function (_b) {
+                _a = this.settleArguments.apply(this, args), callArgs = _a.args, metric = _a.metric, options = _a.options;
+                return [2 /*return*/, this.call('increment', metric, options)];
             });
         });
     };
@@ -285,14 +298,10 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             args[_i] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
-            var m, options;
-            return __generator(this, function (_a) {
-                m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                options = this.options;
-                if (args.length === 2 && args[0] instanceof metric_1.default && typeof args[1] === 'object') {
-                    options = args[1];
-                }
-                return [2 /*return*/, this.call('timing', new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))(), options)];
+            var _a, callArgs, metric, options;
+            return __generator(this, function (_b) {
+                _a = this.settleArguments.apply(this, args), callArgs = _a.args, metric = _a.metric, options = _a.options;
+                return [2 /*return*/, this.call('timing', metric, options)];
             });
         });
     };
@@ -318,6 +327,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
     JsonPostMetrics.prototype.getRequestBody = function (metricType, metric, options) {
         var callOptions = this.getCallOptions(options);
         var dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
+        // build our request body
         var body = __assign({ environment: this.getEnvironment(), type: metricType }, dataDefaults);
         if (metric.value) {
             body.value = metric.value;

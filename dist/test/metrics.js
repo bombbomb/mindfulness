@@ -121,8 +121,9 @@ test('Metrics handles "before" calls', function (done) { return __awaiter(_this,
         switch (_a.label) {
             case 0:
                 before = function (metricType, metric) { return (new Promise(function (resolve) {
-                    metric.value = 10;
-                    var result = { metric: metric };
+                    var thisMetric = metric;
+                    thisMetric.value = 10;
+                    var result = { thisMetric: thisMetric };
                     resolve(result);
                 })); };
                 m = new index_1.Metrics(['console'], { before: before });

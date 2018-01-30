@@ -1,6 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Metric class for modeling metric values.
+ *
+ * Metrics consist of an optional category, the metric itself, and a value.
+ */
 var Metric = /** @class */ (function () {
+    /**
+     * Creates a new metric value.
+     *
+     * This maybe one of the following:
+     *
+     * ```
+     * new Metric('metric');
+     * new Metric('metric', 10);
+     * new Metric('category', 'metric');
+     * new Metric('category', 'metric', 10);
+     * ```
+     *
+     * String values would need to use the three argument version.
+     *
+     * @param args Arguments array
+     */
     function Metric() {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {

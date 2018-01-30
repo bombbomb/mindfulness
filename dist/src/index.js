@@ -327,6 +327,11 @@ var Metrics = /** @class */ (function () {
             _this.layers.push(layer);
         });
     }
+    /**
+     * Handle any after metrics handlers.
+     *
+     * @param results Results from metrics handlers.
+     */
     Metrics.prototype.after = function (results) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
@@ -349,6 +354,13 @@ var Metrics = /** @class */ (function () {
             });
         });
     };
+    /**
+     * Process any before handlers.
+     *
+     * @param metricType The metric type being called
+     * @param metric The Metric object
+     * @param options Current options for this call.
+     */
     Metrics.prototype.before = function (metricType, metric, options) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
@@ -377,6 +389,15 @@ var Metrics = /** @class */ (function () {
             });
         });
     };
+    /**
+     * Handle increment calls.
+     *
+     * This will handle the before & after functionality and pass this
+     * on to each metric layer as needed.
+     *
+     * @param metricType The metric type being called
+     * @param args Args
+     */
     Metrics.prototype.call = function (metricType) {
         var args = [];
         for (var _i = 1; _i < arguments.length; _i++) {

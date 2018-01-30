@@ -1,5 +1,5 @@
 {
-  "name": "bb-mindful",
+  "name": "@bombbomb/mindfulness",
   "version": "1.0.0",
   "description": "Simple logging and metrics interfaces",
   "main": "dist/src/index.js",

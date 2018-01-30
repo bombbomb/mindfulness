@@ -1,15 +1,15 @@
-# bb-mindful
+# @bombbomb/mindfulness
 
 A simple interface for logging and metrics endpoints.
 
 ## Install
 
-    npm install --save bb-mindful
+    npm install --save @bombbomb/mindfulness
 
 ## Logging usage
 
 ```javascript
-const Logger = require('bb-mindful').Logger;
+const Logger = require('@bombbomb/mindfulness').Logger;
 
 const logger = new Logger([
   // log to the console
@@ -56,7 +56,7 @@ logger.log('Message', {payload: 123}, {requestBodyCallback: (body, details) => {
 The `Logger` interface also supports "log levels". This allows you to specify the output levels you would like via flags. By default everything is logged.
 
 ```javascript
-import {LOG_LEVELS} from 'bb-mindful/interfaces/logger';
+import {LOG_LEVELS} from '@bombbomb/mindfulness/interfaces/logger';
 const l = new Logger(['console'], {
   // logLevel can be a single level or multiple:
   //   LOG_LEVELS.LOG_ERROR | LOG_LEVELS.LOG_LOG
@@ -68,7 +68,7 @@ const l = new Logger(['console'], {
 ## Metrics usage
 
 ```javascript
-const Metrics = require('bb-mindful').Metrics;
+const Metrics = require('@bombbomb/mindfulness').Metrics;
 
 const metrics = new Metrics([
   // post metrics to metrics.example.com

@@ -79,16 +79,14 @@ const metrics = new Metrics([
     host: 'metrics.example.com',
     // specify distinct paths for each type of metric call
     paths: {
-      increase: '/increase',
-      decrease: '/decrease',
+      increment: '/increment',
       // also supports $category and $metric variables to replace path with those items
       timing: '/feature/$category/$metric',
     }
   }
 ]);
 
-metrics.increase('category', 'metric');
-metrics.decrease('category', 'metric');
+metrics.increment('category', 'metric');
 metrics.timing('category', 'metric', value);
 ```
 

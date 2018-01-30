@@ -33,13 +33,6 @@ test('Metris.increment() sends metric', async (done) => {
   done();
 });
 
-test('Metris.decrement() sends metric', async (done) => {
-  const m = new Metrics();
-  await m.decrement('metric');
-  expect(spies.info).toHaveBeenCalled();
-  done();
-});
-
 test('Metris.timing() sends metric', async (done) => {
   const m = new Metrics();
   await m.timing('metric', 100);

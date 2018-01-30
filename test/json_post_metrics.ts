@@ -70,35 +70,13 @@ test('Can modify the request body with requestBodyCallback', async (done) => {
   done();
 });
 
-test('Decrement requests include a different type', async (done) => {
-  const m = new Metrics([
-    {
-      type: 'json_post',
-      host: 'metrics.example.com',
-    },
-  ]);
-
-  const metricsEndpoint = nock('http://metrics.example.com')
-    .post('/', {
-      environment: 'test',
-      type: 'decrement',
-      value: 10,
-    })
-    .reply(200, {});
-
-  await m.decrement('myMetric', 10);
-
-  expect(metricsEndpoint.isDone()).toBe(true);
-  done();
-});
-
-test('Decrement requests to a different URL', async (done) => {
+test('Increment requests to a different URL', async (done) => {
   const m = new Metrics([
     {
       type: 'json_post',
       host: 'metrics.example.com',
       paths: {
-        decrement: '/decrement',
+        increment: '/increment',
       },
     },
   ]);
@@ -108,14 +86,14 @@ test('Decrement requests to a different URL', async (done) => {
     .reply(200, {});
 
   const correctEndpoint = nock('http://metrics.example.com')
-    .post('/decrement', {
+    .post('/increment', {
         environment: 'test',
-        type: 'decrement',
+        type: 'increment',
         value: 10,
     })
     .reply(200, {});
 
-  await m.decrement('myMetric', 10);
+  await m.increment('myMetric', 10);
 
   expect(incorrectEndpoint.isDone()).toBe(false);
   expect(correctEndpoint.isDone()).toBe(true);

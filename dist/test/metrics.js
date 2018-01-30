@@ -71,21 +71,6 @@ test('Metris.increment() sends metric', function (done) { return __awaiter(_this
         }
     });
 }); });
-test('Metris.decrement() sends metric', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                m = new index_1.Metrics();
-                return [4 /*yield*/, m.decrement('metric')];
-            case 1:
-                _a.sent();
-                expect(spies.info).toHaveBeenCalled();
-                done();
-                return [2 /*return*/];
-        }
-    });
-}); });
 test('Metris.timing() sends metric', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m;
     return __generator(this, function (_a) {

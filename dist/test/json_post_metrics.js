@@ -114,34 +114,7 @@ test('Can modify the request body with requestBodyCallback', function (done) { r
         }
     });
 }); });
-test('Decrement requests include a different type', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m, metricsEndpoint;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                m = new index_1.Metrics([
-                    {
-                        type: 'json_post',
-                        host: 'metrics.example.com',
-                    },
-                ]);
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
-                    .post('/', {
-                    environment: 'test',
-                    type: 'decrement',
-                    value: 10,
-                })
-                    .reply(200, {});
-                return [4 /*yield*/, m.decrement('myMetric', 10)];
-            case 1:
-                _a.sent();
-                expect(metricsEndpoint.isDone()).toBe(true);
-                done();
-                return [2 /*return*/];
-        }
-    });
-}); });
-test('Decrement requests to a different URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Increment requests to a different URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, incorrectEndpoint, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -151,7 +124,7 @@ test('Decrement requests to a different URL', function (done) { return __awaiter
                         type: 'json_post',
                         host: 'metrics.example.com',
                         paths: {
-                            decrement: '/decrement',
+                            increment: '/increment',
                         },
                     },
                 ]);
@@ -159,13 +132,13 @@ test('Decrement requests to a different URL', function (done) { return __awaiter
                     .post('/')
                     .reply(200, {});
                 correctEndpoint = nock_1.default('http://metrics.example.com')
-                    .post('/decrement', {
+                    .post('/increment', {
                     environment: 'test',
-                    type: 'decrement',
+                    type: 'increment',
                     value: 10,
                 })
                     .reply(200, {});
-                return [4 /*yield*/, m.decrement('myMetric', 10)];
+                return [4 /*yield*/, m.increment('myMetric', 10)];
             case 1:
                 _a.sent();
                 expect(incorrectEndpoint.isDone()).toBe(false);

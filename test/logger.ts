@@ -1,5 +1,5 @@
 import nock from 'nock';
-import {Logger} from '../src/index';
+import { Logger } from '../src/index';
 import { JsonPostLogger } from '../src/contrib/json_post';
 
 const spies = {
@@ -26,7 +26,7 @@ afterAll(() => {
 
 test('Logger with console logs to console', async (done) => {
   const l = new Logger(['console']);
-  await l.log('my message')
+  await l.log('my message');
   expect(spies.log).toHaveBeenCalled();
   done();
 });
@@ -39,7 +39,7 @@ test('Logger with no arguments gets console layer', async () => {
 });
 
 test('Logger with console layer gets correct layer', () => {
-  const l = new Logger([{type: 'console'}]);
+  const l = new Logger([{ type: 'console' }]);
   expect(l.layers).toHaveLength(1);
 });
 
@@ -51,7 +51,7 @@ test('Logger with POST layer gets correct layer', () => {
 });
 
 test('Logger with incorrect layer throws error', () => {
-  const l = new Logger([{type: 'fake_logger'}]);
+  const l = new Logger([{ type: 'fake_logger' }]);
 });
 
 test('Logger handles "before" callbacks', async (done) => {
@@ -186,5 +186,31 @@ test('Logger calls can specify which layer to use for this call only', async (do
   expect(spies.log).toHaveBeenCalled();
   expect(loggingEndpoint.isDone()).toBe(true);
 
+  done();
+});
+
+test('logError with error stack', async (done) => {
+  const message = 'Nothing ever works';
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', (req) => {
+      expect(req).toMatchObject({
+        message,
+        info: expect.any(String),
+        type: 'error',
+        severity: 'error',
+      });
+      return true;
+    })
+    .reply(200, {});
+  const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }]);
+
+  try {
+    throw new Error(message);
+  }
+  catch (err) {
+    await l.logError(err, err.stack);
+  }
+
+  expect(loggingEndpoint.isDone()).toBe(true);
   done();
 });

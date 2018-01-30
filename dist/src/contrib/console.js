@@ -82,7 +82,7 @@ var ConsoleLogger = /** @class */ (function (_super) {
                         var callOptions = _this.getCallOptions(options);
                         if (callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level)) {
                             var args = [message];
-                            if (payload) {
+                            if (payload && typeof payload === 'object') {
                                 args.push(__assign({}, payload));
                             }
                             if (typeof console[level] === 'undefined') {

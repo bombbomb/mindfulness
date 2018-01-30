@@ -279,6 +279,31 @@ test('$level variables is processed in the url', function (done) { return __awai
         }
     });
 }); });
+test('logging does not fail when the host includes the scheme', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l, loggingEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger([
+                    { type: 'json_post', host: 'http://logging.example.com' },
+                ]);
+                loggingEndpoint = nock_1.default('http://logging.example.com')
+                    .post('/', {
+                    severity: 'log',
+                    type: 'log',
+                    message: 'Hello!',
+                    info: {},
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, l.log('Hello!')];
+            case 1:
+                _a.sent();
+                expect(loggingEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 describe('log silent()', function () {
     test('stops an error from propegating', function (done) { return __awaiter(_this, void 0, void 0, function () {
         var l, loggingEndpoint;

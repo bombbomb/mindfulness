@@ -1,8 +1,8 @@
 export interface LoggerInterface {
-  log(message: any, payload?: object, options?: object): Promise<any>
-  logError(message: any, payload?: object, options?: object): Promise<string>
-  logInfo(message: any, payload?: object, options?: object): Promise<string>
-  logWarn(message: any, payload?: object, options?: object): Promise<string>
+  log(message: any, payload?: any, options?: object): Promise<any>
+  logError(message: any, payload?: any, options?: object): Promise<string>
+  logInfo(message: any, payload?: any, options?: object): Promise<string>
+  logWarn(message: any, payload?: any, options?: object): Promise<string>
 }
 
 export const LOG_LEVELS = {
@@ -15,7 +15,7 @@ export const LOG_LEVELS = {
 };
 
 export interface LoggerBeforeCallback {
-  (message: string, payload?: object, options?: object): Promise<{message: string, payload: object, options: object}>;
+  (message: string, payload?: any, options?: object): Promise<{message: string, payload: any, options: object}>;
 }
 
 export interface LoggerAfterCallback {
@@ -39,6 +39,6 @@ export interface LoggerLayer {
 
 export interface L {
   layers: object[];
-  before: (message: string, payload?: object) => Promise<{ message: string, payload: object, options: object }>;
+  before: (message: string, payload?: any) => Promise<{ message: string, payload: any, options: object }>;
   after: (err: object) => Promise<any>;
 }

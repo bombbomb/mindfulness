@@ -27,18 +27,13 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param payload The payload to include
    * @param options Call-specific options
    */
-  async call(level: string, message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
         try {
-          const thisMessage = (typeof message === 'string') ? message : JSON.stringify(message);
-
-          const thisPayload = (payload && payload instanceof Error) ? {
-            message: payload.message,
-            stack: payload.stack,
-          } : payload;
-
+          const thisMessage = this.getMessage(message);
+          const thisPayload = this.getPayload(payload);
           const requestOptions: object = this.getRequestOptions({
             json: true,
             resolveWithFullResponse: true,
@@ -57,6 +52,32 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     });
   }
 
+  getMessage(message) {
+    if (typeof message === 'string') {
+      return message;
+    }
+
+    if (typeof message === 'object' && message instanceof Error) {
+      return message.message;
+    }
+
+    return JSON.stringify(message);
+  }
+
+  getPayload(payload) {
+    if (typeof payload === 'object') {
+      if (payload instanceof Error) {
+        return {
+          message: payload.message,
+          stack: payload.stack,
+        };
+      }
+      return { ...payload };
+    }
+
+    return payload;
+  }
+
   /**
    * Build the request body and hand off to a requestBodyCallback if specified.
    *
@@ -65,7 +86,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param payload Current payload
    * @param options Call-specific options
    */
-  getRequestBody(level: string, message: any, payload: object = {}, options: LoggerOptions = {}): object {
+  getRequestBody(level: string, message: any, payload: any = {}, options: LoggerOptions = {}): object {
     let body = {
       message,
       info: payload,
@@ -92,7 +113,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param metric The metric being updated
    * @param options Call-specific options.
    */
-  getRequestOptions(callRequest: object, level: string, message: any, payload: object, options: LoggerOptions): object {
+  getRequestOptions(callRequest: object, level: string, message: any, payload: any, options: LoggerOptions): object {
     let thisCallRequest = request;
     if (options.requestOptionsCallback) {
       const result = options.requestOptionsCallback(thisCallRequest, level, message, payload, options);
@@ -121,7 +142,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
   /**
    * Get the request URI based on options.
    */
-  getRequestUri(level: string, message: any, payload: object, options?: LoggerOptions): string {
+  getRequestUri(level: string, message: any, payload: any, options?: LoggerOptions): string {
     const callOptions = this.getCallOptions(options);
     let url = '';
 
@@ -310,7 +331,7 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     let url = '';
 
     const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
-    const host = (callOptions.host) ? String(callOptions.host) : 'localhost';
+    const host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
 
     url = `${scheme}://${host}`;

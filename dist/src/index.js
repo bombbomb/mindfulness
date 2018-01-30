@@ -156,7 +156,7 @@ var Logger = /** @class */ (function () {
                                     switch (_a.label) {
                                         case 0:
                                             callOptions = this.getCallOptions(options);
-                                            thisPayload = (payload && !(payload instanceof Error)) ? __assign({}, payload) : payload;
+                                            thisPayload = payload;
                                             if (!(callOptions && callOptions.before)) return [3 /*break*/, 2];
                                             return [4 /*yield*/, callOptions.before(message, thisPayload, callOptions)];
                                         case 1:

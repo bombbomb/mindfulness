@@ -278,4 +278,39 @@ test('Logger calls can specify which layer to use for this call only', function 
         }
     });
 }); });
+test('logError with error stack', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var message, loggingEndpoint, l, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                message = 'Nothing ever works';
+                loggingEndpoint = nock_1.default('http://logging.example.com')
+                    .post('/', function (req) {
+                    expect(req).toMatchObject({
+                        message: message,
+                        info: expect.any(String),
+                        type: 'error',
+                        severity: 'error',
+                    });
+                    return true;
+                })
+                    .reply(200, {});
+                l = new index_1.Logger([{ type: 'json_post', host: 'http://logging.example.com' }]);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 2, , 4]);
+                throw new Error(message);
+            case 2:
+                err_1 = _a.sent();
+                return [4 /*yield*/, l.logError(err_1, err_1.stack)];
+            case 3:
+                _a.sent();
+                return [3 /*break*/, 4];
+            case 4:
+                expect(loggingEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 //# sourceMappingURL=logger.js.map

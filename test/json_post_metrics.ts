@@ -41,6 +41,24 @@ test('send metrics via post request to example.com', async (done) => {
   done();
 });
 
+test('send metrics via post request to example.com with scheme in host', async (done) => {
+  const m = new Metrics([
+    { type: 'json_post', host: 'http://metrics.example.com' }
+  ]);
+
+  const metricsEndpoint = nock('http://metrics.example.com')
+    .post('/', {
+      environment: 'test',
+      type: 'increment',
+    })
+    .reply(200, {});
+
+  await m.increment('myMetric');
+
+  expect(metricsEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('Can modify the request body with requestBodyCallback', async (done) => {
   const m = new Metrics([
     {

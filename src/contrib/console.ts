@@ -19,12 +19,12 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
    * @param payload Optional additional payload to log
    * @param options Optional call-specific options for this log.
    */
-  async call(level: string, message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
     return new Promise((resolve, reject) => {
       const callOptions = this.getCallOptions(options);
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
         const args: (string|object)[] = [message];
-        if (payload) {
+        if (payload && typeof payload === 'object') {
           args.push({ ...payload });
         }
         if (typeof console[level] === 'undefined') {

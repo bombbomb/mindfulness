@@ -105,7 +105,7 @@ export class Logger implements L {
         const callOptions = this.getCallOptions(options);
 
         // make sure we're not passing a reference if we don't need to...
-        const thisPayload = (payload && !(payload instanceof Error)) ? { ...payload } : payload;
+        const thisPayload = payload;
 
         if (callOptions && callOptions.before) {
           const result = await callOptions.before(message, thisPayload, callOptions);
@@ -128,7 +128,7 @@ export class Logger implements L {
    * @param message The message
    * @param payload optional payload object
    */
-  async call(logLevel: string, message: any, payload?: object, options?: object) {
+  async call(logLevel: string, message: any, payload?: any, options?: object) {
     // call & wait for our before handlers
     const beforeResult = await this.before(message, payload, options);
 
@@ -211,7 +211,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  log(message: any, payload?: object, options?: object) {
+  log(message: any, payload?: any, options?: object) {
     return this.call('log', message, payload, options);
   }
 
@@ -221,7 +221,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logError(message: any, payload?: object, options?: object) {
+  logError(message: any, payload?: any, options?: object) {
     return this.call('logError', message, payload, options);
   }
 
@@ -231,7 +231,7 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logInfo(message: any, payload?: object, options?: object) {
+  logInfo(message: any, payload?: any, options?: object) {
     return this.call('logInfo', message, payload, options);
   }
 
@@ -241,14 +241,14 @@ export class Logger implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logWarn(message: any, payload?: object, options?: object) {
+  logWarn(message: any, payload?: any, options?: object) {
     return this.call('logWarn', message, payload, options);
   }
 
   /**
    * Alias for logWarn
    */
-  logWarning(message: any, payload?: object, options?: object) {
+  logWarning(message: any, payload?: any, options?: object) {
     return this.logWarn(message, payload, options);
   }
 

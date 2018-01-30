@@ -93,11 +93,8 @@ var JsonPostLogger = /** @class */ (function (_super) {
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 3, , 4]);
-                                    thisMessage = (typeof message === 'string') ? message : JSON.stringify(message);
-                                    thisPayload = (payload && payload instanceof Error) ? {
-                                        message: payload.message,
-                                        stack: payload.stack,
-                                    } : payload;
+                                    thisMessage = this.getMessage(message);
+                                    thisPayload = this.getPayload(payload);
                                     requestOptions = this.getRequestOptions({
                                         json: true,
                                         resolveWithFullResponse: true,
@@ -121,6 +118,27 @@ var JsonPostLogger = /** @class */ (function (_super) {
                     }); })];
             });
         });
+    };
+    JsonPostLogger.prototype.getMessage = function (message) {
+        if (typeof message === 'string') {
+            return message;
+        }
+        if (typeof message === 'object' && message instanceof Error) {
+            return message.message;
+        }
+        return JSON.stringify(message);
+    };
+    JsonPostLogger.prototype.getPayload = function (payload) {
+        if (typeof payload === 'object') {
+            if (payload instanceof Error) {
+                return {
+                    message: payload.message,
+                    stack: payload.stack,
+                };
+            }
+            return __assign({}, payload);
+        }
+        return payload;
     };
     /**
      * Build the request body and hand off to a requestBodyCallback if specified.
@@ -370,7 +388,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
         var callOptions = this.getCallOptions(options);
         var url = '';
         var scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
-        var host = (callOptions.host) ? String(callOptions.host) : 'localhost';
+        var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
         var port = (callOptions.port) ? Number(callOptions.port) : null;
         url = scheme + "://" + host;
         if (port) {

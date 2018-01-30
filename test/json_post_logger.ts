@@ -201,6 +201,26 @@ test('$level variables is processed in the url', async (done) => {
   done();
 });
 
+test('logging does not fail when the host includes the scheme', async (done) => {
+  const l = new Logger([
+    { type: 'json_post', host: 'http://logging.example.com' },
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', {
+      severity: 'log',
+      type: 'log',
+      message: 'Hello!',
+      info: {},
+    })
+    .reply(200, {});
+
+  await l.log('Hello!');
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});
+
 describe('log silent()', () => {
   test('stops an error from propegating', async (done) => {
     const l = new Logger([

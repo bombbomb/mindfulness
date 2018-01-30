@@ -10,7 +10,7 @@ export default class ContribLogger {
     };
   }
 
-  async call(level: string, message: any, payload?: object, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
     return new Promise((resolve) => {
       resolve();
     });

@@ -288,6 +288,12 @@ var Logger = /** @class */ (function () {
     Logger.prototype.logWarn = function (message, payload, options) {
         return this.call('logWarn', message, payload, options);
     };
+    /**
+     * Alias for logWarn
+     */
+    Logger.prototype.logWarning = function (message, payload, options) {
+        return this.logWarn(message, payload, options);
+    };
     Logger.prototype.silent = function () {
         this.options.silent = true;
         return this;

@@ -33,6 +33,5 @@ export interface M {
 
 export interface MetricsInterface {
   increment(...args: any[]): Promise<any>;
-  decrement(...args: any[]): Promise<any>;
   timing(...args: any[]): Promise<any>;
 }

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    // "module": "commonjs",
     "moduleResolution": "node",
     "target": "es5",
     "outDir": "./dist",
@@ -9,7 +9,8 @@
       "dom"
     ],
     "sourceMap": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "@types/jest", "@types/request-promise-native"]
   },
   "include": [
     "src/**/*.ts",

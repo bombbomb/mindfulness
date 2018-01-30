@@ -1,10 +1,13 @@
-import request from 'request-promise-native';
+// import request from 'request-promise-native';
 import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import getLogLevelConstant from '../util/logging';
 import { MetricsInterface, MetricsOptions, M } from '../interfaces/metrics';
 import Metric from '../models/metric';
+
+// need to use require() syntax because this package does not define default...
+const request = require('request-promise-native');
 
 /**
  * JSON POST logger
@@ -197,11 +200,6 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
       metric: m,
       options,
     };
-  }
-
-  async decrement(...args: any[]): Promise<any> {
-    const { args: callArgs, metric, options } = this.settleArguments(...args);
-    return this.call('decrement', metric, options);
   }
 
   async increment(...args: any[]): Promise<any> {

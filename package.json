@@ -2,6 +2,7 @@
   "name": "@bombbomb/mindfulness",
   "version": "1.0.0",
   "description": "Simple logging and metrics interfaces",
+  "repository": "https://github.com/bombbomb/mindfulness",
   "main": "dist/src/index.js",
   "scripts": {
     "test": "jest",
@@ -32,7 +33,8 @@
     "ts-jest": "^22.0.1",
     "ts-node": "^4.1.0",
     "typescript": "^2.6.2",
-    "typescript-eslint-parser": "^12.0.0"
+    "typescript-eslint-parser": "^12.0.0",
+    "@types/request-promise-native": "^1.0.12"
   },
   "jest": {
     "testEnvironment": "node",

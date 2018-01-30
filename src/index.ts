@@ -245,6 +245,13 @@ export class Logger implements L {
     return this.call('logWarn', message, payload, options);
   }
 
+  /**
+   * Alias for logWarn
+   */
+  logWarning(message: any, payload?: object, options?: object) {
+    return this.logWarn(message, payload, options);
+  }
+
   silent() {
     this.options.silent = true;
     return this;

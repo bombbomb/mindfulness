@@ -134,17 +134,6 @@ var ConsoleMetrics = /** @class */ (function (_super) {
             });
         });
     };
-    ConsoleMetrics.prototype.decrement = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.call.apply(this, ['decrement'].concat(args))];
-            });
-        });
-    };
     ConsoleMetrics.prototype.increment = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {

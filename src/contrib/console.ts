@@ -62,10 +62,6 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
     });
   }
 
-  async decrement(...args: any[]): Promise<any> {
-    return this.call('decrement', ...args);
-  }
-
   async increment(...args: any[]): Promise<any> {
     return this.call('increment', ...args);
   }

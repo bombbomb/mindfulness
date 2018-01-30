@@ -53,12 +53,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var request_promise_native_1 = require("request-promise-native");
+// import request from 'request-promise-native';
 var logger_1 = require("../interfaces/logger");
 var contrib_logger_1 = require("./contrib_logger");
 var contrib_metrics_1 = require("./contrib_metrics");
 var logging_1 = require("../util/logging");
 var metric_1 = require("../models/metric");
+// need to use require() syntax because this package does not define default...
+var request = require('request-promise-native');
 /**
  * JSON POST logger
  *
@@ -100,7 +102,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
                                         json: true,
                                         resolveWithFullResponse: true,
                                     }, level, thisMessage, thisPayload, callOptions);
-                                    return [4 /*yield*/, request_promise_native_1.default(requestOptions)];
+                                    return [4 /*yield*/, request(requestOptions)];
                                 case 2:
                                     response = _a.sent();
                                     resolve(response);
@@ -154,7 +156,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
      * @param options Call-specific options.
      */
     JsonPostLogger.prototype.getRequestOptions = function (callRequest, level, message, payload, options) {
-        var thisCallRequest = request_promise_native_1.default;
+        var thisCallRequest = request;
         if (options.requestOptionsCallback) {
             var result = options.requestOptionsCallback(thisCallRequest, level, message, payload, options);
             if (result && typeof result === 'object') {
@@ -227,7 +229,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 3, , 4]);
-                                    return [4 /*yield*/, request_promise_native_1.default(requestOptions)];
+                                    return [4 /*yield*/, request(requestOptions)];
                                 case 2:
                                     response = _a.sent();
                                     resolve(response);
@@ -265,19 +267,6 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             metric: m,
             options: options,
         };
-    };
-    JsonPostMetrics.prototype.decrement = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, callArgs, metric, options;
-            return __generator(this, function (_b) {
-                _a = this.settleArguments.apply(this, args), callArgs = _a.args, metric = _a.metric, options = _a.options;
-                return [2 /*return*/, this.call('decrement', metric, options)];
-            });
-        });
     };
     JsonPostMetrics.prototype.increment = function () {
         var args = [];

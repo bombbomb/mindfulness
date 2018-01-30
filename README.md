@@ -1,5 +1,7 @@
 # @bombbomb/mindfulness
 
+[![Build Status](https://travis-ci.com/bombbomb/mindfulness.svg?token=U5j8RScQzx1HwkBzxicx&branch=master)](https://travis-ci.com/bombbomb/mindfulness)
+
 A simple interface for logging and metrics endpoints.
 
 ## Install

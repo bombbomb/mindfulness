@@ -63,7 +63,7 @@ var ContribMetrics = /** @class */ (function () {
                     var _this = this;
                     return __generator(this, function (_a) {
                         return [2 /*return*/, (new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                                var result;
+                                var result, keys, keys;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
@@ -71,8 +71,16 @@ var ContribMetrics = /** @class */ (function () {
                                             return [4 /*yield*/, options.before.apply(this, [metricType, metric, options])];
                                         case 1:
                                             result = _a.sent();
-                                            return [2 /*return*/, resolve({ metric: result.metric, options: result.options })];
-                                        case 2: return [2 /*return*/, resolve({ metric: metric, options: options })];
+                                            if (typeof result.metric === 'undefined') {
+                                                keys = Object.keys(result).join(', ');
+                                                throw new Error("The before callback must include the metric object. Received: " + keys);
+                                            }
+                                            if (typeof result.options === 'undefined') {
+                                                keys = Object.keys(result).join(', ');
+                                                throw new Error("The before callback must include the options object. Received: " + keys);
+                                            }
+                                            return [2 /*return*/, resolve({ metricType: metricType, metric: result.metric, options: result.options })];
+                                        case 2: return [2 /*return*/, resolve({ metricType: metricType, metric: metric, options: options })];
                                     }
                                 });
                             }); }))];

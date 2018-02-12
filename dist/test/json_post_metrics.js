@@ -66,7 +66,7 @@ test('send metrics via post request to example.com', function (done) { return __
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([
-                    { type: 'json_post', host: 'metrics.example.com' }
+                    { type: 'json_post', host: 'metrics.example.com' },
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
@@ -89,7 +89,7 @@ test('send metrics via post request to example.com with scheme in host', functio
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([
-                    { type: 'json_post', host: 'http://metrics.example.com' }
+                    { type: 'json_post', host: 'http://metrics.example.com' },
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
@@ -264,7 +264,7 @@ test('"before" callbacks can change metric and category value in the request URL
                     callback: function (metricType, metric, options) {
                         var thisMetric = metric;
                         thisMetric.metric = "prefix." + metric.metric;
-                        return Promise.resolve({ metricType: metricType, thisMetric: thisMetric, options: options });
+                        return Promise.resolve({ metricType: metricType, metric: thisMetric, options: options });
                     },
                 };
                 spy = jest.spyOn(beforeCallback, 'callback');
@@ -277,6 +277,46 @@ test('"before" callbacks can change metric and category value in the request URL
                         },
                     },
                 ], { before: beforeCallback.callback });
+                correctEndpoint = nock_1.default('http://metrics.example.com')
+                    .post('/path/awesome/prefix.myMetric', {
+                    environment: 'test',
+                    type: 'increment',
+                    value: 10,
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.increment('awesome', 'myMetric', 10)];
+            case 1:
+                _a.sent();
+                expect(spy).toHaveBeenCalled();
+                expect(correctEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('layer "before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var beforeCallback, spy, m, correctEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                beforeCallback = {
+                    callback: function (metricType, metric, options) {
+                        var thisMetric = metric;
+                        thisMetric.metric = "prefix." + metric.metric;
+                        return Promise.resolve({ metricType: metricType, metric: thisMetric, options: options });
+                    },
+                };
+                spy = jest.spyOn(beforeCallback, 'callback');
+                m = new index_1.Metrics([
+                    {
+                        type: 'json_post',
+                        host: 'metrics.example.com',
+                        paths: {
+                            increment: '/path/$category/$metric',
+                        },
+                        before: beforeCallback.callback,
+                    },
+                ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/prefix.myMetric', {
                     environment: 'test',

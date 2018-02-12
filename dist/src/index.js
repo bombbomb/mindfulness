@@ -416,7 +416,7 @@ var Metrics = /** @class */ (function () {
         }
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var length, options, metric, beforeResult, promises;
+            var length, options, metric, beforeResult, newOptions, promises;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -438,7 +438,9 @@ var Metrics = /** @class */ (function () {
                         return [4 /*yield*/, this.before(metricType, metric, options)];
                     case 1:
                         beforeResult = _a.sent();
-                        promises = this.layers.map(function (layer) { return layer[metricType](metric, beforeResult.options); });
+                        newOptions = beforeResult.options;
+                        delete newOptions.before;
+                        promises = this.layers.map(function (layer) { return layer[metricType](metric, newOptions); });
                         // return a promise that will resolve when all layers are finished
                         return [2 /*return*/, new Promise(function (resolve, reject) {
                                 Promise.all(promises)

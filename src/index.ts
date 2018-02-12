@@ -1,4 +1,5 @@
 import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
+import { NullLogger, NullMetrics } from './contrib/null';
 import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
 import { LoggerOptions, L, LoggerLayer } from './interfaces/logger';
 import { M, MetricsOptions, MetricInterface } from './interfaces/metrics';
@@ -7,11 +8,13 @@ import Metric from './models/metric';
 const contribLoggers = {
   console: ConsoleLogger,
   json_post: JsonPostLogger,
+  null: NullLogger,
 };
 
 const contribMetrics = {
   console: ConsoleMetrics,
   json_post: JsonPostMetrics,
+  null: NullMetrics,
 };
 
 /**

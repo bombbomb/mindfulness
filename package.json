@@ -8,7 +8,10 @@
     "test": "jest",
     "test-watch": "jest --watch",
     "build": "tsc",
-    "build-watch": "tsc --watch"
+    "build-watch": "tsc --watch",
+    "preversion": "npm test",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
     "logging",

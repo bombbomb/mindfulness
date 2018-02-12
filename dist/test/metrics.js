@@ -56,6 +56,14 @@ test('Metrics with no layers defaults to console', function () {
     var m = new index_1.Metrics();
     expect(m.layers).toHaveLength(1);
 });
+test('Metrics works with null layer', function () {
+    var m = new index_1.Metrics(['null']);
+    expect(m.layers).toHaveLength(1);
+});
+test('Metrics works with type:null layer', function () {
+    var m = new index_1.Metrics([{ type: 'null' }]);
+    expect(m.layers).toHaveLength(1);
+});
 test('Metris.increment() sends metric', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m;
     return __generator(this, function (_a) {
@@ -105,17 +113,40 @@ test('Metrics handles "before" calls', function (done) { return __awaiter(_this,
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                before = function (metricType, metric) { return (new Promise(function (resolve) {
+                before = function (metricType, metric, options) { return (new Promise(function (resolve) {
                     var thisMetric = metric;
                     thisMetric.value = 10;
-                    var result = { thisMetric: thisMetric };
+                    thisMetric.metric = "prefix." + metric.metric;
+                    var result = { metricType: metricType, options: options, metric: thisMetric };
                     resolve(result);
                 })); };
                 m = new index_1.Metrics(['console'], { before: before });
                 return [4 /*yield*/, m.increment('metric')];
             case 1:
                 _a.sent();
-                expect(spies.info.mock.calls[0][0]).toMatch(/10$/);
+                expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('Metrics handles layer "before" calls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var before, m;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                before = function (metricType, metric, options) { return (new Promise(function (resolve) {
+                    var thisMetric = metric;
+                    thisMetric.value = 10;
+                    thisMetric.metric = "prefix." + metric.metric;
+                    var result = { metricType: metricType, options: options, metric: thisMetric };
+                    resolve(result);
+                })); };
+                m = new index_1.Metrics([{ type: 'console', before: before }]);
+                return [4 /*yield*/, m.increment('metric')];
+            case 1:
+                _a.sent();
+                expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
                 done();
                 return [2 /*return*/];
         }

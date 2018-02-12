@@ -78,21 +78,29 @@ var ConsoleLogger = /** @class */ (function (_super) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var callOptions = _this.getCallOptions(options);
-                        if (callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level)) {
-                            var args = [message];
-                            if (payload && typeof payload === 'object') {
-                                args.push(__assign({}, payload));
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var callOptions, beforeResult, args;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    callOptions = this.getCallOptions(options);
+                                    return [4 /*yield*/, this.before(message, payload, callOptions)];
+                                case 1:
+                                    beforeResult = _a.sent();
+                                    if (callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level)) {
+                                        args = [beforeResult.message];
+                                        if (beforeResult.payload && typeof beforeResult.payload === 'object') {
+                                            args.push(__assign({}, beforeResult.payload));
+                                        }
+                                        if (typeof console[level] === 'undefined') {
+                                            return [2 /*return*/, reject(new Error("Invalid log level: " + level))];
+                                        }
+                                        console[level].call(this, beforeResult.message, beforeResult.payload, beforeResult.options);
+                                    }
+                                    return [2 /*return*/, resolve()];
                             }
-                            if (typeof console[level] === 'undefined') {
-                                return reject(new Error("Invalid log level: " + level));
-                            }
-                            (_a = console[level]).call.apply(_a, [_this].concat(args));
-                        }
-                        return resolve();
-                        var _a;
-                    })];
+                        });
+                    }); })];
             });
         });
     };
@@ -113,24 +121,35 @@ var ConsoleMetrics = /** @class */ (function (_super) {
             args[_i - 1] = arguments[_i];
         }
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                        var value = (m.value) ? Math.abs(Number(m.value)) : 1;
-                        var message = '';
-                        switch (metricType) {
-                            case 'decrement':
-                                message = "metrics: " + m.toString() + ": -" + value;
-                                break;
-                            case 'increment':
-                                message = "metrics: " + m.toString() + ": +" + value;
-                                break;
-                            default:
-                                message = "metrics: " + m.toString() + ": " + m.value;
-                        }
-                        console.info(message);
-                        resolve({ metric: m });
-                    })];
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var m, beforeResult, value, message;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
+                                    return [4 /*yield*/, this.before(metricType, m, this.options)];
+                                case 1:
+                                    beforeResult = _a.sent();
+                                    value = (beforeResult.metric.value) ? Math.abs(Number(beforeResult.metric.value)) : 1;
+                                    message = '';
+                                    switch (metricType) {
+                                        case 'decrement':
+                                            message = "metrics: " + beforeResult.metric.toString() + ": -" + value;
+                                            break;
+                                        case 'increment':
+                                            message = "metrics: " + beforeResult.metric.toString() + ": +" + value;
+                                            break;
+                                        default:
+                                            message = "metrics: " + beforeResult.metric.toString() + ": " + beforeResult.metric.value;
+                                    }
+                                    console.info(message);
+                                    resolve({ metric: beforeResult.metric });
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })];
             });
         });
     };

@@ -187,6 +187,41 @@ test('Include metric and category value in the request URL', async (done) => {
   done();
 });
 
+test('"before" callbacks can change metric and category value in the request URL', async (done) => {
+  const beforeCallback = {
+    callback: (metricType, metric, options) => {
+      const thisMetric = metric;
+      thisMetric.metric = `prefix.${metric.metric}`;
+      return Promise.resolve({ metricType, thisMetric, options });
+    },
+  };
+
+  const spy = jest.spyOn(beforeCallback, 'callback');
+
+  const m = new Metrics([
+    {
+      type: 'json_post',
+      host: 'metrics.example.com',
+      paths: {
+        increment: '/path/$category/$metric',
+      },
+    },
+  ], { before: beforeCallback.callback });
+
+  const correctEndpoint = nock('http://metrics.example.com')
+    .post('/path/awesome/prefix.myMetric', {
+        environment: 'test',
+        type: 'increment',
+        value: 10,
+    })
+    .reply(200, {});
+
+  await m.increment('awesome', 'myMetric', 10);
+  expect(spy).toHaveBeenCalled();
+  expect(correctEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('Metric post failure should throw an error', async (done) => {
   const m = new Metrics([
     {

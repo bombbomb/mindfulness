@@ -255,6 +255,45 @@ test('Include metric and category value in the request URL', function (done) { r
         }
     });
 }); });
+test('"before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var beforeCallback, spy, m, correctEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                beforeCallback = {
+                    callback: function (metricType, metric, options) {
+                        var thisMetric = metric;
+                        thisMetric.metric = "prefix." + metric.metric;
+                        return Promise.resolve({ metricType: metricType, thisMetric: thisMetric, options: options });
+                    },
+                };
+                spy = jest.spyOn(beforeCallback, 'callback');
+                m = new index_1.Metrics([
+                    {
+                        type: 'json_post',
+                        host: 'metrics.example.com',
+                        paths: {
+                            increment: '/path/$category/$metric',
+                        },
+                    },
+                ], { before: beforeCallback.callback });
+                correctEndpoint = nock_1.default('http://metrics.example.com')
+                    .post('/path/awesome/prefix.myMetric', {
+                    environment: 'test',
+                    type: 'increment',
+                    value: 10,
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.increment('awesome', 'myMetric', 10)];
+            case 1:
+                _a.sent();
+                expect(spy).toHaveBeenCalled();
+                expect(correctEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('Metric post failure should throw an error', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, correctEndpoint;
     return __generator(this, function (_a) {

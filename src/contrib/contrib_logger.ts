@@ -10,6 +10,35 @@ export default class ContribLogger {
     };
   }
 
+  /**
+   * Handle a "before" function.
+   *
+   * These functions can be used to modify for a specific request. Before functions
+   *
+   * @param message The message being logged
+   * @param payload The payload being logged
+   * @param options The settings for this call
+   */
+  async before(message: any, payload?: object, options?: object): Promise<any> {
+    const before = async () => (
+      new Promise(async (resolve, reject) => {
+        const callOptions = this.getCallOptions(options);
+
+        // make sure we're not passing a reference if we don't need to...
+        const thisPayload = payload;
+
+        if (callOptions && callOptions.before) {
+          const result = await callOptions.before(message, thisPayload, callOptions);
+          return resolve({ message: result.message, payload: result.payload, options: callOptions });
+        }
+
+        return resolve({ message, payload: thisPayload, options: callOptions });
+      })
+    );
+
+    return before();
+  }
+
   async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
     return new Promise((resolve) => {
       resolve();

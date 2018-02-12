@@ -26,6 +26,16 @@ test('Metrics with no layers defaults to console', () => {
   expect(m.layers).toHaveLength(1);
 });
 
+test('Metrics works with null layer', () => {
+  const m = new Metrics(['null']);
+  expect(m.layers).toHaveLength(1);
+});
+
+test('Metrics works with type:null layer', () => {
+  const m = new Metrics([{ type: 'null' }]);
+  expect(m.layers).toHaveLength(1);
+});
+
 test('Metris.increment() sends metric', async (done) => {
   const m = new Metrics();
   await m.increment('metric');
@@ -47,11 +57,12 @@ test('Metrics.timing() fails with no value', async (done) => {
 });
 
 test('Metrics handles "before" calls', async (done) => {
-  const before = (metricType: string, metric: MetricInterface) => (
+  const before = (metricType: string, metric: MetricInterface, options: MetricsOptions) => (
     new Promise((resolve) => {
       const thisMetric = metric;
       thisMetric.value = 10;
-      const result = { thisMetric };
+      thisMetric.metric = `prefix.${metric.metric}`;
+      const result = { metricType, options, metric: thisMetric };
       resolve(result);
     })
   );
@@ -59,7 +70,26 @@ test('Metrics handles "before" calls', async (done) => {
   const m = new Metrics(['console'], { before });
   await m.increment('metric');
 
-  expect(spies.info.mock.calls[0][0]).toMatch(/10$/);
+  expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
+
+  done();
+});
+
+test('Metrics handles layer "before" calls', async (done) => {
+  const before = (metricType: string, metric: MetricInterface, options: MetricsOptions) => (
+    new Promise((resolve) => {
+      const thisMetric = metric;
+      thisMetric.value = 10;
+      thisMetric.metric = `prefix.${metric.metric}`;
+      const result = { metricType, options, metric: thisMetric };
+      resolve(result);
+    })
+  );
+
+  const m = new Metrics([{ type: 'console', before }]);
+  await m.increment('metric');
+
+  expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
 
   done();
 });

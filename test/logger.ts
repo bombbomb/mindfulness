@@ -55,15 +55,33 @@ test('Logger with incorrect layer throws error', () => {
 });
 
 test('Logger handles "before" callbacks', async (done) => {
-  const before = function (message: string, payload?: object) {
-    return new Promise((resolve) => {
-      const result = {payload, message: `${message}!`, options: this.options};
+  const before = (message: string, payload?: object, options?: object) => (
+    new Promise((resolve) => {
+      const result = { payload, message: `${message}!`, options };
       resolve(result);
-    });
-  };
-  const l = new Logger(['console'], {before});
+    })
+  );
+  const l = new Logger(['console'], { before });
 
   expect(l.options).toHaveProperty('before');
+  expect(l.layers[0].options).not.toHaveProperty('before');
+
+  await l.log('hi');
+  expect(spies.log).toHaveBeenCalled();
+  expect(spies.log.mock.calls[0]).toContain('hi!');
+  done();
+});
+
+test('Logger handles layer "before" callbacks', async (done) => {
+  const before = (message: string, payload?: object, options?: object) => (
+    new Promise((resolve) => {
+      const result = { payload, message: `${message}!`, options };
+      resolve(result);
+    })
+  );
+  const l = new Logger([{ type: 'console', before }]);
+
+  expect(l.layers[0].options).toHaveProperty('before');
 
   await l.log('hi');
   expect(spies.log).toHaveBeenCalled();
@@ -132,7 +150,7 @@ test('Logger without alwaysSilent fails on request errors', async (done) => {
 });
 
 test('Logger filterLayers with string', () => {
-  const l = new Logger(['console', {type: 'json_post'}]);
+  const l = new Logger(['console', { type: 'json_post' }]);
   expect(l.layers[0].active).toBe(true);
   expect(l.layers[1].active).toBe(true);
 

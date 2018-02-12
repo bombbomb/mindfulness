@@ -104,15 +104,34 @@ test('Logger handles "before" callbacks', function (done) { return __awaiter(_th
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                before = function (message, payload) {
-                    var _this = this;
-                    return new Promise(function (resolve) {
-                        var result = { payload: payload, message: message + "!", options: _this.options };
-                        resolve(result);
-                    });
-                };
+                before = function (message, payload, options) { return (new Promise(function (resolve) {
+                    var result = { payload: payload, message: message + "!", options: options };
+                    resolve(result);
+                })); };
                 l = new index_1.Logger(['console'], { before: before });
                 expect(l.options).toHaveProperty('before');
+                expect(l.layers[0].options).not.toHaveProperty('before');
+                return [4 /*yield*/, l.log('hi')];
+            case 1:
+                _a.sent();
+                expect(spies.log).toHaveBeenCalled();
+                expect(spies.log.mock.calls[0]).toContain('hi!');
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('Logger handles layer "before" callbacks', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var before, l;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                before = function (message, payload, options) { return (new Promise(function (resolve) {
+                    var result = { payload: payload, message: message + "!", options: options };
+                    resolve(result);
+                })); };
+                l = new index_1.Logger([{ type: 'console', before: before }]);
+                expect(l.layers[0].options).toHaveProperty('before');
                 return [4 /*yield*/, l.log('hi')];
             case 1:
                 _a.sent();

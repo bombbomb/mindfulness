@@ -20,17 +20,21 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
    * @param options Optional call-specific options for this log.
    */
   async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
+
+      // call & wait for our before handlers
+      const beforeResult = await this.before(message, payload, callOptions);
+
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
-        const args: (string|object)[] = [message];
-        if (payload && typeof payload === 'object') {
-          args.push({ ...payload });
+        const args: (string|object)[] = [beforeResult.message];
+        if (beforeResult.payload && typeof beforeResult.payload === 'object') {
+          args.push({ ...beforeResult.payload });
         }
         if (typeof console[level] === 'undefined') {
           return reject(new Error(`Invalid log level: ${level}`));
         }
-        console[level].call(this, ...args);
+        console[level].call(this, beforeResult.message, beforeResult.payload, beforeResult.options);
       }
       return resolve();
     });
@@ -42,23 +46,27 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
  */
 export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
   async call(metricType: string, ...args: any[]): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const m = new Metric(...args);
-      const value = (m.value) ? Math.abs(Number(m.value)) : 1;
+
+      // call & wait for our before handlers
+      const beforeResult = await this.before(metricType, m, this.options);
+
+      const value = (beforeResult.metric.value) ? Math.abs(Number(beforeResult.metric.value)) : 1;
       let message = '';
       switch (metricType) {
         case 'decrement':
-          message = `metrics: ${m.toString()}: -${value}`;
+          message = `metrics: ${beforeResult.metric.toString()}: -${value}`;
           break;
         case 'increment':
-          message = `metrics: ${m.toString()}: +${value}`;
+          message = `metrics: ${beforeResult.metric.toString()}: +${value}`;
           break;
         default:
-          message = `metrics: ${m.toString()}: ${m.value}`;
+          message = `metrics: ${beforeResult.metric.toString()}: ${beforeResult.metric.value}`;
       }
 
       console.info(message);
-      resolve({ metric: m });
+      resolve({ metric: beforeResult.metric });
     });
   }
 

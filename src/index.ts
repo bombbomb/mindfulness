@@ -135,13 +135,16 @@ export class Logger implements L {
     // call & wait for our before handlers
     const beforeResult = await this.before(message, payload, options);
 
+    const newOptions = beforeResult.options;
+    delete newOptions.before;
+
     // call the log function on each layer
     const promises = this.layers
       .filter(layer => layer.active === true)
       .map(layer => layer[logLevel](
         beforeResult.message,
         beforeResult.payload,
-        beforeResult.options,
+        newOptions,
       ));
 
     // return a promise that will resolve when all layers are finished
@@ -346,7 +349,7 @@ export class Metrics implements M {
    * @param args Args
    */
   async call(metricType: string, ...args: any[]): Promise<any> {
-    if (['increment', 'decrement', 'timing'].indexOf(metricType) < 0) {
+    if (['increment', 'timing'].indexOf(metricType) < 0) {
       return Promise.reject(new Error(`Invalid metric type: ${metricType}`));
     }
 

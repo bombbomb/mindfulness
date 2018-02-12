@@ -48,6 +48,45 @@ var ContribLogger = /** @class */ (function () {
     function ContribLogger(options) {
         this.options = __assign({ logLevel: logger_1.LOG_LEVELS.LOG_ALL }, options);
     }
+    /**
+     * Handle a "before" function.
+     *
+     * These functions can be used to modify for a specific request. Before functions
+     *
+     * @param message The message being logged
+     * @param payload The payload being logged
+     * @param options The settings for this call
+     */
+    ContribLogger.prototype.before = function (message, payload, options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            var before;
+            return __generator(this, function (_a) {
+                before = function () { return __awaiter(_this, void 0, void 0, function () {
+                    var _this = this;
+                    return __generator(this, function (_a) {
+                        return [2 /*return*/, (new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                                var callOptions, thisPayload, result;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            callOptions = this.getCallOptions(options);
+                                            thisPayload = payload;
+                                            if (!(callOptions && callOptions.before)) return [3 /*break*/, 2];
+                                            return [4 /*yield*/, callOptions.before(message, thisPayload, callOptions)];
+                                        case 1:
+                                            result = _a.sent();
+                                            return [2 /*return*/, resolve({ message: result.message, payload: result.payload, options: callOptions })];
+                                        case 2: return [2 /*return*/, resolve({ message: message, payload: thisPayload, options: callOptions })];
+                                    }
+                                });
+                            }); }))];
+                    });
+                }); };
+                return [2 /*return*/, before()];
+            });
+        });
+    };
     ContribLogger.prototype.call = function (level, message, payload, options) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {

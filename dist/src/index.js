@@ -187,15 +187,17 @@ var Logger = /** @class */ (function () {
     Logger.prototype.call = function (logLevel, message, payload, options) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var beforeResult, promises;
+            var beforeResult, newOptions, promises;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.before(message, payload, options)];
                     case 1:
                         beforeResult = _a.sent();
+                        newOptions = beforeResult.options;
+                        delete newOptions.before;
                         promises = this.layers
                             .filter(function (layer) { return layer.active === true; })
-                            .map(function (layer) { return layer[logLevel](beforeResult.message, beforeResult.payload, beforeResult.options); });
+                            .map(function (layer) { return layer[logLevel](beforeResult.message, beforeResult.payload, newOptions); });
                         // return a promise that will resolve when all layers are finished
                         return [2 /*return*/, new Promise(function (resolve, reject) {
                                 Promise.all(promises)
@@ -418,7 +420,7 @@ var Metrics = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (['increment', 'decrement', 'timing'].indexOf(metricType) < 0) {
+                        if (['increment', 'timing'].indexOf(metricType) < 0) {
                             return [2 /*return*/, Promise.reject(new Error("Invalid metric type: " + metricType))];
                         }
                         length = args.length;

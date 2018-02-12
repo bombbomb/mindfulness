@@ -19,10 +19,20 @@ export default class ContribMetrics {
       new Promise(async (resolve, reject) => {
         if (options.before) {
           const result = await options.before.apply(this, [metricType, metric, options]);
-          return resolve({ metric: result.metric, options: result.options });
+
+          if (typeof result.metric === 'undefined') {
+            const keys = Object.keys(result).join(', ');
+            throw new Error(`The before callback must include the metric object. Received: ${keys}`);
+          }
+          if (typeof result.options === 'undefined') {
+            const keys = Object.keys(result).join(', ');
+            throw new Error(`The before callback must include the options object. Received: ${keys}`);
+          }
+
+          return resolve({ metricType, metric: result.metric, options: result.options });
         }
 
-        return resolve({ metric, options });
+        return resolve({ metricType, metric, options });
       })
     );
 

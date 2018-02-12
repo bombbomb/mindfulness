@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 test('JsonPostMetrics.getRequestOptions returns object', () => {
-  const m = new Metrics([{type: 'json_post', host: 'metrics.example.com'}]);
+  const m = new Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
   const jsonMetrics = m.layers[0];
 
   const obj = { headers: { 'X-Thing': 123 } };
@@ -25,7 +25,7 @@ test('JsonPostMetrics.getRequestOptions returns object', () => {
 
 test('send metrics via post request to example.com', async (done) => {
   const m = new Metrics([
-    { type: 'json_post', host: 'metrics.example.com' }
+    { type: 'json_post', host: 'metrics.example.com' },
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')
@@ -43,7 +43,7 @@ test('send metrics via post request to example.com', async (done) => {
 
 test('send metrics via post request to example.com with scheme in host', async (done) => {
   const m = new Metrics([
-    { type: 'json_post', host: 'http://metrics.example.com' }
+    { type: 'json_post', host: 'http://metrics.example.com' },
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')
@@ -192,7 +192,7 @@ test('"before" callbacks can change metric and category value in the request URL
     callback: (metricType, metric, options) => {
       const thisMetric = metric;
       thisMetric.metric = `prefix.${metric.metric}`;
-      return Promise.resolve({ metricType, thisMetric, options });
+      return Promise.resolve({ metricType, metric: thisMetric, options });
     },
   };
 
@@ -207,6 +207,42 @@ test('"before" callbacks can change metric and category value in the request URL
       },
     },
   ], { before: beforeCallback.callback });
+
+  const correctEndpoint = nock('http://metrics.example.com')
+    .post('/path/awesome/prefix.myMetric', {
+        environment: 'test',
+        type: 'increment',
+        value: 10,
+    })
+    .reply(200, {});
+
+  await m.increment('awesome', 'myMetric', 10);
+  expect(spy).toHaveBeenCalled();
+  expect(correctEndpoint.isDone()).toBe(true);
+  done();
+});
+
+test('layer "before" callbacks can change metric and category value in the request URL', async (done) => {
+  const beforeCallback = {
+    callback: (metricType, metric, options) => {
+      const thisMetric = metric;
+      thisMetric.metric = `prefix.${metric.metric}`;
+      return Promise.resolve({ metricType, metric: thisMetric, options });
+    },
+  };
+
+  const spy = jest.spyOn(beforeCallback, 'callback');
+
+  const m = new Metrics([
+    {
+      type: 'json_post',
+      host: 'metrics.example.com',
+      paths: {
+        increment: '/path/$category/$metric',
+      },
+      before: beforeCallback.callback,
+    },
+  ]);
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/prefix.myMetric', {

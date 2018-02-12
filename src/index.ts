@@ -375,8 +375,11 @@ export class Metrics implements M {
     // call & wait for our before handlers
     const beforeResult = await this.before(metricType, metric, options);
 
+    const newOptions = beforeResult.options;
+    delete newOptions.before;
+
     // call the log function on each layer
-    const promises = this.layers.map(layer => layer[metricType](metric, beforeResult.options));
+    const promises = this.layers.map(layer => layer[metricType](metric, newOptions));
 
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {

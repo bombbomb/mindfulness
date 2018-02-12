@@ -30,10 +30,14 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
   async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
+
+      // call & wait for our before handlers
+      const beforeResult = await this.before(message, payload, callOptions);
+
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
         try {
-          const thisMessage = this.getMessage(message);
-          const thisPayload = this.getPayload(payload);
+          const thisMessage = this.getMessage(beforeResult.message);
+          const thisPayload = this.getPayload(beforeResult.payload);
           const requestOptions: object = this.getRequestOptions({
             json: true,
             resolveWithFullResponse: true,
@@ -188,10 +192,14 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
   async call(metricType: string, metric: Metric, options?: MetricsOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
+
+      // call & wait for our before handlers
+      const beforeResult = await this.before(metricType, metric, callOptions);
+
       const requestOptions: object = this.getRequestOptions({
         json: true,
         resolveWithFullResponse: true,
-      }, metricType, metric, callOptions);
+      }, beforeResult.metricType, beforeResult.metric, callOptions);
 
       try {
         const response = await request(requestOptions);

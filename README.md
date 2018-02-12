@@ -144,6 +144,8 @@ JSON POST also can also be modified/customized in a few ways:
 ```javascript
 const l = new Logger([{
   type: 'json_post',
+  // include extra things in the body by default...
+  dataDefaults: { includedInBody: 'example' },
   // modify the "body" that is posted to the endpoint...
   requestBodyCallback: (body, details) => {
     return {

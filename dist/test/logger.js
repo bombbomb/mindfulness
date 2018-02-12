@@ -313,4 +313,34 @@ test('logError with error stack', function (done) { return __awaiter(_this, void
         }
     });
 }); });
+test('Logger with null layer works', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger(['null']);
+                expect(l.layers).toHaveLength(1);
+                return [4 /*yield*/, l.log('Things!')];
+            case 1:
+                _a.sent();
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('Logger with type:null layer works', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger([{ type: 'null' }]);
+                expect(l.layers).toHaveLength(1);
+                return [4 /*yield*/, l.log('Things!')];
+            case 1:
+                _a.sent();
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 //# sourceMappingURL=logger.js.map

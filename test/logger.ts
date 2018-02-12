@@ -214,3 +214,19 @@ test('logError with error stack', async (done) => {
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
 });
+
+test('Logger with null layer works', async (done) => {
+  const l = new Logger(['null']);
+  expect(l.layers).toHaveLength(1);
+
+  await l.log('Things!');
+  done();
+});
+
+test('Logger with type:null layer works', async (done) => {
+  const l = new Logger([{ type: 'null' }]);
+  expect(l.layers).toHaveLength(1);
+
+  await l.log('Things!');
+  done();
+});

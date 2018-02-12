@@ -44,15 +44,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var console_1 = require("./contrib/console");
+var null_1 = require("./contrib/null");
 var json_post_1 = require("./contrib/json_post");
 var metric_1 = require("./models/metric");
 var contribLoggers = {
     console: console_1.ConsoleLogger,
     json_post: json_post_1.JsonPostLogger,
+    null: null_1.NullLogger,
 };
 var contribMetrics = {
     console: console_1.ConsoleMetrics,
     json_post: json_post_1.JsonPostMetrics,
+    null: null_1.NullMetrics,
 };
 /**
  * Logger class.

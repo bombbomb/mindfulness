@@ -193,6 +193,41 @@ test('can change request body', function (done) { return __awaiter(_this, void 0
         }
     });
 }); });
+test('can include data defaults', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l, loggingEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger([
+                    {
+                        type: 'json_post',
+                        host: 'logging.example.com',
+                        dataDefaults: { xsrc: 'example' }
+                    },
+                ]);
+                loggingEndpoint = nock_1.default('http://logging.example.com')
+                    .post('/', function (req) {
+                    expect(req).toMatchObject({
+                        severity: 'log',
+                        type: 'log',
+                        message: 'Error doing things',
+                        xsrc: 'example',
+                        info: {
+                            payload: 234,
+                        },
+                    });
+                    return true;
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, l.log('Error doing things', { payload: 234 })];
+            case 1:
+                _a.sent();
+                expect(loggingEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('can change request body on a call', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {

@@ -87,14 +87,16 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param options Call-specific options
    */
   getRequestBody(level: string, message: any, payload: any = {}, options: LoggerOptions = {}): object {
+    const callOptions = this.getCallOptions(options);
+    const dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
     let body = {
       message,
       info: payload,
       severity: level,
       type: level,
+      ...dataDefaults,
     };
 
-    const callOptions = this.getCallOptions(options);
 
     if (callOptions.requestBodyCallback) {
       body = callOptions.requestBodyCallback(body, {

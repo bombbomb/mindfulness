@@ -151,13 +151,9 @@ var JsonPostLogger = /** @class */ (function (_super) {
     JsonPostLogger.prototype.getRequestBody = function (level, message, payload, options) {
         if (payload === void 0) { payload = {}; }
         if (options === void 0) { options = {}; }
-        var body = {
-            message: message,
-            info: payload,
-            severity: level,
-            type: level,
-        };
         var callOptions = this.getCallOptions(options);
+        var dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
+        var body = __assign({ message: message, info: payload, severity: level, type: level }, dataDefaults);
         if (callOptions.requestBodyCallback) {
             body = callOptions.requestBodyCallback(body, {
                 level: level, message: message, payload: payload, callOptions: callOptions,

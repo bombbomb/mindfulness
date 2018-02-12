@@ -127,6 +127,36 @@ test('can change request body', async (done) => {
   done();
 });
 
+test('can include data defaults', async (done) => {
+  const l = new Logger([
+    {
+      type: 'json_post',
+      host: 'logging.example.com',
+      dataDefaults: { xsrc: 'example' }
+    },
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', (req) => {
+      expect(req).toMatchObject({
+        severity: 'log',
+        type: 'log',
+        message: 'Error doing things',
+        xsrc: 'example',
+        info: {
+          payload: 234,
+        },
+      });
+      return true;
+    })
+    .reply(200, {});
+
+  await l.log('Error doing things', { payload: 234 });
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('can change request body on a call', async (done) => {
   const l = new Logger([
     {

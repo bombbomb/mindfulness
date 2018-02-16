@@ -165,7 +165,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
         if (options === void 0) { options = {}; }
         var callOptions = this.getCallOptions(options);
         var dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
-        var body = __assign({ message: message, info: payload, severity: level, type: level }, dataDefaults);
+        var body = __assign({ message: message, info: payload, severity: level, type: level, environment: this.getEnvironment() }, dataDefaults);
         if (callOptions.requestBodyCallback) {
             body = callOptions.requestBodyCallback(body, {
                 level: level, message: message, payload: payload, callOptions: callOptions,

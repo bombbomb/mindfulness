@@ -63,6 +63,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
                     type: 'log',
                     message: 'Hello!',
                     info: {},
+                    environment: 'test',
                 })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
@@ -88,6 +89,7 @@ test('log via post payload request to example.com', function (done) { return __a
                     type: 'log',
                     message: 'Hello!',
                     info: { example: 123 },
+                    environment: 'test',
                 })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!', { example: 123 })];
@@ -114,6 +116,7 @@ test('log object for message', function (done) { return __awaiter(_this, void 0,
                         type: 'log',
                         message: '{"example":123}',
                         info: {},
+                        environment: 'test',
                     });
                     return true;
                 })
@@ -202,7 +205,7 @@ test('can include data defaults', function (done) { return __awaiter(_this, void
                     {
                         type: 'json_post',
                         host: 'logging.example.com',
-                        dataDefaults: { xsrc: 'example' }
+                        dataDefaults: { xsrc: 'example' },
                     },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
@@ -212,6 +215,7 @@ test('can include data defaults', function (done) { return __awaiter(_this, void
                         type: 'log',
                         message: 'Error doing things',
                         xsrc: 'example',
+                        environment: 'test',
                         info: {
                             payload: 234,
                         },
@@ -246,6 +250,7 @@ test('can change request body on a call', function (done) { return __awaiter(_th
                         type: 'log',
                         message: 'Error doing things',
                         injected: 123,
+                        environment: 'test',
                         info: {
                             payload: 234,
                         },
@@ -278,6 +283,7 @@ test('log fails on post error', function (done) { return __awaiter(_this, void 0
                     type: 'log',
                     message: 'Hello!',
                     info: {},
+                    environment: 'test',
                 })
                     .reply(500, {});
                 return [4 /*yield*/, expect(l.log('Hello!')).rejects.toThrow()];
@@ -303,6 +309,7 @@ test('$level variables is processed in the url', function (done) { return __awai
                     type: 'log',
                     message: 'Hello!',
                     info: {},
+                    environment: 'test',
                 })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
@@ -328,6 +335,7 @@ test('logging does not fail when the host includes the scheme', function (done) 
                     type: 'log',
                     message: 'Hello!',
                     info: {},
+                    environment: 'test',
                 })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
@@ -354,6 +362,7 @@ describe('log silent()', function () {
                         type: 'log',
                         message: 'Hello!',
                         info: {},
+                        environment: 'test',
                     })
                         .reply(500, {});
                     return [4 /*yield*/, expect(l.silent().log('Hello!')).resolves.not.toThrow()];

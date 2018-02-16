@@ -1,6 +1,13 @@
 import nock from 'nock';
 import { Logger } from '../src/index';
 
+const spies = {
+  // log: jest.spyOn(global.console, 'log'),
+  info: jest.spyOn(global.console, 'info'),
+  // error: jest.spyOn(global.console, 'error'),
+  // warn: jest.spyOn(global.console, 'warn'),
+};
+
 afterEach(() => {
   nock.cleanAll();
 });
@@ -93,6 +100,28 @@ test('log error for payload', async (done) => {
 
   await l.log('Error doing things', new Error('You did everything wrong'));
 
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
+});
+
+test('can debug', async (done) => {
+  const l = new Logger([
+    { type: 'json_post', host: 'logging.example.com', debug: true },
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', {
+      severity: 'log',
+      type: 'log',
+      message: 'Hello!',
+      info: { example: 123 },
+      environment: 'test',
+    })
+    .reply(200, {});
+
+  await l.log('Hello!', { example: 123 });
+
+  expect(spies.info).toHaveBeenCalled();
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
 });

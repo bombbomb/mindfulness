@@ -6,7 +6,7 @@
     "no-unused-vars": "off",
     "import/extensions": "off",
     "import/no-unresolved": "off",
-    "max-len": "warn",
+    "max-len": "off",
     "indent": "off",
     "brace-style": ["error", "stroustrup"],
     "no-bitwise": "off",

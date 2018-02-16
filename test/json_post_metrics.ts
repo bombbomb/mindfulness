@@ -2,6 +2,13 @@ import nock from 'nock';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
 
+const spies = {
+  // log: jest.spyOn(global.console, 'log'),
+  info: jest.spyOn(global.console, 'info'),
+  // error: jest.spyOn(global.console, 'error'),
+  // warn: jest.spyOn(global.console, 'warn'),
+};
+
 afterEach(() => {
   nock.cleanAll();
 });
@@ -57,6 +64,25 @@ test('send metrics via post request to example.com', async (done) => {
 
   await m.increment('myMetric');
 
+  expect(metricsEndpoint.isDone()).toBe(true);
+  done();
+});
+
+test('can debug metrics', async (done) => {
+  const m = new Metrics([
+    { type: 'json_post', host: 'metrics.example.com', debug: true },
+  ]);
+
+  const metricsEndpoint = nock('http://metrics.example.com')
+    .post('/', {
+      environment: 'test',
+      type: 'increment',
+    })
+    .reply(200, {});
+
+  await m.increment('myMetric');
+
+  expect(spies.info).toHaveBeenCalled();
   expect(metricsEndpoint.isDone()).toBe(true);
   done();
 });

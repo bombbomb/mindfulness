@@ -102,6 +102,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
                                         json: true,
                                         resolveWithFullResponse: true,
                                     }, level, thisMessage, thisPayload, callOptions);
+                                    this.debug('mindfulness logging', { requestOptions: requestOptions });
                                     return [4 /*yield*/, request(requestOptions)];
                                 case 3:
                                     response = _a.sent();
@@ -109,6 +110,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
                                     return [3 /*break*/, 5];
                                 case 4:
                                     e_1 = _a.sent();
+                                    this.debug('mindfulness logging error', e_1);
                                     reject(e_1);
                                     return [3 /*break*/, 5];
                                 case 5: return [3 /*break*/, 7];
@@ -121,6 +123,16 @@ var JsonPostLogger = /** @class */ (function (_super) {
                     }); })];
             });
         });
+    };
+    JsonPostLogger.prototype.debug = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (this.options.debug) {
+            (_a = console.info).call.apply(_a, [console].concat(args));
+        }
+        var _a;
     };
     JsonPostLogger.prototype.getEnvironment = function () {
         if (process.env.ENVIRONMENT) {
@@ -258,6 +270,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                                     _a.label = 2;
                                 case 2:
                                     _a.trys.push([2, 4, , 5]);
+                                    this.debug('mindfulness metrics', { requestOptions: requestOptions });
                                     return [4 /*yield*/, request(requestOptions)];
                                 case 3:
                                     response = _a.sent();
@@ -265,6 +278,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                                     return [3 /*break*/, 5];
                                 case 4:
                                     e_2 = _a.sent();
+                                    this.debug('mindfulness metrics error', e_2);
                                     reject(e_2);
                                     return [3 /*break*/, 5];
                                 case 5: return [2 /*return*/];
@@ -273,6 +287,16 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                     }); })];
             });
         });
+    };
+    JsonPostMetrics.prototype.debug = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (this.options.debug) {
+            (_a = console.info).call.apply(_a, [console].concat(args));
+        }
+        var _a;
     };
     /**
      * Used to create the list of arguments each metric function uses

@@ -47,6 +47,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
+var spies = {
+    // log: jest.spyOn(global.console, 'log'),
+    info: jest.spyOn(global.console, 'info'),
+};
 afterEach(function () {
     nock_1.default.cleanAll();
 });
@@ -90,6 +94,30 @@ test('send metrics via post request to example.com', function (done) { return __
                 return [4 /*yield*/, m.increment('myMetric')];
             case 1:
                 _a.sent();
+                expect(metricsEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var m, metricsEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([
+                    { type: 'json_post', host: 'metrics.example.com', debug: true },
+                ]);
+                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                    .post('/', {
+                    environment: 'test',
+                    type: 'increment',
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.increment('myMetric')];
+            case 1:
+                _a.sent();
+                expect(spies.info).toHaveBeenCalled();
                 expect(metricsEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];

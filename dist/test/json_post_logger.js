@@ -46,6 +46,10 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
 var index_1 = require("../src/index");
+var spies = {
+    // log: jest.spyOn(global.console, 'log'),
+    info: jest.spyOn(global.console, 'info'),
+};
 afterEach(function () {
     nock_1.default.cleanAll();
 });
@@ -155,6 +159,33 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
                 return [4 /*yield*/, l.log('Error doing things', new Error('You did everything wrong'))];
             case 1:
                 _a.sent();
+                expect(loggingEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('can debug', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l, loggingEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger([
+                    { type: 'json_post', host: 'logging.example.com', debug: true },
+                ]);
+                loggingEndpoint = nock_1.default('http://logging.example.com')
+                    .post('/', {
+                    severity: 'log',
+                    type: 'log',
+                    message: 'Hello!',
+                    info: { example: 123 },
+                    environment: 'test',
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, l.log('Hello!', { example: 123 })];
+            case 1:
+                _a.sent();
+                expect(spies.info).toHaveBeenCalled();
                 expect(loggingEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];

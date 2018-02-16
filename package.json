@@ -11,7 +11,9 @@
     "build-watch": "tsc --watch",
     "preversion": "npm test",
     "version": "npm run build && git add -A dist",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "eslint": "eslint src/**/*.ts",
+    "eslint-ci": "eslint --quiet src/**/*.ts"
   },
   "keywords": [
     "logging",

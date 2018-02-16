@@ -43,10 +43,12 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
             resolveWithFullResponse: true,
           }, level, thisMessage, thisPayload, callOptions);
 
+          this.debug('mindfulness logging', { requestOptions });
           const response = await request(requestOptions);
           resolve(response);
         }
         catch (e) {
+          this.debug('mindfulness logging error', e);
           reject(e);
         }
       }
@@ -54,6 +56,12 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
         resolve();
       }
     });
+  }
+
+  debug(...args) {
+    if (this.options.debug) {
+      console.info.call(console, ...args);
+    }
   }
 
   getEnvironment() {
@@ -212,13 +220,21 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
       }, beforeResult.metricType, beforeResult.metric, callOptions);
 
       try {
+        this.debug('mindfulness metrics', { requestOptions });
         const response = await request(requestOptions);
         resolve(response);
       }
       catch (e) {
+        this.debug('mindfulness metrics error', e);
         reject(e);
       }
     });
+  }
+
+  debug(...args) {
+    if (this.options.debug) {
+      console.info.call(console, ...args);
+    }
   }
 
   /**

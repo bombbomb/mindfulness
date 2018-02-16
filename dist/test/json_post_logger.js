@@ -411,6 +411,12 @@ test('getRequestUri() handles trailing slash in host', function () {
     ]);
     expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('http://logging.example.com/test');
 });
+test('getRequestUri() handles scheme from host slash in host', function () {
+    var l = new index_1.Logger([
+        { type: 'json_post', host: 'https://logging.example.com/' },
+    ]);
+    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('https://logging.example.com/test');
+});
 test('getRequestUri() handles missing leading slash in path', function () {
     var l = new index_1.Logger([
         { type: 'json_post', host: 'http://logging.example.com' },

@@ -164,6 +164,15 @@ var JsonPostLogger = /** @class */ (function (_super) {
         }
         return payload;
     };
+    JsonPostLogger.prototype.getScheme = function (options) {
+        var scheme = (options.scheme) ? options.scheme : 'http';
+        // check the host to see if it has http/https in it...
+        var host = /^(https?):\/\//.exec(options.host);
+        if (host) {
+            scheme = host[1];
+        }
+        return scheme;
+    };
     /**
      * Build the request body and hand off to a requestBodyCallback if specified.
      *
@@ -216,7 +225,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
     JsonPostLogger.prototype.getRequestUri = function (level, message, payload, options) {
         var callOptions = this.getCallOptions(options);
         var url = '';
-        var scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
+        var scheme = this.getScheme(callOptions);
         var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
         var port = (callOptions.port) ? Number(callOptions.port) : null;
         var path = (callOptions.path) ? String(callOptions.path) : '/';
@@ -422,13 +431,22 @@ var JsonPostMetrics = /** @class */ (function (_super) {
         }
         return (options.path) ? String(options.path) : '/';
     };
+    JsonPostMetrics.prototype.getScheme = function (options) {
+        var scheme = (options.scheme) ? options.scheme : 'http';
+        // check the host to see if it has http/https in it...
+        var host = /^(https?):\/\//.exec(options.host);
+        if (host) {
+            scheme = host[1];
+        }
+        return scheme;
+    };
     /**
      * Get the request URI based on options.
      */
     JsonPostMetrics.prototype.getRequestUri = function (metricType, metric, options) {
         var callOptions = this.getCallOptions(options);
         var url = '';
-        var scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
+        var scheme = this.getScheme(callOptions);
         var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
         var port = (callOptions.port) ? Number(callOptions.port) : null;
         if (host.slice(-1) === '/') {

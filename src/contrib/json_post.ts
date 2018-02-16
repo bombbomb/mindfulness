@@ -100,6 +100,18 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     return payload;
   }
 
+  getScheme(options) {
+    let scheme = (options.scheme) ? options.scheme : 'http';
+
+    // check the host to see if it has http/https in it...
+    const host = /^(https?):\/\//.exec(options.host);
+    if (host) {
+      [, scheme] = host;
+    }
+
+    return scheme;
+  }
+
   /**
    * Build the request body and hand off to a requestBodyCallback if specified.
    *
@@ -170,7 +182,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     const callOptions = this.getCallOptions(options);
     let url = '';
 
-    const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
+    const scheme = this.getScheme(callOptions);
     let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
     let path = (callOptions.path) ? String(callOptions.path) : '/';
@@ -366,6 +378,18 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     return (options.path) ? String(options.path) : '/';
   }
 
+  getScheme(options) {
+    let scheme = (options.scheme) ? options.scheme : 'http';
+
+    // check the host to see if it has http/https in it...
+    const host = /^(https?):\/\//.exec(options.host);
+    if (host) {
+      [, scheme] = host;
+    }
+
+    return scheme;
+  }
+
   /**
    * Get the request URI based on options.
    */
@@ -374,7 +398,7 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
 
     let url = '';
 
-    const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
+    const scheme = this.getScheme(callOptions);
     let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
 

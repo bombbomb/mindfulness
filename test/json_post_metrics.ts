@@ -68,6 +68,24 @@ test('send metrics via post request to example.com', async (done) => {
   done();
 });
 
+test('send metrics via post request to https://example.com', async (done) => {
+  const m = new Metrics([
+    { type: 'json_post', host: 'https://metrics.example.com' },
+  ]);
+
+  const metricsEndpoint = nock('https://metrics.example.com')
+    .post('/', {
+      environment: 'test',
+      type: 'increment',
+    })
+    .reply(200, {});
+
+  await m.increment('myMetric');
+
+  expect(metricsEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('can debug metrics', async (done) => {
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com', debug: true },

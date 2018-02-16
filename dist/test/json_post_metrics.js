@@ -100,6 +100,29 @@ test('send metrics via post request to example.com', function (done) { return __
         }
     });
 }); });
+test('send metrics via post request to https://example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var m, metricsEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([
+                    { type: 'json_post', host: 'https://metrics.example.com' },
+                ]);
+                metricsEndpoint = nock_1.default('https://metrics.example.com')
+                    .post('/', {
+                    environment: 'test',
+                    type: 'increment',
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.increment('myMetric')];
+            case 1:
+                _a.sent();
+                expect(metricsEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {

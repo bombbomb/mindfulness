@@ -16,6 +16,7 @@ test('log via post request to example.com', async (done) => {
       type: 'log',
       message: 'Hello!',
       info: {},
+      environment: 'test',
     })
     .reply(200, {});
 
@@ -36,6 +37,7 @@ test('log via post payload request to example.com', async (done) => {
       type: 'log',
       message: 'Hello!',
       info: { example: 123 },
+      environment: 'test',
     })
     .reply(200, {});
 
@@ -57,6 +59,7 @@ test('log object for message', async (done) => {
         type: 'log',
         message: '{"example":123}',
         info: {},
+        environment: 'test',
       });
       return true;
     })
@@ -132,7 +135,7 @@ test('can include data defaults', async (done) => {
     {
       type: 'json_post',
       host: 'logging.example.com',
-      dataDefaults: { xsrc: 'example' }
+      dataDefaults: { xsrc: 'example' },
     },
   ]);
 
@@ -143,6 +146,7 @@ test('can include data defaults', async (done) => {
         type: 'log',
         message: 'Error doing things',
         xsrc: 'example',
+        environment: 'test',
         info: {
           payload: 234,
         },
@@ -172,6 +176,7 @@ test('can change request body on a call', async (done) => {
         type: 'log',
         message: 'Error doing things',
         injected: 123,
+        environment: 'test',
         info: {
           payload: 234,
         },
@@ -202,6 +207,7 @@ test('log fails on post error', async (done) => {
       type: 'log',
       message: 'Hello!',
       info: {},
+      environment: 'test',
     })
     .reply(500, {});
 
@@ -222,6 +228,7 @@ test('$level variables is processed in the url', async (done) => {
       type: 'log',
       message: 'Hello!',
       info: {},
+      environment: 'test',
     })
     .reply(200, {});
 
@@ -242,6 +249,7 @@ test('logging does not fail when the host includes the scheme', async (done) => 
       type: 'log',
       message: 'Hello!',
       info: {},
+      environment: 'test',
     })
     .reply(200, {});
 
@@ -263,6 +271,7 @@ describe('log silent()', () => {
         type: 'log',
         message: 'Hello!',
         info: {},
+        environment: 'test',
       })
       .reply(500, {});
 

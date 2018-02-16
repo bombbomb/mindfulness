@@ -108,6 +108,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
       info: payload,
       severity: level,
       type: level,
+      environment: this.getEnvironment(),
       ...dataDefaults,
     };
 

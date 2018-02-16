@@ -122,6 +122,15 @@ var JsonPostLogger = /** @class */ (function (_super) {
             });
         });
     };
+    JsonPostLogger.prototype.getEnvironment = function () {
+        if (process.env.ENVIRONMENT) {
+            return process.env.ENVIRONMENT;
+        }
+        if (process.env.NODE_ENV) {
+            return process.env.NODE_ENV;
+        }
+        return 'production';
+    };
     JsonPostLogger.prototype.getMessage = function (message) {
         if (typeof message === 'string') {
             return message;
@@ -318,11 +327,11 @@ var JsonPostMetrics = /** @class */ (function (_super) {
      * Get the environment to pass in the body.
      */
     JsonPostMetrics.prototype.getEnvironment = function () {
-        if (process.env.NODE_ENV) {
-            return process.env.NODE_ENV;
-        }
-        else if (process.env.ENVIRONMENT) {
+        if (process.env.ENVIRONMENT) {
             return process.env.ENVIRONMENT;
+        }
+        else if (process.env.NODE_ENV) {
+            return process.env.NODE_ENV;
         }
         return 'production';
     };

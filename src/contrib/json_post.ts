@@ -56,6 +56,16 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     });
   }
 
+  getEnvironment() {
+    if (process.env.ENVIRONMENT) {
+      return process.env.ENVIRONMENT;
+    }
+    if (process.env.NODE_ENV) {
+      return process.env.NODE_ENV;
+    }
+    return 'production';
+  }
+
   getMessage(message) {
     if (typeof message === 'string') {
       return message;
@@ -100,7 +110,6 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
       type: level,
       ...dataDefaults,
     };
-
 
     if (callOptions.requestBodyCallback) {
       body = callOptions.requestBodyCallback(body, {
@@ -247,11 +256,11 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
    * Get the environment to pass in the body.
    */
   getEnvironment(): string {
-    if (process.env.NODE_ENV) {
-      return process.env.NODE_ENV;
-    }
-    else if (process.env.ENVIRONMENT) {
+    if (process.env.ENVIRONMENT) {
       return process.env.ENVIRONMENT;
+    }
+    else if (process.env.NODE_ENV) {
+      return process.env.NODE_ENV;
     }
     return 'production';
   }

@@ -23,6 +23,26 @@ test('JsonPostMetrics.getRequestOptions returns object', () => {
     });
 });
 
+test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', () => {
+  const m = new Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+  const jsonMetrics = m.layers[0];
+
+  const original = process.env.ENVIRONMENT;
+  process.env.ENVIRONMENT = 'fake';
+  const obj = { headers: { 'X-Thing': 123 } };
+  const result = jsonMetrics.getRequestOptions(obj, 'increment', new Metric('myMetric'), jsonMetrics.options);
+  process.env.ENVIRONMENT = original;
+  expect(result)
+    .toMatchObject({
+      ...obj,
+      method: 'POST',
+      uri: 'http://metrics.example.com/',
+      body: {
+        environment: 'fake',
+      },
+    });
+});
+
 test('send metrics via post request to example.com', async (done) => {
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com' },

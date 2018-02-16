@@ -60,6 +60,19 @@ test('JsonPostMetrics.getRequestOptions returns object', function () {
             environment: 'test',
         } }));
 });
+test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () {
+    var m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+    var jsonMetrics = m.layers[0];
+    var original = process.env.ENVIRONMENT;
+    process.env.ENVIRONMENT = 'fake';
+    var obj = { headers: { 'X-Thing': 123 } };
+    var result = jsonMetrics.getRequestOptions(obj, 'increment', new metric_1.default('myMetric'), jsonMetrics.options);
+    process.env.ENVIRONMENT = original;
+    expect(result)
+        .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+            environment: 'fake',
+        } }));
+});
 test('send metrics via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {

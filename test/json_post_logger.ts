@@ -308,3 +308,19 @@ describe('log silent()', () => {
     done();
   });
 });
+
+test('getRequestUri() handles trailing slash in host', () => {
+  const l = new Logger([
+    { type: 'json_post', host: 'http://logging.example.com/' },
+  ]);
+
+  expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('http://logging.example.com/test');
+});
+
+test('getRequestUri() handles missing leading slash in path', () => {
+  const l = new Logger([
+    { type: 'json_post', host: 'http://logging.example.com' },
+  ]);
+
+  expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: 'test' })).toBe('http://logging.example.com/test');
+});

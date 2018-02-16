@@ -405,4 +405,16 @@ describe('log silent()', function () {
         });
     }); });
 });
+test('getRequestUri() handles trailing slash in host', function () {
+    var l = new index_1.Logger([
+        { type: 'json_post', host: 'http://logging.example.com/' },
+    ]);
+    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('http://logging.example.com/test');
+});
+test('getRequestUri() handles missing leading slash in path', function () {
+    var l = new index_1.Logger([
+        { type: 'json_post', host: 'http://logging.example.com' },
+    ]);
+    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: 'test' })).toBe('http://logging.example.com/test');
+});
 //# sourceMappingURL=json_post_logger.js.map

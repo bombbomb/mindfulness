@@ -220,6 +220,12 @@ var JsonPostLogger = /** @class */ (function (_super) {
         var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
         var port = (callOptions.port) ? Number(callOptions.port) : null;
         var path = (callOptions.path) ? String(callOptions.path) : '/';
+        if (host.slice(-1) === '/') {
+            host = host.slice(0, -1);
+        }
+        if (path[0] !== '/') {
+            path = "/" + path;
+        }
         url = scheme + "://" + host;
         if (port) {
             url += ":" + port;
@@ -425,11 +431,18 @@ var JsonPostMetrics = /** @class */ (function (_super) {
         var scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
         var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
         var port = (callOptions.port) ? Number(callOptions.port) : null;
+        if (host.slice(-1) === '/') {
+            host = host.slice(0, -1);
+        }
         url = scheme + "://" + host;
         if (port) {
             url += ":" + port;
         }
-        url += this.getRequestPath(metricType, callOptions);
+        var path = this.getRequestPath(metricType, callOptions);
+        if (path[0] !== '/') {
+            path = "/" + path;
+        }
+        url += path;
         /* eslint-disable prefer-template */
         var category = (metric.category) ? metric.category + '$1' : '';
         url = url.replace(/\$category(\/)?/, category);

@@ -171,9 +171,17 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
     let url = '';
 
     const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
-    const host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
+    let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
-    const path = (callOptions.path) ? String(callOptions.path) : '/';
+    let path = (callOptions.path) ? String(callOptions.path) : '/';
+
+    if (host.slice(-1) === '/') {
+      host = host.slice(0, -1);
+    }
+
+    if (path[0] !== '/') {
+      path = `/${path}`;
+    }
 
     url = `${scheme}://${host}`;
     if (port) {
@@ -367,15 +375,23 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     let url = '';
 
     const scheme = (callOptions.scheme) ? callOptions.scheme : 'http';
-    const host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
+    let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
     const port = (callOptions.port) ? Number(callOptions.port) : null;
+
+    if (host.slice(-1) === '/') {
+      host = host.slice(0, -1);
+    }
 
     url = `${scheme}://${host}`;
     if (port) {
       url += `:${port}`;
     }
 
-    url += this.getRequestPath(metricType, callOptions);
+    let path = this.getRequestPath(metricType, callOptions);
+    if (path[0] !== '/') {
+      path = `/${path}`;
+    }
+    url += path;
 
     /* eslint-disable prefer-template */
     const category = (metric.category) ? metric.category + '$1' : '';

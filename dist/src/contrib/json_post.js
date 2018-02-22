@@ -59,6 +59,7 @@ var contrib_logger_1 = require("./contrib_logger");
 var contrib_metrics_1 = require("./contrib_metrics");
 var logging_1 = require("../util/logging");
 var metric_1 = require("../models/metric");
+var version_1 = require("../util/version");
 // need to use require() syntax because this package does not define default...
 var request = require('request-promise-native');
 /**
@@ -84,7 +85,7 @@ var JsonPostLogger = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var callOptions, beforeResult, thisMessage, thisPayload, requestOptions, response, e_1;
+                        var callOptions, beforeResult, version, thisMessage, thisPayload, requestOptions, response, e_1;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -92,32 +93,38 @@ var JsonPostLogger = /** @class */ (function (_super) {
                                     return [4 /*yield*/, this.before(message, payload, callOptions)];
                                 case 1:
                                     beforeResult = _a.sent();
-                                    if (!(callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level))) return [3 /*break*/, 6];
-                                    _a.label = 2;
+                                    if (!(callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level))) return [3 /*break*/, 7];
+                                    return [4 /*yield*/, version_1.default()];
                                 case 2:
-                                    _a.trys.push([2, 4, , 5]);
+                                    version = _a.sent();
+                                    _a.label = 3;
+                                case 3:
+                                    _a.trys.push([3, 5, , 6]);
                                     thisMessage = this.getMessage(beforeResult.message);
                                     thisPayload = this.getPayload(beforeResult.payload);
                                     requestOptions = this.getRequestOptions({
                                         json: true,
                                         resolveWithFullResponse: true,
+                                        headers: {
+                                            'User-Agent': "mindfulness/" + version,
+                                        },
                                     }, level, thisMessage, thisPayload, callOptions);
                                     this.debug('mindfulness logging', { requestOptions: requestOptions });
                                     return [4 /*yield*/, request(requestOptions)];
-                                case 3:
+                                case 4:
                                     response = _a.sent();
                                     resolve(response);
-                                    return [3 /*break*/, 5];
-                                case 4:
+                                    return [3 /*break*/, 6];
+                                case 5:
                                     e_1 = _a.sent();
                                     this.debug('mindfulness logging error', e_1);
                                     reject(e_1);
-                                    return [3 /*break*/, 5];
-                                case 5: return [3 /*break*/, 7];
-                                case 6:
+                                    return [3 /*break*/, 6];
+                                case 6: return [3 /*break*/, 8];
+                                case 7:
                                     resolve();
-                                    _a.label = 7;
-                                case 7: return [2 /*return*/];
+                                    _a.label = 8;
+                                case 8: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -270,7 +277,7 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var callOptions, beforeResult, requestOptions, response, e_2;
+                        var callOptions, beforeResult, version, requestOptions, response, e_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -278,25 +285,31 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                                     return [4 /*yield*/, this.before(metricType, metric, callOptions)];
                                 case 1:
                                     beforeResult = _a.sent();
+                                    return [4 /*yield*/, version_1.default()];
+                                case 2:
+                                    version = _a.sent();
                                     requestOptions = this.getRequestOptions({
                                         json: true,
                                         resolveWithFullResponse: true,
+                                        headers: {
+                                            'User-Agent': "mindfulness/" + version,
+                                        },
                                     }, beforeResult.metricType, beforeResult.metric, callOptions);
-                                    _a.label = 2;
-                                case 2:
-                                    _a.trys.push([2, 4, , 5]);
+                                    _a.label = 3;
+                                case 3:
+                                    _a.trys.push([3, 5, , 6]);
                                     this.debug('mindfulness metrics', { requestOptions: requestOptions });
                                     return [4 /*yield*/, request(requestOptions)];
-                                case 3:
+                                case 4:
                                     response = _a.sent();
                                     resolve(response);
-                                    return [3 /*break*/, 5];
-                                case 4:
+                                    return [3 /*break*/, 6];
+                                case 5:
                                     e_2 = _a.sent();
                                     this.debug('mindfulness metrics error', e_2);
                                     reject(e_2);
-                                    return [3 /*break*/, 5];
-                                case 5: return [2 /*return*/];
+                                    return [3 /*break*/, 6];
+                                case 6: return [2 /*return*/];
                             }
                         });
                     }); })];

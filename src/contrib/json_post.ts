@@ -5,6 +5,7 @@ import ContribMetrics from './contrib_metrics';
 import getLogLevelConstant from '../util/logging';
 import { MetricsInterface, MetricsOptions, M } from '../interfaces/metrics';
 import Metric from '../models/metric';
+import getMindfulnessVersion from '../util/version';
 
 // need to use require() syntax because this package does not define default...
 const request = require('request-promise-native');
@@ -35,12 +36,16 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
       const beforeResult = await this.before(message, payload, callOptions);
 
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
+        const version = await getMindfulnessVersion();
         try {
           const thisMessage = this.getMessage(beforeResult.message);
           const thisPayload = this.getPayload(beforeResult.payload);
           const requestOptions: object = this.getRequestOptions({
             json: true,
             resolveWithFullResponse: true,
+            headers: {
+              'User-Agent': `mindfulness/${version}`,
+            },
           }, level, thisMessage, thisPayload, callOptions);
 
           this.debug('mindfulness logging', { requestOptions });
@@ -234,9 +239,14 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
       // call & wait for our before handlers
       const beforeResult = await this.before(metricType, metric, callOptions);
 
+      const version = await getMindfulnessVersion();
+
       const requestOptions: object = this.getRequestOptions({
         json: true,
         resolveWithFullResponse: true,
+        headers: {
+          'User-Agent': `mindfulness/${version}`,
+        },
       }, beforeResult.metricType, beforeResult.metric, callOptions);
 
       try {

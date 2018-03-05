@@ -58,15 +58,10 @@ test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', async () =
   const jsonMetrics = m.layers[0];
 
   const original = process.env.NODE_ENV;
-  const originalEnvironment = process.env.ENVIRONMENT;
-  delete process.env.ENVIRONMENT;
-
   process.env.NODE_ENV = 'fake';
   const obj = { headers: { 'X-Thing': 123 } };
   const result = await jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new Metric('myMetric') }, jsonMetrics.options);
-
   process.env.NODE_ENV = original;
-  process.env.ENVIRONMENT = originalEnvironment;
 
   expect(result)
     .toMatchObject({

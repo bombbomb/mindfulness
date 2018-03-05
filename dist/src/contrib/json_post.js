@@ -84,7 +84,6 @@ var JsonPostHandler = /** @class */ (function () {
                         if (options.messageTemplate) {
                             keys = Object.keys(options.messageTemplate);
                             variables = __assign({ $environment: this.parentObject.getEnvironment(), $version: this.version }, details);
-                            console.info({ variables: variables });
                             for (index = 0; index < keys.length; index += 1) {
                                 key = keys[index];
                                 value = options.messageTemplate[key];

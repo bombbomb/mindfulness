@@ -83,6 +83,7 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', functio
             case 0:
                 m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
                 jsonMetrics = m.layers[0];
+                delete process.env.NODE_ENV;
                 process.env.ENVIRONMENT = 'fake';
                 obj = { headers: { 'X-Thing': 123 } };
                 return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
@@ -103,6 +104,7 @@ test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function (
             case 0:
                 m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
                 jsonMetrics = m.layers[0];
+                delete process.env.ENVIRONMENT;
                 process.env.NODE_ENV = 'fake';
                 obj = { headers: { 'X-Thing': 123 } };
                 return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];

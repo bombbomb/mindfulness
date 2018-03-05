@@ -45,6 +45,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
+var mute_1 = require("mute");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
 var spies = {
@@ -54,29 +55,47 @@ var spies = {
 afterEach(function () {
     nock_1.default.cleanAll();
 });
-test('JsonPostMetrics.getRequestOptions returns object', function () {
-    var m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
-    var jsonMetrics = m.layers[0];
-    var obj = { headers: { 'X-Thing': 123 } };
-    var result = jsonMetrics.getRequestOptions(obj, 'increment', new metric_1.default('myMetric'), jsonMetrics.options);
-    expect(result)
-        .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
-            environment: 'test',
-        } }));
-});
-test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () {
-    var m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
-    var jsonMetrics = m.layers[0];
-    var original = process.env.ENVIRONMENT;
-    process.env.ENVIRONMENT = 'fake';
-    var obj = { headers: { 'X-Thing': 123 } };
-    var result = jsonMetrics.getRequestOptions(obj, 'increment', new metric_1.default('myMetric'), jsonMetrics.options);
-    process.env.ENVIRONMENT = original;
-    expect(result)
-        .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
-            environment: 'fake',
-        } }));
-});
+test('JsonPostMetrics.getRequestOptions returns object', function () { return __awaiter(_this, void 0, void 0, function () {
+    var m, jsonMetrics, obj, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+                jsonMetrics = m.layers[0];
+                obj = { headers: { 'X-Thing': 123 } };
+                return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
+            case 1:
+                result = _a.sent();
+                expect(result)
+                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                        environment: 'test',
+                    } }));
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () { return __awaiter(_this, void 0, void 0, function () {
+    var m, jsonMetrics, original, obj, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+                jsonMetrics = m.layers[0];
+                original = process.env.ENVIRONMENT;
+                process.env.ENVIRONMENT = 'fake';
+                obj = { headers: { 'X-Thing': 123 } };
+                return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
+            case 1:
+                result = _a.sent();
+                process.env.ENVIRONMENT = original;
+                expect(result)
+                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                        environment: 'fake',
+                    } }));
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('send metrics via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
@@ -124,13 +143,14 @@ test('send metrics via post request to https://example.com', function (done) { r
     });
 }); });
 test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m, metricsEndpoint;
+    var m, unmute, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
+                unmute = mute_1.default();
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
                     environment: 'test',
@@ -140,6 +160,7 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                 return [4 /*yield*/, m.increment('myMetric')];
             case 1:
                 _a.sent();
+                unmute();
                 expect(spies.info).toHaveBeenCalled();
                 expect(metricsEndpoint.isDone()).toBe(true);
                 done();
@@ -359,7 +380,7 @@ test('"before" callbacks can change metric and category value in the request URL
     });
 }); });
 test('layer "before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var beforeCallback, spy, m, correctEndpoint;
+    var beforeCallback, m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -370,7 +391,6 @@ test('layer "before" callbacks can change metric and category value in the reque
                         return Promise.resolve({ metricType: metricType, metric: thisMetric, options: options });
                     },
                 };
-                spy = jest.spyOn(beforeCallback, 'callback');
                 m = new index_1.Metrics([
                     {
                         type: 'json_post',
@@ -391,7 +411,6 @@ test('layer "before" callbacks can change metric and category value in the reque
                 return [4 /*yield*/, m.increment('awesome', 'myMetric', 10)];
             case 1:
                 _a.sent();
-                expect(spy).toHaveBeenCalled();
                 expect(correctEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];

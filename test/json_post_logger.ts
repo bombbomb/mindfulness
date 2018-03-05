@@ -1,4 +1,5 @@
 import nock from 'nock';
+import mute from 'mute';
 import { Logger } from '../src/index';
 
 const spies = {
@@ -109,6 +110,7 @@ test('can debug', async (done) => {
     { type: 'json_post', host: 'logging.example.com', debug: true },
   ]);
 
+  const unmute = mute();
   const loggingEndpoint = nock('http://logging.example.com')
     .post('/', {
       severity: 'log',
@@ -120,6 +122,7 @@ test('can debug', async (done) => {
     .reply(200, {});
 
   await l.log('Hello!', { example: 123 });
+  unmute();
 
   expect(spies.info).toHaveBeenCalled();
   expect(loggingEndpoint.isDone()).toBe(true);
@@ -314,7 +317,8 @@ test('getRequestUri() handles trailing slash in host', () => {
     { type: 'json_post', host: 'http://logging.example.com/' },
   ]);
 
-  expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('http://logging.example.com/test');
+  expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: '/test' }))
+    .toBe('http://logging.example.com/test');
 });
 
 test('getRequestUri() handles scheme from host slash in host', () => {
@@ -322,7 +326,7 @@ test('getRequestUri() handles scheme from host slash in host', () => {
     { type: 'json_post', host: 'https://logging.example.com/' },
   ]);
 
-  expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('https://logging.example.com/test');
+  expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: '/test' })).toBe('https://logging.example.com/test');
 });
 
 test('getRequestUri() handles missing leading slash in path', () => {
@@ -330,5 +334,5 @@ test('getRequestUri() handles missing leading slash in path', () => {
     { type: 'json_post', host: 'http://logging.example.com' },
   ]);
 
-  expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: 'test' })).toBe('http://logging.example.com/test');
+  expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: 'test' })).toBe('http://logging.example.com/test');
 });

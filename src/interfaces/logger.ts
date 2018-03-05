@@ -1,3 +1,5 @@
+import { LoggerAfterCallback, LoggerBeforeCallback } from './callbacks';
+
 export interface LoggerInterface {
   log(message: any, payload?: any, options?: object): Promise<any>
   logError(message: any, payload?: any, options?: object): Promise<string>
@@ -13,14 +15,6 @@ export const LOG_LEVELS = {
   LOG_INFO: 8,
   LOG_ALL: 1 | 2 | 4 | 8,
 };
-
-export interface LoggerBeforeCallback {
-  (message: string, payload?: any, options?: object): Promise<{message: string, payload: any, options: object}>;
-}
-
-export interface LoggerAfterCallback {
-  (results: object): void;
-}
 
 export interface LoggerOptions {
   type?: string;

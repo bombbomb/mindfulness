@@ -23,6 +23,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^22.0.1",
+    "@types/request-promise-native": "^1.0.12",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-jest": "^22.1.0",
@@ -33,13 +34,13 @@
     "eslint-plugin-import": "^2.8.0",
     "express": "^4.16.2",
     "jest": "^22.1.1",
+    "mute": "^2.0.6",
     "nock": "^9.1.6",
     "sinon": "^4.1.5",
     "ts-jest": "^22.0.1",
     "ts-node": "^4.1.0",
     "typescript": "^2.6.2",
-    "typescript-eslint-parser": "^12.0.0",
-    "@types/request-promise-native": "^1.0.12"
+    "typescript-eslint-parser": "^12.0.0"
   },
   "jest": {
     "testEnvironment": "node",
@@ -60,6 +61,7 @@
     ]
   },
   "dependencies": {
+    "lodash": "^4.17.5",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   }

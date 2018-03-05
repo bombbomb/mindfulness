@@ -54,6 +54,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // import request from 'request-promise-native';
+var lodash_1 = require("lodash");
 var logger_1 = require("../interfaces/logger");
 var contrib_logger_1 = require("./contrib_logger");
 var contrib_metrics_1 = require("./contrib_metrics");
@@ -62,6 +63,212 @@ var metric_1 = require("../models/metric");
 var version_1 = require("../util/version");
 // need to use require() syntax because this package does not define default...
 var request = require('request-promise-native');
+var JsonPostHandler = /** @class */ (function () {
+    function JsonPostHandler(parent) {
+        this.parentObject = parent;
+    }
+    JsonPostHandler.prototype.buildBody = function (details, options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var body, _a, keys, variables, index, key, value, keyName;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        body = {};
+                        if (!!this.version) return [3 /*break*/, 2];
+                        _a = this;
+                        return [4 /*yield*/, version_1.default()];
+                    case 1:
+                        _a.version = _b.sent();
+                        _b.label = 2;
+                    case 2:
+                        if (options.messageTemplate) {
+                            keys = Object.keys(options.messageTemplate);
+                            variables = __assign({ $environment: this.parentObject.getEnvironment(), $version: this.version }, details);
+                            for (index = 0; index < keys.length; index += 1) {
+                                key = keys[index];
+                                value = options.messageTemplate[key];
+                                // optional item
+                                if (/\?$/.test(key)) {
+                                    keyName = key.replace(/\?$/, '');
+                                    if (Array.isArray(value)) {
+                                        if (typeof variables[value[0]] !== 'undefined') {
+                                            body[keyName] = variables[value[0]];
+                                        }
+                                        else {
+                                            body[keyName] = value[1];
+                                        }
+                                    }
+                                    else if (typeof variables[value] !== 'undefined') {
+                                        body[keyName] = variables[value];
+                                    }
+                                    else if (lodash_1.get(details, value)) {
+                                        body[keyName] = lodash_1.get(details, value);
+                                    }
+                                }
+                                else if (value in variables) {
+                                    body[key] = variables[value];
+                                }
+                                else if (lodash_1.get(details, value)) {
+                                    body[key] = lodash_1.get(details, value);
+                                }
+                            }
+                        }
+                        return [2 /*return*/, Promise.resolve(body)];
+                }
+            });
+        });
+    };
+    /**
+     * Build the request body and hand off to a requestBodyCallback if specified.
+     *
+     * @param level Log level string
+     * @param message Message being logged
+     * @param payload Current payload
+     * @param options Call-specific options
+     */
+    JsonPostHandler.prototype.getRequestBody = function (details, options) {
+        if (options === void 0) { options = {}; }
+        return __awaiter(this, void 0, void 0, function () {
+            var dataDefaults, builtBody, body;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        dataDefaults = (options.dataDefaults) ? options.dataDefaults : {};
+                        return [4 /*yield*/, this.buildBody(details, options)];
+                    case 1:
+                        builtBody = _a.sent();
+                        body = __assign({}, builtBody, dataDefaults);
+                        if (options.requestBodyCallback) {
+                            body = options.requestBodyCallback(body, __assign({}, details, { options: options }));
+                        }
+                        return [2 /*return*/, body];
+                }
+            });
+        });
+    };
+    /**
+     * Get the request() options.
+     *
+     * @param callRequest The current request() options
+     * @param metricType The metric type being called
+     * @param metric The metric being updated
+     * @param options Call-specific options.
+     */
+    JsonPostHandler.prototype.getRequestOptions = function (callRequest, details, options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var thisCallRequest, result, thisRequest, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        thisCallRequest = callRequest;
+                        if (options.requestOptionsCallback) {
+                            result = options.requestOptionsCallback(thisCallRequest, details, options);
+                            if (result && typeof result === 'object') {
+                                thisCallRequest = result;
+                            }
+                            else {
+                                console.warn("The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: " + typeof result);
+                            }
+                        }
+                        _a = [{}, thisCallRequest];
+                        _b = { method: 'POST', uri: this.getRequestUri(details, options) };
+                        return [4 /*yield*/, this.getRequestBody(details, options)];
+                    case 1:
+                        thisRequest = __assign.apply(void 0, _a.concat([(_b.body = _c.sent(), _b)]));
+                        if (typeof thisRequest.body === 'object') {
+                            thisRequest.json = true;
+                        }
+                        return [2 /*return*/, Promise.resolve(thisRequest)];
+                }
+            });
+        });
+    };
+    /**
+     * Get the request path.
+     *
+     * @param metricType The metric type being sent
+     * @param options An object of options for this call.
+     */
+    JsonPostHandler.prototype.getRequestPath = function (details, options) {
+        if (typeof details.metricType !== 'undefined') {
+            if (typeof options.paths !== 'undefined' && typeof options.paths[details.metricType] !== 'undefined') {
+                return options.paths[details.metricType];
+            }
+        }
+        return (options.path) ? String(options.path) : '/';
+    };
+    JsonPostHandler.prototype.getRequestScheme = function (options) {
+        var scheme = (options.scheme) ? options.scheme : 'http';
+        // check the host to see if it has http/https in it...
+        var host = /^(https?):\/\//.exec(options.host);
+        if (host) {
+            scheme = host[1];
+        }
+        return scheme;
+    };
+    /**
+     * Get the request URI based on options.
+     */
+    JsonPostHandler.prototype.getRequestUri = function (details, options) {
+        var callOptions = this.parentObject.getCallOptions(options);
+        var url = '';
+        var scheme = this.getRequestScheme(callOptions);
+        var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
+        var port = (callOptions.port) ? Number(callOptions.port) : null;
+        var path = this.getRequestPath(details, options);
+        if (host.slice(-1) === '/') {
+            host = host.slice(0, -1);
+        }
+        if (path[0] !== '/') {
+            path = "/" + path;
+        }
+        url = scheme + "://" + host;
+        if (port) {
+            url += ":" + port;
+        }
+        url += path;
+        /* eslint-disable prefer-template */
+        if (typeof details.level !== 'undefined') {
+            url = url.replace(/\$level(\/)?/, details.level + '$1');
+        }
+        if (typeof details.metric !== 'undefined') {
+            var category = (details.metric.category) ? details.metric.category + '$1' : '';
+            url = url.replace(/\$category(\/)?/, category);
+            url = url.replace(/\$metric(\/)?/, details.metric.metric + '$1');
+        }
+        /* eslint-enable prefer-template */
+        return url;
+    };
+    JsonPostHandler.prototype.post = function (details, options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, requestOptions;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!!this.version) return [3 /*break*/, 2];
+                        _a = this;
+                        return [4 /*yield*/, version_1.default()];
+                    case 1:
+                        _a.version = _b.sent();
+                        _b.label = 2;
+                    case 2: return [4 /*yield*/, this.getRequestOptions({
+                            json: true,
+                            resolveWithFullResponse: true,
+                            headers: {
+                                'User-Agent': "mindfulness/" + this.version,
+                            },
+                        }, details, options)];
+                    case 3:
+                        requestOptions = _b.sent();
+                        this.parentObject.debug('mindfulness logging', { requestOptions: requestOptions });
+                        return [2 /*return*/, request(requestOptions)];
+                }
+            });
+        });
+    };
+    return JsonPostHandler;
+}());
+exports.JsonPostHandler = JsonPostHandler;
 /**
  * JSON POST logger
  *
@@ -70,7 +277,15 @@ var request = require('request-promise-native');
 var JsonPostLogger = /** @class */ (function (_super) {
     __extends(JsonPostLogger, _super);
     function JsonPostLogger(options) {
-        return _super.call(this, __assign({}, options)) || this;
+        var _this = _super.call(this, __assign({ messageTemplate: {
+                message: 'message',
+                'info?': ['payload', {}],
+                environment: '$environment',
+                severity: 'level',
+                type: 'level',
+            } }, options)) || this;
+        _this.json = new JsonPostHandler(_this);
+        return _this;
     }
     /**
      * Send the POST request.
@@ -85,70 +300,40 @@ var JsonPostLogger = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var callOptions, beforeResult, version, thisMessage, thisPayload, requestOptions, response, e_1;
+                        var callOptions, beforeResult, thisMessage, thisPayload, response, e_1;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     callOptions = this.getCallOptions(options);
-                                    return [4 /*yield*/, this.before(message, payload, callOptions)];
+                                    return [4 /*yield*/, this.before({ message: message, payload: payload }, callOptions)];
                                 case 1:
                                     beforeResult = _a.sent();
-                                    if (!(callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level))) return [3 /*break*/, 7];
-                                    return [4 /*yield*/, version_1.default()];
-                                case 2:
-                                    version = _a.sent();
-                                    _a.label = 3;
-                                case 3:
-                                    _a.trys.push([3, 5, , 6]);
+                                    if (!(callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level))) return [3 /*break*/, 6];
                                     thisMessage = this.getMessage(beforeResult.message);
                                     thisPayload = this.getPayload(beforeResult.payload);
-                                    requestOptions = this.getRequestOptions({
-                                        json: true,
-                                        resolveWithFullResponse: true,
-                                        headers: {
-                                            'User-Agent': "mindfulness/" + version,
-                                        },
-                                    }, level, thisMessage, thisPayload, callOptions);
-                                    this.debug('mindfulness logging', { requestOptions: requestOptions });
-                                    return [4 /*yield*/, request(requestOptions)];
-                                case 4:
+                                    _a.label = 2;
+                                case 2:
+                                    _a.trys.push([2, 4, , 5]);
+                                    return [4 /*yield*/, this.json.post({ level: level, message: thisMessage, payload: thisPayload }, callOptions)];
+                                case 3:
                                     response = _a.sent();
                                     resolve(response);
-                                    return [3 /*break*/, 6];
-                                case 5:
+                                    return [3 /*break*/, 5];
+                                case 4:
                                     e_1 = _a.sent();
                                     this.debug('mindfulness logging error', e_1);
                                     reject(e_1);
-                                    return [3 /*break*/, 6];
-                                case 6: return [3 /*break*/, 8];
-                                case 7:
+                                    return [3 /*break*/, 5];
+                                case 5: return [3 /*break*/, 7];
+                                case 6:
                                     resolve();
-                                    _a.label = 8;
-                                case 8: return [2 /*return*/];
+                                    _a.label = 7;
+                                case 7: return [2 /*return*/];
                             }
                         });
                     }); })];
             });
         });
-    };
-    JsonPostLogger.prototype.debug = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        if (this.options.debug) {
-            (_a = console.info).call.apply(_a, [console].concat(args));
-        }
-        var _a;
-    };
-    JsonPostLogger.prototype.getEnvironment = function () {
-        if (process.env.ENVIRONMENT) {
-            return process.env.ENVIRONMENT;
-        }
-        if (process.env.NODE_ENV) {
-            return process.env.NODE_ENV;
-        }
-        return 'production';
     };
     JsonPostLogger.prototype.getMessage = function (message) {
         if (typeof message === 'string') {
@@ -171,87 +356,6 @@ var JsonPostLogger = /** @class */ (function (_super) {
         }
         return payload;
     };
-    JsonPostLogger.prototype.getScheme = function (options) {
-        var scheme = (options.scheme) ? options.scheme : 'http';
-        // check the host to see if it has http/https in it...
-        var host = /^(https?):\/\//.exec(options.host);
-        if (host) {
-            scheme = host[1];
-        }
-        return scheme;
-    };
-    /**
-     * Build the request body and hand off to a requestBodyCallback if specified.
-     *
-     * @param level Log level string
-     * @param message Message being logged
-     * @param payload Current payload
-     * @param options Call-specific options
-     */
-    JsonPostLogger.prototype.getRequestBody = function (level, message, payload, options) {
-        if (payload === void 0) { payload = {}; }
-        if (options === void 0) { options = {}; }
-        var callOptions = this.getCallOptions(options);
-        var dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
-        var body = __assign({ message: message, info: payload, severity: level, type: level, environment: this.getEnvironment() }, dataDefaults);
-        if (callOptions.requestBodyCallback) {
-            body = callOptions.requestBodyCallback(body, {
-                level: level, message: message, payload: payload, callOptions: callOptions,
-            });
-        }
-        return body;
-    };
-    /**
-     * Get the request() options.
-     *
-     * @param callRequest The current request() options
-     * @param metricType The metric type being called
-     * @param metric The metric being updated
-     * @param options Call-specific options.
-     */
-    JsonPostLogger.prototype.getRequestOptions = function (callRequest, level, message, payload, options) {
-        var thisCallRequest = request;
-        if (options.requestOptionsCallback) {
-            var result = options.requestOptionsCallback(thisCallRequest, level, message, payload, options);
-            if (result && typeof result === 'object') {
-                thisCallRequest = result;
-            }
-            else {
-                console.warn("The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: " + typeof result);
-            }
-        }
-        var thisRequest = __assign({}, thisCallRequest, { method: 'POST', uri: this.getRequestUri(level, message, payload, options), body: this.getRequestBody(level, message, payload, options) });
-        if (typeof thisRequest.body === 'object') {
-            thisRequest.json = true;
-        }
-        return thisRequest;
-    };
-    /**
-     * Get the request URI based on options.
-     */
-    JsonPostLogger.prototype.getRequestUri = function (level, message, payload, options) {
-        var callOptions = this.getCallOptions(options);
-        var url = '';
-        var scheme = this.getScheme(callOptions);
-        var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
-        var port = (callOptions.port) ? Number(callOptions.port) : null;
-        var path = (callOptions.path) ? String(callOptions.path) : '/';
-        if (host.slice(-1) === '/') {
-            host = host.slice(0, -1);
-        }
-        if (path[0] !== '/') {
-            path = "/" + path;
-        }
-        url = scheme + "://" + host;
-        if (port) {
-            url += ":" + port;
-        }
-        url += path;
-        /* eslint-disable prefer-template */
-        url = url.replace(/\$level(\/)?/, level + '$1');
-        /* eslint-enable prefer-template */
-        return url;
-    };
     return JsonPostLogger;
 }(contrib_logger_1.default));
 exports.JsonPostLogger = JsonPostLogger;
@@ -263,7 +367,13 @@ exports.JsonPostLogger = JsonPostLogger;
 var JsonPostMetrics = /** @class */ (function (_super) {
     __extends(JsonPostMetrics, _super);
     function JsonPostMetrics(options) {
-        return _super.call(this, __assign({}, options)) || this;
+        var _this = _super.call(this, __assign({ messageTemplate: {
+                type: 'metricType',
+                environment: '$environment',
+                'value?': 'metric.value',
+            } }, options)) || this;
+        _this.json = new JsonPostHandler(_this);
+        return _this;
     }
     /**
      * Send the POST request.
@@ -277,39 +387,28 @@ var JsonPostMetrics = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var callOptions, beforeResult, version, requestOptions, response, e_2;
+                        var callOptions, beforeResult, response, e_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     callOptions = this.getCallOptions(options);
-                                    return [4 /*yield*/, this.before(metricType, metric, callOptions)];
+                                    return [4 /*yield*/, this.before({ metricType: metricType, metric: metric }, callOptions)];
                                 case 1:
                                     beforeResult = _a.sent();
-                                    return [4 /*yield*/, version_1.default()];
+                                    _a.label = 2;
                                 case 2:
-                                    version = _a.sent();
-                                    requestOptions = this.getRequestOptions({
-                                        json: true,
-                                        resolveWithFullResponse: true,
-                                        headers: {
-                                            'User-Agent': "mindfulness/" + version,
-                                        },
-                                    }, beforeResult.metricType, beforeResult.metric, callOptions);
-                                    _a.label = 3;
+                                    _a.trys.push([2, 4, , 5]);
+                                    return [4 /*yield*/, this.json.post({ metricType: beforeResult.metricType, metric: beforeResult.metric }, callOptions)];
                                 case 3:
-                                    _a.trys.push([3, 5, , 6]);
-                                    this.debug('mindfulness metrics', { requestOptions: requestOptions });
-                                    return [4 /*yield*/, request(requestOptions)];
-                                case 4:
                                     response = _a.sent();
                                     resolve(response);
-                                    return [3 /*break*/, 6];
-                                case 5:
+                                    return [3 /*break*/, 5];
+                                case 4:
                                     e_2 = _a.sent();
                                     this.debug('mindfulness metrics error', e_2);
                                     reject(e_2);
-                                    return [3 /*break*/, 6];
-                                case 6: return [2 /*return*/];
+                                    return [3 /*break*/, 5];
+                                case 5: return [2 /*return*/];
                             }
                         });
                     }); })];
@@ -374,112 +473,6 @@ var JsonPostMetrics = /** @class */ (function (_super) {
                 return [2 /*return*/, this.call('timing', metric, options)];
             });
         });
-    };
-    /**
-     * Get the environment to pass in the body.
-     */
-    JsonPostMetrics.prototype.getEnvironment = function () {
-        if (process.env.ENVIRONMENT) {
-            return process.env.ENVIRONMENT;
-        }
-        else if (process.env.NODE_ENV) {
-            return process.env.NODE_ENV;
-        }
-        return 'production';
-    };
-    /**
-     * Build the request body and hand off to a requestBodyCallback if specified.
-     *
-     * @param metricType The type of call being made
-     * @param metric The metric object being sent
-     * @param options Call-specific options
-     */
-    JsonPostMetrics.prototype.getRequestBody = function (metricType, metric, options) {
-        var callOptions = this.getCallOptions(options);
-        var dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
-        // build our request body
-        var body = __assign({ environment: this.getEnvironment(), type: metricType }, dataDefaults);
-        if (metric.value) {
-            body.value = metric.value;
-        }
-        if (callOptions.requestBodyCallback) {
-            body = callOptions.requestBodyCallback(body, { metricType: metricType, metric: metric, callOptions: callOptions });
-        }
-        return body;
-    };
-    /**
-     * Get the request() options.
-     *
-     * @param request The current request() options
-     * @param metricType The metric type being called
-     * @param metric The metric being updated
-     * @param options Call-specific options.
-     */
-    JsonPostMetrics.prototype.getRequestOptions = function (callRequest, metricType, metric, options) {
-        var thisCallRequest = callRequest;
-        if (options.requestOptionsCallback) {
-            var result = options.requestOptionsCallback(thisCallRequest, metricType, metric, options);
-            if (result && typeof result === 'object') {
-                thisCallRequest = result;
-            }
-            else {
-                console.warn("The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: " + typeof result);
-            }
-        }
-        var thisRequest = __assign({}, thisCallRequest, { method: 'POST', uri: this.getRequestUri(metricType, metric, options), body: this.getRequestBody(metricType, metric, options) });
-        if (typeof thisRequest.body === 'object') {
-            thisRequest.json = true;
-        }
-        return thisRequest;
-    };
-    /**
-     * Get the request path.
-     *
-     * @param metricType The metric type being sent
-     * @param options An object of options for this call.
-     */
-    JsonPostMetrics.prototype.getRequestPath = function (metricType, options) {
-        if (typeof options.paths !== 'undefined' && typeof options.paths[metricType] !== 'undefined') {
-            return options.paths[metricType];
-        }
-        return (options.path) ? String(options.path) : '/';
-    };
-    JsonPostMetrics.prototype.getScheme = function (options) {
-        var scheme = (options.scheme) ? options.scheme : 'http';
-        // check the host to see if it has http/https in it...
-        var host = /^(https?):\/\//.exec(options.host);
-        if (host) {
-            scheme = host[1];
-        }
-        return scheme;
-    };
-    /**
-     * Get the request URI based on options.
-     */
-    JsonPostMetrics.prototype.getRequestUri = function (metricType, metric, options) {
-        var callOptions = this.getCallOptions(options);
-        var url = '';
-        var scheme = this.getScheme(callOptions);
-        var host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
-        var port = (callOptions.port) ? Number(callOptions.port) : null;
-        if (host.slice(-1) === '/') {
-            host = host.slice(0, -1);
-        }
-        url = scheme + "://" + host;
-        if (port) {
-            url += ":" + port;
-        }
-        var path = this.getRequestPath(metricType, callOptions);
-        if (path[0] !== '/') {
-            path = "/" + path;
-        }
-        url += path;
-        /* eslint-disable prefer-template */
-        var category = (metric.category) ? metric.category + '$1' : '';
-        url = url.replace(/\$category(\/)?/, category);
-        url = url.replace(/\$metric(\/)?/, metric.metric + '$1');
-        /* eslint-enable prefer-template */
-        return url;
     };
     return JsonPostMetrics;
 }(contrib_metrics_1.default));

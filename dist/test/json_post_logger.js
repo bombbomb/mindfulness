@@ -45,6 +45,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
+var mute_1 = require("mute");
 var index_1 = require("../src/index");
 var spies = {
     // log: jest.spyOn(global.console, 'log'),
@@ -166,13 +167,14 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
     });
 }); });
 test('can debug', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var l, loggingEndpoint;
+    var l, unmute, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com', debug: true },
                 ]);
+                unmute = mute_1.default();
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
                     severity: 'log',
@@ -185,6 +187,7 @@ test('can debug', function (done) { return __awaiter(_this, void 0, void 0, func
                 return [4 /*yield*/, l.log('Hello!', { example: 123 })];
             case 1:
                 _a.sent();
+                unmute();
                 expect(spies.info).toHaveBeenCalled();
                 expect(loggingEndpoint.isDone()).toBe(true);
                 done();
@@ -409,18 +412,19 @@ test('getRequestUri() handles trailing slash in host', function () {
     var l = new index_1.Logger([
         { type: 'json_post', host: 'http://logging.example.com/' },
     ]);
-    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('http://logging.example.com/test');
+    expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: '/test' }))
+        .toBe('http://logging.example.com/test');
 });
 test('getRequestUri() handles scheme from host slash in host', function () {
     var l = new index_1.Logger([
         { type: 'json_post', host: 'https://logging.example.com/' },
     ]);
-    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: '/test' })).toBe('https://logging.example.com/test');
+    expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: '/test' })).toBe('https://logging.example.com/test');
 });
 test('getRequestUri() handles missing leading slash in path', function () {
     var l = new index_1.Logger([
         { type: 'json_post', host: 'http://logging.example.com' },
     ]);
-    expect(l.layers[0].getRequestUri('log', 'hi', {}, { path: 'test' })).toBe('http://logging.example.com/test');
+    expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: 'test' })).toBe('http://logging.example.com/test');
 });
 //# sourceMappingURL=json_post_logger.js.map

@@ -1,5 +1,4 @@
 import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
-import { LoggerBeforeCallback, MetricsBeforeCallback, BeforeCallback } from '../interfaces/callbacks';
 import { Metrics } from '..';
 /**
  * Parent Mindfulness class.

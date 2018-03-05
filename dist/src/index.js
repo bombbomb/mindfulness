@@ -154,17 +154,27 @@ var Logger = /** @class */ (function () {
                     var _this = this;
                     return __generator(this, function (_a) {
                         return [2 /*return*/, (new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                                var callOptions, thisPayload, result;
+                                var callOptions, thisPayload, args, result;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             callOptions = this.getCallOptions(options);
                                             thisPayload = payload;
                                             if (!(callOptions && callOptions.before)) return [3 /*break*/, 2];
-                                            return [4 /*yield*/, callOptions.before(message, thisPayload, callOptions)];
+                                            args = [];
+                                            switch (callOptions.before.length) {
+                                                case 3:
+                                                    args.push(message);
+                                                    args.push(payload);
+                                                    break;
+                                                default:
+                                                    args.push({ message: message, payload: payload });
+                                            }
+                                            args.push(callOptions);
+                                            return [4 /*yield*/, callOptions.before.apply(this, args)];
                                         case 1:
                                             result = _a.sent();
-                                            return [2 /*return*/, resolve({ message: result.message, payload: result.payload, options: callOptions })];
+                                            return [2 /*return*/, resolve(__assign({}, result))];
                                         case 2: return [2 /*return*/, resolve({ message: message, payload: thisPayload, options: callOptions })];
                                     }
                                 });

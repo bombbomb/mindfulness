@@ -1,4 +1,4 @@
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import Mindfulness from './mindfulness';
 import { MindfulnessOptions } from '../interfaces/options';
 

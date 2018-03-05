@@ -1,10 +1,10 @@
 // import request from 'request-promise-native';
-import { get } from 'lodash';
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import get from 'lodash.get';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import getLogLevelConstant from '../util/logging';
-import { MetricsInterface, MetricsOptions, M } from '../interfaces/metrics';
+import { MetricsInterface, M } from '../interfaces/metrics';
 import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
 import Metric from '../models/metric';
 import getMindfulnessVersion from '../util/version';
@@ -226,7 +226,7 @@ export class JsonPostHandler {
 export class JsonPostLogger extends ContribLogger implements LoggerInterface {
   json: JsonPostHandler;
 
-  constructor(options?: LoggerOptions) {
+  constructor(options?: MindfulnessOptions) {
     super({
       messageTemplate: {
         message: 'message',
@@ -309,7 +309,7 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
 export class JsonPostMetrics extends ContribMetrics implements MetricsInterface {
   json: JsonPostHandler;
 
-  constructor(options?: LoggerOptions) {
+  constructor(options?: MindfulnessOptions) {
     super({
       messageTemplate: {
         type: 'metricType',

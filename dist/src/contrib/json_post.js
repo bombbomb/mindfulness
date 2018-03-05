@@ -54,7 +54,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // import request from 'request-promise-native';
-var lodash_1 = require("lodash");
+var lodash_get_1 = require("lodash.get");
 var logger_1 = require("../interfaces/logger");
 var contrib_logger_1 = require("./contrib_logger");
 var contrib_metrics_1 = require("./contrib_metrics");
@@ -101,15 +101,15 @@ var JsonPostHandler = /** @class */ (function () {
                                     else if (typeof variables[value] !== 'undefined') {
                                         body[keyName] = variables[value];
                                     }
-                                    else if (lodash_1.get(details, value)) {
-                                        body[keyName] = lodash_1.get(details, value);
+                                    else if (lodash_get_1.default(details, value)) {
+                                        body[keyName] = lodash_get_1.default(details, value);
                                     }
                                 }
                                 else if (value in variables) {
                                     body[key] = variables[value];
                                 }
-                                else if (lodash_1.get(details, value)) {
-                                    body[key] = lodash_1.get(details, value);
+                                else if (lodash_get_1.default(details, value)) {
+                                    body[key] = lodash_get_1.default(details, value);
                                 }
                             }
                         }

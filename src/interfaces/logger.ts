@@ -16,14 +16,6 @@ export const LOG_LEVELS = {
   LOG_ALL: 1 | 2 | 4 | 8,
 };
 
-export interface LoggerOptions {
-  type?: string;
-  logLevel?: number;
-  before?: LoggerBeforeCallback;
-  after?: LoggerAfterCallback;
-  [propName: string]: any;
-}
-
 export interface LoggerLayer {
   type: string;
   handler?: LoggerInterface;

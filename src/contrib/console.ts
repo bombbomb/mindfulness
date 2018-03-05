@@ -1,4 +1,4 @@
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import getLogLevelConstant from '../util/logging';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';

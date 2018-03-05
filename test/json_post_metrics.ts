@@ -38,12 +38,10 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', async (
   const m = new Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
   const jsonMetrics = m.layers[0];
 
-  const original = process.env.ENVIRONMENT;
   process.env.ENVIRONMENT = 'fake';
   const obj = { headers: { 'X-Thing': 123 } };
   const result = await jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new Metric('myMetric') }, jsonMetrics.options);
 
-  process.env.ENVIRONMENT = original;
   expect(result)
     .toMatchObject({
       ...obj,
@@ -59,11 +57,9 @@ test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', async () =
   const m = new Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
   const jsonMetrics = m.layers[0];
 
-  const original = process.env.NODE_ENV;
   process.env.NODE_ENV = 'fake';
   const obj = { headers: { 'X-Thing': 123 } };
   const result = await jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new Metric('myMetric') }, jsonMetrics.options);
-  process.env.NODE_ENV = original;
 
   expect(result)
     .toMatchObject({

@@ -77,19 +77,17 @@ test('JsonPostMetrics.getRequestOptions returns object', function () { return __
     });
 }); });
 test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () { return __awaiter(_this, void 0, void 0, function () {
-    var m, jsonMetrics, original, obj, result;
+    var m, jsonMetrics, obj, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
                 jsonMetrics = m.layers[0];
-                original = process.env.ENVIRONMENT;
                 process.env.ENVIRONMENT = 'fake';
                 obj = { headers: { 'X-Thing': 123 } };
                 return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
             case 1:
                 result = _a.sent();
-                process.env.ENVIRONMENT = original;
                 expect(result)
                     .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
                         environment: 'fake',
@@ -99,19 +97,17 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', functio
     });
 }); });
 test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function () { return __awaiter(_this, void 0, void 0, function () {
-    var m, jsonMetrics, original, obj, result;
+    var m, jsonMetrics, obj, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
                 jsonMetrics = m.layers[0];
-                original = process.env.NODE_ENV;
                 process.env.NODE_ENV = 'fake';
                 obj = { headers: { 'X-Thing': 123 } };
                 return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
             case 1:
                 result = _a.sent();
-                process.env.NODE_ENV = original;
                 expect(result)
                     .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
                         environment: 'fake',

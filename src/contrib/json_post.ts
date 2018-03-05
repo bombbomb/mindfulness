@@ -68,6 +68,13 @@ export class JsonPostHandler {
       }
     }
 
+    const keys = Object.keys(body);
+    keys.forEach((key) => {
+      if (body[key] === 'undefined') {
+        throw new Error(`${key} is not allowed to be "undefined"`);
+      }
+    });
+
     return Promise.resolve(body);
   }
 

@@ -36,6 +36,7 @@ export class JsonPostHandler {
         $version: this.version,
         ...details,
       };
+      console.info({variables});
 
       for (let index = 0; index < keys.length; index += 1) {
         const key = keys[index];

@@ -52,7 +52,6 @@ var spies = {
     // log: jest.spyOn(global.console, 'log'),
     info: jest.spyOn(global.console, 'info'),
 };
-console.info({ node_env: process.env.NODE_ENV });
 afterEach(function () {
     nock_1.default.cleanAll();
 });
@@ -128,7 +127,7 @@ test('send metrics via post request to example.com', function (done) { return __
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([
-                    { type: 'json_post', host: 'metrics.example.com' },
+                    { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {

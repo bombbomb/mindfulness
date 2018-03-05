@@ -144,10 +144,10 @@ var Mindfulness = /** @class */ (function () {
         return (options) ? __assign({}, this.options, options) : __assign({}, this.options);
     };
     Mindfulness.prototype.getEnvironment = function () {
-        if (process.env.ENVIRONMENT) {
+        if (typeof process.env.ENVIRONMENT !== 'undefined' && process.env.ENVIRONMENT) {
             return process.env.ENVIRONMENT;
         }
-        if (process.env.NODE_ENV) {
+        if (typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV) {
             return process.env.NODE_ENV;
         }
         return 'production';

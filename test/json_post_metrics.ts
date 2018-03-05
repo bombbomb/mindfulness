@@ -10,8 +10,6 @@ const spies = {
   // warn: jest.spyOn(global.console, 'warn'),
 };
 
-console.info({node_env: process.env.NODE_ENV});
-
 afterEach(() => {
   nock.cleanAll();
 });
@@ -83,7 +81,7 @@ test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', async () =
 
 test('send metrics via post request to example.com', async (done) => {
   const m = new Metrics([
-    { type: 'json_post', host: 'metrics.example.com' },
+    { type: 'json_post', host: 'metrics.example.com', debug: true },
   ]);
 
   const metricsEndpoint = nock('http://metrics.example.com')

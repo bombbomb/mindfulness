@@ -68,7 +68,7 @@ test('JsonPostMetrics.getRequestOptions returns object', function () { return __
                 result = _a.sent();
                 expect(result)
                     .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
-                        environment: 'test',
+                        environment: process.env.NODE_ENV,
                     } }));
                 return [2 /*return*/];
         }
@@ -96,6 +96,31 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', functio
         }
     });
 }); });
+test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function () { return __awaiter(_this, void 0, void 0, function () {
+    var m, jsonMetrics, original, originalEnvironment, obj, result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+                jsonMetrics = m.layers[0];
+                original = process.env.NODE_ENV;
+                originalEnvironment = process.env.ENVIRONMENT;
+                delete process.env.ENVIRONMENT;
+                process.env.NODE_ENV = 'fake';
+                obj = { headers: { 'X-Thing': 123 } };
+                return [4 /*yield*/, jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new metric_1.default('myMetric') }, jsonMetrics.options)];
+            case 1:
+                result = _a.sent();
+                process.env.NODE_ENV = original;
+                process.env.ENVIRONMENT = originalEnvironment;
+                expect(result)
+                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                        environment: 'fake',
+                    } }));
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('send metrics via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
@@ -106,7 +131,7 @@ test('send metrics via post request to example.com', function (done) { return __
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                 })
                     .reply(200, {});
@@ -129,7 +154,7 @@ test('send metrics via post request to https://example.com', function (done) { r
                 ]);
                 metricsEndpoint = nock_1.default('https://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                 })
                     .reply(200, {});
@@ -153,7 +178,7 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                 unmute = mute_1.default();
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                 })
                     .reply(200, {});
@@ -178,7 +203,7 @@ test('send metrics via post request to example.com with scheme in host', functio
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                 })
                     .reply(200, {});
@@ -201,7 +226,7 @@ test('Includes data defaults', function (done) { return __awaiter(_this, void 0,
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     xsrc: 'example',
                 })
@@ -232,7 +257,7 @@ test('Can modify the request body with requestBodyCallback', function (done) { r
                 ]);
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     newElement: 123,
                 })
@@ -265,7 +290,7 @@ test('Increment requests to a different URL', function (done) { return __awaiter
                     .reply(200, {});
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/increment', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -296,7 +321,7 @@ test('Include metric value in the request URL', function (done) { return __await
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/myMetric', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -326,7 +351,7 @@ test('Include metric and category value in the request URL', function (done) { r
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -364,7 +389,7 @@ test('"before" callbacks can change metric and category value in the request URL
                 ], { before: beforeCallback.callback });
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/prefix.myMetric', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -403,7 +428,7 @@ test('layer "before" callbacks can change metric and category value in the reque
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/prefix.myMetric', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -433,7 +458,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
                 ]);
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
-                    environment: 'test',
+                    environment: process.env.NODE_ENV,
                     type: 'increment',
                     value: 10,
                 })
@@ -464,7 +489,7 @@ describe('Metric silent()', function () {
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
-                        environment: 'test',
+                        environment: process.env.NODE_ENV,
                         type: 'increment',
                         value: 10,
                     })
@@ -496,7 +521,7 @@ describe('Metric silent()', function () {
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
-                        environment: 'test',
+                        environment: process.env.NODE_ENV,
                         type: 'increment',
                         value: 10,
                     })
@@ -531,7 +556,7 @@ describe('Metric silent()', function () {
                     ]);
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
-                        environment: 'test',
+                        environment: process.env.NODE_ENV,
                         type: 'increment',
                         value: 10,
                     })

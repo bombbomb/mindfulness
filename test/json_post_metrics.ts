@@ -27,7 +27,7 @@ test('JsonPostMetrics.getRequestOptions returns object', async () => {
       method: 'POST',
       uri: 'http://metrics.example.com/',
       body: {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
       },
     });
 });
@@ -53,6 +53,32 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', async (
     });
 });
 
+test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', async () => {
+  const m = new Metrics([{ type: 'json_post', host: 'metrics.example.com' }]);
+  const jsonMetrics = m.layers[0];
+
+  const original = process.env.NODE_ENV;
+  const originalEnvironment = process.env.ENVIRONMENT;
+  delete process.env.ENVIRONMENT;
+
+  process.env.NODE_ENV = 'fake';
+  const obj = { headers: { 'X-Thing': 123 } };
+  const result = await jsonMetrics.json.getRequestOptions(obj, { metricsType: 'increment', metric: new Metric('myMetric') }, jsonMetrics.options);
+
+  process.env.NODE_ENV = original;
+  process.env.ENVIRONMENT = originalEnvironment;
+
+  expect(result)
+    .toMatchObject({
+      ...obj,
+      method: 'POST',
+      uri: 'http://metrics.example.com/',
+      body: {
+        environment: 'fake',
+      },
+    });
+});
+
 test('send metrics via post request to example.com', async (done) => {
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com' },
@@ -60,7 +86,7 @@ test('send metrics via post request to example.com', async (done) => {
 
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
     })
     .reply(200, {});
@@ -78,7 +104,7 @@ test('send metrics via post request to https://example.com', async (done) => {
 
   const metricsEndpoint = nock('https://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
     })
     .reply(200, {});
@@ -97,7 +123,7 @@ test('can debug metrics', async (done) => {
   const unmute = mute();
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
     })
     .reply(200, {});
@@ -117,7 +143,7 @@ test('send metrics via post request to example.com with scheme in host', async (
 
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
     })
     .reply(200, {});
@@ -135,7 +161,7 @@ test('Includes data defaults', async (done) => {
 
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
       xsrc: 'example',
     })
@@ -164,7 +190,7 @@ test('Can modify the request body with requestBodyCallback', async (done) => {
 
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
       newElement: 123,
     })
@@ -193,7 +219,7 @@ test('Increment requests to a different URL', async (done) => {
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/increment', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
     })
@@ -219,7 +245,7 @@ test('Include metric value in the request URL', async (done) => {
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
     })
@@ -244,7 +270,7 @@ test('Include metric and category value in the request URL', async (done) => {
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
     })
@@ -279,7 +305,7 @@ test('"before" callbacks can change metric and category value in the request URL
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/prefix.myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
     })
@@ -315,7 +341,7 @@ test('layer "before" callbacks can change metric and category value in the reque
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/prefix.myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
     })
@@ -339,7 +365,7 @@ test('Metric post failure should throw an error', async (done) => {
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/myMetric', {
-      environment: 'test',
+      environment: process.env.NODE_ENV,
       type: 'increment',
       value: 10,
     })
@@ -365,7 +391,7 @@ describe('Metric silent()', () => {
 
     const correctEndpoint = nock('http://metrics.example.com')
       .post('/path/awesome/myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
       })
@@ -391,7 +417,7 @@ describe('Metric silent()', () => {
 
     const correctEndpoint = nock('http://metrics.example.com')
       .post('/path/awesome/myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
       })
@@ -419,7 +445,7 @@ describe('Metric silent()', () => {
 
     const correctEndpoint = nock('http://metrics.example.com')
       .post('/path/awesome/myMetric', {
-        environment: 'test',
+        environment: process.env.NODE_ENV,
         type: 'increment',
         value: 10,
       })

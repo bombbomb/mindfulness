@@ -52,6 +52,7 @@ var spies = {
     // log: jest.spyOn(global.console, 'log'),
     info: jest.spyOn(global.console, 'info'),
 };
+console.info({ node_env: process.env.NODE_ENV });
 afterEach(function () {
     nock_1.default.cleanAll();
 });

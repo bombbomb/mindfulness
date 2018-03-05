@@ -10,6 +10,8 @@ const spies = {
   // warn: jest.spyOn(global.console, 'warn'),
 };
 
+console.info({node_env: process.env.NODE_ENV});
+
 afterEach(() => {
   nock.cleanAll();
 });

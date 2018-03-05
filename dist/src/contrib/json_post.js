@@ -116,6 +116,7 @@ var JsonPostHandler = /** @class */ (function () {
                         keys = Object.keys(body);
                         keys.forEach(function (key) {
                             if (body[key] === 'undefined') {
+                                console.error(process.env);
                                 throw new Error(key + " is not allowed to be \"undefined\"");
                             }
                         });

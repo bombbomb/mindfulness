@@ -7,3 +7,4 @@ script:
   - npm run eslint-ci
 env:
   - NODE_ENV=test
+  - ENVIRONMENT=test

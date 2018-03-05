@@ -69,7 +69,7 @@ var JsonPostHandler = /** @class */ (function () {
     }
     JsonPostHandler.prototype.buildBody = function (details, options) {
         return __awaiter(this, void 0, void 0, function () {
-            var body, _a, keys_1, variables, index, key, value, keyName, keys;
+            var body, _a, keys, variables, index, key, value, keyName;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -82,10 +82,10 @@ var JsonPostHandler = /** @class */ (function () {
                         _b.label = 2;
                     case 2:
                         if (options.messageTemplate) {
-                            keys_1 = Object.keys(options.messageTemplate);
+                            keys = Object.keys(options.messageTemplate);
                             variables = __assign({ $environment: this.parentObject.getEnvironment(), $version: this.version }, details);
-                            for (index = 0; index < keys_1.length; index += 1) {
-                                key = keys_1[index];
+                            for (index = 0; index < keys.length; index += 1) {
+                                key = keys[index];
                                 value = options.messageTemplate[key];
                                 // optional item
                                 if (/\?$/.test(key)) {
@@ -113,13 +113,13 @@ var JsonPostHandler = /** @class */ (function () {
                                 }
                             }
                         }
-                        keys = Object.keys(body);
-                        keys.forEach(function (key) {
-                            if (body[key] === 'undefined') {
-                                console.error(process.env);
-                                throw new Error(key + " is not allowed to be \"undefined\"");
-                            }
-                        });
+                        // const keys = Object.keys(body);
+                        // keys.forEach((key) => {
+                        //   if (body[key] === 'undefined') {
+                        //     console.error(process.env);
+                        //     throw new Error(`${key} is not allowed to be "undefined"`);
+                        //   }
+                        // });
                         return [2 /*return*/, Promise.resolve(body)];
                 }
             });

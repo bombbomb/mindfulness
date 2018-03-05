@@ -1,6 +1,6 @@
 # @bblabs/mindfulness
 
-[![Build Status](https://travis-ci.com/bombbomb/mindfulness.svg?token=U5j8RScQzx1HwkBzxicx&branch=master)](https://travis-ci.com/bombbomb/mindfulness)
+[![Build Status](https://travis-ci.org/bombbomb/mindfulness.svg?branch=master)](https://travis-ci.org/bombbomb/mindfulness)
 
 A simple interface for logging and metrics endpoints.
 

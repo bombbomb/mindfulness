@@ -54,6 +54,8 @@ var spies = {
 };
 afterEach(function () {
     nock_1.default.cleanAll();
+    process.env.NODE_ENV = 'test';
+    process.env.ENVIRONMENT = 'test';
 });
 test('JsonPostMetrics.getRequestOptions returns object', function () { return __awaiter(_this, void 0, void 0, function () {
     var m, jsonMetrics, obj, result;

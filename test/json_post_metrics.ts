@@ -12,6 +12,8 @@ const spies = {
 
 afterEach(() => {
   nock.cleanAll();
+  process.env.NODE_ENV = 'test';
+  process.env.ENVIRONMENT = 'test';
 });
 
 test('JsonPostMetrics.getRequestOptions returns object', async () => {

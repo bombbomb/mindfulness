@@ -171,4 +171,4 @@ To test: `npm test` or `npm test-watch`
 
 ## Future
 
-* Custom metrics/logger outputs? e.g. `new Metrics([MySpecialMetricsHandler])`
+* Custom metrics/logger outputs?? e.g. `new Metrics([MySpecialMetricsHandler])`

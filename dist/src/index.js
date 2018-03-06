@@ -76,7 +76,7 @@ var Logger = /** @class */ (function () {
         this.errors = [];
         this.layers = [];
         this.options = {};
-        this.options = __assign({ alwaysSilent: false, silent: false }, options);
+        this.options = __assign({ alwaysSilent: true, silent: false }, options);
         // default for logging is just to use the console
         var callLayers = layers;
         if (layers.length === 0) {
@@ -216,6 +216,7 @@ var Logger = /** @class */ (function () {
                                 _this.options.silent = false;
                             })
                                 .catch(function (err) {
+                                console.error("Logger error: " + err);
                                 _this.errors.push(err);
                                 if (!_this.options.alwaysSilent && !_this.options.silent) {
                                     throw err;
@@ -455,6 +456,7 @@ var Metrics = /** @class */ (function () {
                             })
                                 .catch(function (err) {
                                 _this.errors.push(err);
+                                console.error("Metrics error: " + err);
                                 if (!_this.options.silent && !_this.options.alwaysSilent) {
                                     throw err;
                                 }

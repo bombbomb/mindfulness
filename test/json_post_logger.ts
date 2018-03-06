@@ -228,7 +228,7 @@ test('can change request body on a call', async (done) => {
 test('log fails on post error', async (done) => {
   const l = new Logger([
     { type: 'json_post', host: 'logging.example.com' },
-  ]);
+  ], { alwaysSilent: false });
 
   const loggingEndpoint = nock('http://logging.example.com')
     .post('/', {

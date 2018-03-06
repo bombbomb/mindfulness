@@ -35,7 +35,7 @@ export class Logger implements L {
    */
   constructor(layers: (string|LoggerLayer)[] = [], options = {}) {
     this.options = {
-      alwaysSilent: false,
+      alwaysSilent: true,
       silent: false,
       ...options,
     };
@@ -165,6 +165,7 @@ export class Logger implements L {
         this.options.silent = false;
       })
       .catch((err) => {
+        console.error(`Logger error: ${err}`);
         this.errors.push(err);
         if (!this.options.alwaysSilent && !this.options.silent) {
           throw err;
@@ -395,6 +396,7 @@ export class Metrics implements M {
       })
       .catch((err) => {
         this.errors.push(err);
+        console.error(`Metrics error: ${err}`);
         if (!this.options.silent && !this.options.alwaysSilent) {
           throw err;
         }

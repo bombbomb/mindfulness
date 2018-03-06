@@ -47,9 +47,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
+var mute_1 = require("mute");
 var spies = {
     // log: jest.spyOn(global.console, 'log'),
     info: jest.spyOn(global.console, 'info'),
+    error: jest.spyOn(global.console, 'error'),
 };
 afterEach(function () {
     nock_1.default.cleanAll();
@@ -124,7 +126,7 @@ test('send metrics via post request to https://example.com', function (done) { r
     });
 }); });
 test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m, metricsEndpoint;
+    var m, metricsEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -137,9 +139,11 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                     type: 'increment',
                 })
                     .reply(200, {});
+                unmute = mute_1.default();
                 return [4 /*yield*/, m.increment('myMetric')];
             case 1:
                 _a.sent();
+                unmute();
                 expect(spies.info).toHaveBeenCalled();
                 expect(metricsEndpoint.isDone()).toBe(true);
                 done();
@@ -399,7 +403,7 @@ test('layer "before" callbacks can change metric and category value in the reque
     });
 }); });
 test('Metric post failure should throw an error', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m, correctEndpoint;
+    var m, correctEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -419,10 +423,12 @@ test('Metric post failure should throw an error', function (done) { return __awa
                     value: 10,
                 })
                     .reply(500, {});
+                unmute = mute_1.default();
                 return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10))
                         .rejects.toThrowError()];
             case 1:
                 _a.sent();
+                unmute();
                 done();
                 return [2 /*return*/];
         }
@@ -430,7 +436,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
 }); });
 describe('Metric silent()', function () {
     test('stops errors from propegating', function (done) { return __awaiter(_this, void 0, void 0, function () {
-        var m, correctEndpoint;
+        var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -450,10 +456,12 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
+                    unmute = mute_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.not.toThrowError()];
                 case 1:
                     _a.sent();
+                    unmute();
                     // errors are still captured in the object...
                     expect(m.errors).toHaveLength(1);
                     done();
@@ -462,7 +470,7 @@ describe('Metric silent()', function () {
         });
     }); });
     test('only stops one error from propegating', function (done) { return __awaiter(_this, void 0, void 0, function () {
-        var m, correctEndpoint;
+        var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -482,6 +490,7 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
+                    unmute = mute_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.not.toThrowError()];
                 case 1:
@@ -491,6 +500,7 @@ describe('Metric silent()', function () {
                             .rejects.toThrowError()];
                 case 2:
                     _a.sent();
+                    unmute();
                     done();
                     return [2 /*return*/];
             }
@@ -527,4 +537,32 @@ describe('Metric silent()', function () {
         });
     }); });
 });
+test('default json post failure logs instead of rejects', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var m, correctEndpoint, unmute;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([
+                    {
+                        type: 'json_post',
+                        host: 'metrics.example.com',
+                        paths: {
+                            increment: '/path/$category/$metric',
+                        },
+                    },
+                ]);
+                correctEndpoint = nock_1.default(/metrics\.example\.com/)
+                    .post(/.+/, function (body) { return true; })
+                    .reply(500, {});
+                unmute = mute_1.default();
+                return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/)];
+            case 1:
+                _a.sent();
+                expect(spies.error).toHaveBeenCalled();
+                unmute();
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 //# sourceMappingURL=json_post_metrics.js.map

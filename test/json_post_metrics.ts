@@ -1,11 +1,12 @@
 import nock from 'nock';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
+import mute from 'mute';
 
 const spies = {
   // log: jest.spyOn(global.console, 'log'),
   info: jest.spyOn(global.console, 'info'),
-  // error: jest.spyOn(global.console, 'error'),
+  error: jest.spyOn(global.console, 'error'),
   // warn: jest.spyOn(global.console, 'warn'),
 };
 
@@ -98,7 +99,9 @@ test('can debug metrics', async (done) => {
     })
     .reply(200, {});
 
+  const unmute = mute();
   await m.increment('myMetric');
+  unmute();
 
   expect(spies.info).toHaveBeenCalled();
   expect(metricsEndpoint.isDone()).toBe(true);
@@ -341,8 +344,11 @@ test('Metric post failure should throw an error', async (done) => {
     })
     .reply(500, {});
 
+
+  const unmute = mute();
   await expect(m.increment('awesome', 'myMetric', 10))
     .rejects.toThrowError();
+  unmute();
 
   done();
 });
@@ -367,8 +373,11 @@ describe('Metric silent()', () => {
       })
       .reply(500, {});
 
+    const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
       .resolves.not.toThrowError();
+    unmute();
+
     // errors are still captured in the object...
     expect(m.errors).toHaveLength(1);
     done();
@@ -393,11 +402,14 @@ describe('Metric silent()', () => {
       })
       .reply(500, {});
 
+    const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
       .resolves.not.toThrowError();
+
     expect(m.options.silent).toBe(false);
     await expect(m.increment('awesome', 'myMetric', 10))
       .rejects.toThrowError();
+    unmute();
 
     done();
   });
@@ -426,4 +438,27 @@ describe('Metric silent()', () => {
 
     done();
   });
+});
+
+test('default json post failure logs instead of rejects', async (done) => {
+  const m = new Metrics([
+    {
+      type: 'json_post',
+      host: 'metrics.example.com',
+      paths: {
+        increment: '/path/$category/$metric',
+      },
+    },
+  ]);
+
+  const correctEndpoint = nock(/metrics\.example\.com/)
+    .post(/.+/, body => true)
+    .reply(500, {});
+
+  const unmute = mute();
+  await expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/);
+  expect(spies.error).toHaveBeenCalled();
+  unmute();
+
+  done();
 });

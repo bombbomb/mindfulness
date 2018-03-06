@@ -307,7 +307,7 @@ test('log fails on post error', function (done) { return __awaiter(_this, void 0
             case 0:
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
-                ]);
+                ], { alwaysSilent: false });
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
                     severity: 'log',

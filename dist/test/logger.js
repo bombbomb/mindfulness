@@ -147,10 +147,10 @@ test('Logger handles a call-specific "before" callback', function (done) { retur
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                before = function (message, payload) {
+                before = function (details) {
                     var _this = this;
                     return new Promise(function (resolve) {
-                        var result = { payload: payload, message: message + "!", options: _this.options };
+                        var result = { payload: details.payload, message: details.message + "!", options: _this.options };
                         resolve(result);
                     });
                 };

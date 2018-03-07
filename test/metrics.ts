@@ -1,5 +1,6 @@
 import { Metrics } from '../src/index';
-import { MetricsOptions, MetricInterface } from '../src/interfaces/metrics';
+import { MetricInterface } from '../src/interfaces/metrics';
+import { MindfulnessOptions } from '../src/interfaces/options';
 
 const spies = {
   // log: jest.spyOn(global.console, 'log'),
@@ -57,7 +58,7 @@ test('Metrics.timing() fails with no value', async (done) => {
 });
 
 test('Metrics handles "before" calls', async (done) => {
-  const before = (metricType: string, metric: MetricInterface, options: MetricsOptions) => (
+  const before = (metricType: string, metric: MetricInterface, options: MindfulnessOptions) => (
     new Promise((resolve) => {
       const thisMetric = metric;
       thisMetric.value = 10;
@@ -76,7 +77,7 @@ test('Metrics handles "before" calls', async (done) => {
 });
 
 test('Metrics handles layer "before" calls', async (done) => {
-  const before = (metricType: string, metric: MetricInterface, options: MetricsOptions) => (
+  const before = (metricType: string, metric: MetricInterface, options: MindfulnessOptions) => (
     new Promise((resolve) => {
       const thisMetric = metric;
       thisMetric.value = 10;

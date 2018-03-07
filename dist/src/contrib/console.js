@@ -84,7 +84,10 @@ var ConsoleLogger = /** @class */ (function (_super) {
                             switch (_a.label) {
                                 case 0:
                                     callOptions = this.getCallOptions(options);
-                                    return [4 /*yield*/, this.before(message, payload, callOptions)];
+                                    if (typeof console[level] === 'undefined') {
+                                        return [2 /*return*/, reject(new Error("Invalid log level: " + level))];
+                                    }
+                                    return [4 /*yield*/, this.before({ message: message, payload: payload }, callOptions)];
                                 case 1:
                                     beforeResult = _a.sent();
                                     if (callOptions.logLevel !== logger_1.LOG_LEVELS.LOG_NONE && callOptions.logLevel & logging_1.default(level)) {
@@ -92,10 +95,7 @@ var ConsoleLogger = /** @class */ (function (_super) {
                                         if (beforeResult.payload && typeof beforeResult.payload === 'object') {
                                             args.push(__assign({}, beforeResult.payload));
                                         }
-                                        if (typeof console[level] === 'undefined') {
-                                            return [2 /*return*/, reject(new Error("Invalid log level: " + level))];
-                                        }
-                                        console[level].call(this, beforeResult.message, beforeResult.payload, beforeResult.options);
+                                        console[level].apply(this, args);
                                     }
                                     return [2 /*return*/, resolve()];
                             }
@@ -129,7 +129,7 @@ var ConsoleMetrics = /** @class */ (function (_super) {
                             switch (_a.label) {
                                 case 0:
                                     m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                                    return [4 /*yield*/, this.before(metricType, m, this.options)];
+                                    return [4 /*yield*/, this.before({ metricType: metricType, metric: m }, this.options)];
                                 case 1:
                                     beforeResult = _a.sent();
                                     value = (beforeResult.metric.value) ? Math.abs(Number(beforeResult.metric.value)) : 1;

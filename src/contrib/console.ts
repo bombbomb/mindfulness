@@ -1,15 +1,16 @@
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import getLogLevelConstant from '../util/logging';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import { MetricsInterface } from '../interfaces/metrics';
 import Metric from '../models/metric';
+import { MindfulnessOptions } from '../interfaces/options';
 
 /**
  * Log messages to the console.
  */
 export class ConsoleLogger extends ContribLogger implements LoggerInterface {
-  options: LoggerOptions;
+  options: MindfulnessOptions;
 
   /**
    * The log message handler.
@@ -19,22 +20,23 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
    * @param payload Optional additional payload to log
    * @param options Optional call-specific options for this log.
    */
-  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
 
+      if (typeof console[level] === 'undefined') {
+        return reject(new Error(`Invalid log level: ${level}`));
+      }
+
       // call & wait for our before handlers
-      const beforeResult = await this.before(message, payload, callOptions);
+      const beforeResult = await this.before({ message, payload }, callOptions);
 
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
         const args: (string|object)[] = [beforeResult.message];
         if (beforeResult.payload && typeof beforeResult.payload === 'object') {
           args.push({ ...beforeResult.payload });
         }
-        if (typeof console[level] === 'undefined') {
-          return reject(new Error(`Invalid log level: ${level}`));
-        }
-        console[level].call(this, beforeResult.message, beforeResult.payload, beforeResult.options);
+        console[level].apply(this, args);
       }
       return resolve();
     });
@@ -50,7 +52,7 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
       const m = new Metric(...args);
 
       // call & wait for our before handlers
-      const beforeResult = await this.before(metricType, m, this.options);
+      const beforeResult = await this.before({ metricType, metric: m }, this.options);
 
       const value = (beforeResult.metric.value) ? Math.abs(Number(beforeResult.metric.value)) : 1;
       let message = '';

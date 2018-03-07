@@ -1,14 +1,230 @@
 // import request from 'request-promise-native';
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import get from 'lodash.get';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import getLogLevelConstant from '../util/logging';
-import { MetricsInterface, MetricsOptions, M } from '../interfaces/metrics';
+import { MetricsInterface, M } from '../interfaces/metrics';
+import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
 import Metric from '../models/metric';
 import getMindfulnessVersion from '../util/version';
+import Mindfulness from './mindfulness';
 
 // need to use require() syntax because this package does not define default...
 const request = require('request-promise-native');
+
+export class JsonPostHandler {
+  parentObject: Mindfulness;
+  version: string;
+
+  constructor(parent: Mindfulness) {
+    this.parentObject = parent;
+  }
+
+  async buildBody(details: object, options: MindfulnessOptions): Promise<object> {
+    const body = {};
+
+    if (!this.version) {
+      this.version = await getMindfulnessVersion();
+    }
+
+    if (options.messageTemplate) {
+      const keys = Object.keys(options.messageTemplate);
+
+      const variables = {
+        $environment: this.parentObject.getEnvironment(),
+        $version: this.version,
+        ...details,
+      };
+
+      for (let index = 0; index < keys.length; index += 1) {
+        const key = keys[index];
+        const value = options.messageTemplate[key];
+
+        // optional item
+        if (/\?$/.test(key)) {
+          const keyName = key.replace(/\?$/, '');
+          if (Array.isArray(value)) {
+            if (typeof variables[value[0]] !== 'undefined') {
+              body[keyName] = variables[value[0]];
+            }
+            else {
+              [, body[keyName]] = value;
+            }
+          }
+          else if (typeof variables[value] !== 'undefined') {
+            body[keyName] = variables[value];
+          }
+          else if (get(details, value)) {
+            body[keyName] = get(details, value);
+          }
+        }
+        else if (value in variables) {
+          body[key] = variables[value];
+        }
+        else if (get(details, value)) {
+          body[key] = get(details, value);
+        }
+      }
+    }
+
+    // const keys = Object.keys(body);
+    // keys.forEach((key) => {
+    //   if (body[key] === 'undefined') {
+    //     console.error(process.env);
+    //     throw new Error(`${key} is not allowed to be "undefined"`);
+    //   }
+    // });
+
+    return Promise.resolve(body);
+  }
+
+  /**
+   * Build the request body and hand off to a requestBodyCallback if specified.
+   *
+   * @param level Log level string
+   * @param message Message being logged
+   * @param payload Current payload
+   * @param options Call-specific options
+   */
+  async getRequestBody(details: DetailsInterface, options: MindfulnessOptions = {}): Promise<object> {
+    const dataDefaults = (options.dataDefaults) ? options.dataDefaults : {};
+    const builtBody = await this.buildBody(details, options);
+    let body = {
+      ...builtBody,
+      ...dataDefaults,
+    };
+
+    if (options.requestBodyCallback) {
+      body = options.requestBodyCallback(body, {
+        ...details,
+        options,
+      });
+    }
+
+    return body;
+  }
+
+  /**
+   * Get the request() options.
+   *
+   * @param callRequest The current request() options
+   * @param metricType The metric type being called
+   * @param metric The metric being updated
+   * @param options Call-specific options.
+   */
+  async getRequestOptions(callRequest: object, details: DetailsInterface, options: MindfulnessOptions): Promise<object> {
+    let thisCallRequest = callRequest;
+
+    if (options.requestOptionsCallback) {
+      const result = options.requestOptionsCallback(thisCallRequest, details, options);
+      if (result && typeof result === 'object') {
+        thisCallRequest = result;
+      }
+      else {
+        console.warn(`The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: ${typeof result}`);
+      }
+    }
+
+    const thisRequest: { method: string, uri: string, body: (string | object), json?: boolean } = {
+      ...thisCallRequest,
+      method: 'POST',
+      uri: this.getRequestUri(details, options),
+      body: await this.getRequestBody(details, options),
+    };
+
+    if (typeof thisRequest.body === 'object') {
+      thisRequest.json = true;
+    }
+
+    return Promise.resolve(thisRequest);
+  }
+
+  /**
+   * Get the request path.
+   *
+   * @param metricType The metric type being sent
+   * @param options An object of options for this call.
+   */
+  getRequestPath(details: DetailsInterface, options: MindfulnessOptions) {
+    if (typeof details.metricType !== 'undefined') {
+      if (typeof options.paths !== 'undefined' && typeof options.paths[details.metricType] !== 'undefined') {
+        return options.paths[details.metricType];
+      }
+    }
+    return (options.path) ? String(options.path) : '/';
+  }
+
+  getRequestScheme(options) {
+    let scheme = (options.scheme) ? options.scheme : 'http';
+
+    // check the host to see if it has http/https in it...
+    const host = /^(https?):\/\//.exec(options.host);
+    if (host) {
+      [, scheme] = host;
+    }
+
+    return scheme;
+  }
+
+  /**
+   * Get the request URI based on options.
+   */
+  getRequestUri(details: DetailsInterface, options?: MindfulnessOptions): string {
+    const callOptions = this.parentObject.getCallOptions(options);
+    let url = '';
+
+    const scheme = this.getRequestScheme(callOptions);
+    let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
+    const port = (callOptions.port) ? Number(callOptions.port) : null;
+    let path = this.getRequestPath(details, options);
+
+    if (host.slice(-1) === '/') {
+      host = host.slice(0, -1);
+    }
+
+    if (path[0] !== '/') {
+      path = `/${path}`;
+    }
+
+    url = `${scheme}://${host}`;
+    if (port) {
+      url += `:${port}`;
+    }
+
+    url += path;
+
+    /* eslint-disable prefer-template */
+    if (typeof details.level !== 'undefined') {
+      url = url.replace(/\$level(\/)?/, details.level + '$1');
+    }
+    if (typeof details.metric !== 'undefined') {
+      const category = (details.metric.category) ? details.metric.category + '$1' : '';
+      url = url.replace(/\$category(\/)?/, category);
+      url = url.replace(/\$metric(\/)?/, details.metric.metric + '$1');
+    }
+    /* eslint-enable prefer-template */
+
+    return url;
+  }
+
+  async post(details: object, options: MindfulnessOptions): Promise<any> {
+    if (!this.version) {
+      this.version = await getMindfulnessVersion();
+    }
+
+    const requestOptions: object = await this.getRequestOptions({
+      json: true,
+      resolveWithFullResponse: true,
+      headers: {
+        'User-Agent': `mindfulness/${this.version}`,
+      },
+    }, details, options);
+
+    this.parentObject.debug('mindfulness logging', { requestOptions });
+    return request(requestOptions);
+  }
+}
 
 /**
  * JSON POST logger
@@ -16,8 +232,21 @@ const request = require('request-promise-native');
  * Passes off a log message to a remote endpoint.
  */
 export class JsonPostLogger extends ContribLogger implements LoggerInterface {
-  constructor(options?: LoggerOptions) {
-    super({ ...options });
+  json: JsonPostHandler;
+
+  constructor(options?: MindfulnessOptions) {
+    super({
+      messageTemplate: {
+        message: 'message',
+        'info?': ['payload', {}],
+        environment: '$environment',
+        severity: 'level',
+        type: 'level',
+      },
+      ...options,
+    });
+
+    this.json = new JsonPostHandler(this);
   }
 
   /**
@@ -28,28 +257,18 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param payload The payload to include
    * @param options Call-specific options
    */
-  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
 
       // call & wait for our before handlers
-      const beforeResult = await this.before(message, payload, callOptions);
+      const beforeResult = await this.before({ message, payload }, callOptions);
 
       if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
-        const version = await getMindfulnessVersion();
+        const thisMessage = this.getMessage(beforeResult.message);
+        const thisPayload = this.getPayload(beforeResult.payload);
         try {
-          const thisMessage = this.getMessage(beforeResult.message);
-          const thisPayload = this.getPayload(beforeResult.payload);
-          const requestOptions: object = this.getRequestOptions({
-            json: true,
-            resolveWithFullResponse: true,
-            headers: {
-              'User-Agent': `mindfulness/${version}`,
-            },
-          }, level, thisMessage, thisPayload, callOptions);
-
-          this.debug('mindfulness logging', { requestOptions });
-          const response = await request(requestOptions);
+          const response = await this.json.post({ level, message: thisMessage, payload: thisPayload }, callOptions);
           resolve(response);
         }
         catch (e) {
@@ -61,22 +280,6 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
         resolve();
       }
     });
-  }
-
-  debug(...args) {
-    if (this.options.debug) {
-      console.info.call(console, ...args);
-    }
-  }
-
-  getEnvironment() {
-    if (process.env.ENVIRONMENT) {
-      return process.env.ENVIRONMENT;
-    }
-    if (process.env.NODE_ENV) {
-      return process.env.NODE_ENV;
-    }
-    return 'production';
   }
 
   getMessage(message) {
@@ -104,115 +307,6 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
 
     return payload;
   }
-
-  getScheme(options) {
-    let scheme = (options.scheme) ? options.scheme : 'http';
-
-    // check the host to see if it has http/https in it...
-    const host = /^(https?):\/\//.exec(options.host);
-    if (host) {
-      [, scheme] = host;
-    }
-
-    return scheme;
-  }
-
-  /**
-   * Build the request body and hand off to a requestBodyCallback if specified.
-   *
-   * @param level Log level string
-   * @param message Message being logged
-   * @param payload Current payload
-   * @param options Call-specific options
-   */
-  getRequestBody(level: string, message: any, payload: any = {}, options: LoggerOptions = {}): object {
-    const callOptions = this.getCallOptions(options);
-    const dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
-    let body = {
-      message,
-      info: payload,
-      severity: level,
-      type: level,
-      environment: this.getEnvironment(),
-      ...dataDefaults,
-    };
-
-    if (callOptions.requestBodyCallback) {
-      body = callOptions.requestBodyCallback(body, {
-        level, message, payload, callOptions,
-      });
-    }
-
-    return body;
-  }
-
-  /**
-   * Get the request() options.
-   *
-   * @param callRequest The current request() options
-   * @param metricType The metric type being called
-   * @param metric The metric being updated
-   * @param options Call-specific options.
-   */
-  getRequestOptions(callRequest: object, level: string, message: any, payload: any, options: LoggerOptions): object {
-    let thisCallRequest = request;
-    if (options.requestOptionsCallback) {
-      const result = options.requestOptionsCallback(thisCallRequest, level, message, payload, options);
-      if (result && typeof result === 'object') {
-        thisCallRequest = result;
-      }
-      else {
-        console.warn(`The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: ${typeof result}`);
-      }
-    }
-
-    const thisRequest: { method: string, uri: string, body: (string | object), json?: boolean } = {
-      ...thisCallRequest,
-      method: 'POST',
-      uri: this.getRequestUri(level, message, payload, options),
-      body: this.getRequestBody(level, message, payload, options),
-    };
-
-    if (typeof thisRequest.body === 'object') {
-      thisRequest.json = true;
-    }
-
-    return thisRequest;
-  }
-
-  /**
-   * Get the request URI based on options.
-   */
-  getRequestUri(level: string, message: any, payload: any, options?: LoggerOptions): string {
-    const callOptions = this.getCallOptions(options);
-    let url = '';
-
-    const scheme = this.getScheme(callOptions);
-    let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
-    const port = (callOptions.port) ? Number(callOptions.port) : null;
-    let path = (callOptions.path) ? String(callOptions.path) : '/';
-
-    if (host.slice(-1) === '/') {
-      host = host.slice(0, -1);
-    }
-
-    if (path[0] !== '/') {
-      path = `/${path}`;
-    }
-
-    url = `${scheme}://${host}`;
-    if (port) {
-      url += `:${port}`;
-    }
-
-    url += path;
-
-    /* eslint-disable prefer-template */
-    url = url.replace(/\$level(\/)?/, level + '$1');
-    /* eslint-enable prefer-template */
-
-    return url;
-  }
 }
 
 /**
@@ -221,8 +315,19 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
  * Passes off a metrics request to a remote endpoint.
  */
 export class JsonPostMetrics extends ContribMetrics implements MetricsInterface {
-  constructor(options?: LoggerOptions) {
-    super({ ...options });
+  json: JsonPostHandler;
+
+  constructor(options?: MindfulnessOptions) {
+    super({
+      messageTemplate: {
+        type: 'metricType',
+        environment: '$environment',
+        'value?': 'metric.value',
+      },
+      ...options,
+    });
+
+    this.json = new JsonPostHandler(this);
   }
 
   /**
@@ -232,26 +337,15 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
    * @param metric The metric being updated
    * @param options Call-specific options
    */
-  async call(metricType: string, metric: Metric, options?: MetricsOptions): Promise<any> {
+  async call(metricType: string, metric: Metric, options?: MindfulnessOptions): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
 
       // call & wait for our before handlers
-      const beforeResult = await this.before(metricType, metric, callOptions);
-
-      const version = await getMindfulnessVersion();
-
-      const requestOptions: object = this.getRequestOptions({
-        json: true,
-        resolveWithFullResponse: true,
-        headers: {
-          'User-Agent': `mindfulness/${version}`,
-        },
-      }, beforeResult.metricType, beforeResult.metric, callOptions);
+      const beforeResult = await this.before({ metricType, metric }, callOptions);
 
       try {
-        this.debug('mindfulness metrics', { requestOptions });
-        const response = await request(requestOptions);
+        const response = await this.json.post({ metricType: beforeResult.metricType, metric: beforeResult.metric }, callOptions);
         resolve(response);
       }
       catch (e) {
@@ -297,142 +391,5 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
   async timing(...args: any[]): Promise<any> {
     const { args: callArgs, metric, options } = this.settleArguments(...args);
     return this.call('timing', metric, options);
-  }
-
-  /**
-   * Get the environment to pass in the body.
-   */
-  getEnvironment(): string {
-    if (process.env.ENVIRONMENT) {
-      return process.env.ENVIRONMENT;
-    }
-    else if (process.env.NODE_ENV) {
-      return process.env.NODE_ENV;
-    }
-    return 'production';
-  }
-
-  /**
-   * Build the request body and hand off to a requestBodyCallback if specified.
-   *
-   * @param metricType The type of call being made
-   * @param metric The metric object being sent
-   * @param options Call-specific options
-   */
-  getRequestBody(metricType: string, metric: Metric, options?: MetricsOptions): object {
-    const callOptions = this.getCallOptions(options);
-    const dataDefaults = (callOptions.dataDefaults) ? callOptions.dataDefaults : {};
-
-    // build our request body
-    let body = {
-      environment: this.getEnvironment(),
-      type: metricType,
-      ...dataDefaults,
-    };
-
-    if (metric.value) {
-      body.value = metric.value;
-    }
-
-    if (callOptions.requestBodyCallback) {
-      body = callOptions.requestBodyCallback(body, { metricType, metric, callOptions });
-    }
-
-    return body;
-  }
-
-  /**
-   * Get the request() options.
-   *
-   * @param request The current request() options
-   * @param metricType The metric type being called
-   * @param metric The metric being updated
-   * @param options Call-specific options.
-   */
-  getRequestOptions(callRequest: object, metricType: string, metric: Metric, options: MetricsOptions): object {
-    let thisCallRequest = callRequest;
-    if (options.requestOptionsCallback) {
-      const result = options.requestOptionsCallback(thisCallRequest, metricType, metric, options);
-      if (result && typeof result === 'object') {
-        thisCallRequest = result;
-      }
-      else {
-        console.warn(`The results of Metrics.requestOptionsCallback did not return a correct value. Ignoring result with type: ${typeof result}`);
-      }
-    }
-
-    const thisRequest: { method: string, uri: string, body: (string|object), json?: boolean } = {
-      ...thisCallRequest,
-      method: 'POST',
-      uri: this.getRequestUri(metricType, metric, options),
-      body: this.getRequestBody(metricType, metric, options),
-    };
-
-    if (typeof thisRequest.body === 'object') {
-      thisRequest.json = true;
-    }
-
-    return thisRequest;
-  }
-
-  /**
-   * Get the request path.
-   *
-   * @param metricType The metric type being sent
-   * @param options An object of options for this call.
-   */
-  getRequestPath(metricType: string, options: MetricsOptions) {
-    if (typeof options.paths !== 'undefined' && typeof options.paths[metricType] !== 'undefined') {
-      return options.paths[metricType];
-    }
-    return (options.path) ? String(options.path) : '/';
-  }
-
-  getScheme(options) {
-    let scheme = (options.scheme) ? options.scheme : 'http';
-
-    // check the host to see if it has http/https in it...
-    const host = /^(https?):\/\//.exec(options.host);
-    if (host) {
-      [, scheme] = host;
-    }
-
-    return scheme;
-  }
-
-  /**
-   * Get the request URI based on options.
-   */
-  getRequestUri(metricType: string, metric: Metric, options?: MetricsOptions): string {
-    const callOptions = this.getCallOptions(options);
-
-    let url = '';
-
-    const scheme = this.getScheme(callOptions);
-    let host = (callOptions.host) ? String(callOptions.host).replace(/^https?:\/\//, '') : 'localhost';
-    const port = (callOptions.port) ? Number(callOptions.port) : null;
-
-    if (host.slice(-1) === '/') {
-      host = host.slice(0, -1);
-    }
-
-    url = `${scheme}://${host}`;
-    if (port) {
-      url += `:${port}`;
-    }
-
-    let path = this.getRequestPath(metricType, callOptions);
-    if (path[0] !== '/') {
-      path = `/${path}`;
-    }
-    url += path;
-
-    /* eslint-disable prefer-template */
-    const category = (metric.category) ? metric.category + '$1' : '';
-    url = url.replace(/\$category(\/)?/, category);
-    url = url.replace(/\$metric(\/)?/, metric.metric + '$1');
-    /* eslint-enable prefer-template */
-
-    return url;
   }
 }

@@ -1,9 +1,10 @@
 import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
 import { NullLogger, NullMetrics } from './contrib/null';
 import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
-import { LoggerOptions, L, LoggerLayer } from './interfaces/logger';
-import { M, MetricsOptions, MetricInterface } from './interfaces/metrics';
+import { L, LoggerLayer } from './interfaces/logger';
+import { M, MetricInterface } from './interfaces/metrics';
 import Metric from './models/metric';
+import { MindfulnessOptions } from './interfaces/options';
 
 const contribLoggers = {
   console: ConsoleLogger,
@@ -26,7 +27,7 @@ const contribMetrics = {
 export class Logger implements L {
   errors = [];
   layers = [];
-  options: LoggerOptions = {};
+  options: MindfulnessOptions = {};
 
   /**
    * Build our logger object.
@@ -111,8 +112,22 @@ export class Logger implements L {
         const thisPayload = payload;
 
         if (callOptions && callOptions.before) {
-          const result = await callOptions.before(message, thisPayload, callOptions);
-          return resolve({ message: result.message, payload: result.payload, options: callOptions });
+          const args = [];
+
+          switch (callOptions.before.length) {
+            case 3:
+              args.push(message);
+              args.push(payload);
+              break;
+
+            default:
+              args.push({ message, payload });
+          }
+
+          args.push(callOptions);
+
+          const result = await callOptions.before.apply(this, args);
+          return resolve({ ...result });
         }
 
         return resolve({ message, payload: thisPayload, options: callOptions });
@@ -204,7 +219,7 @@ export class Logger implements L {
    *
    * @param options Call specific options
    */
-  getCallOptions(options?: LoggerOptions): LoggerOptions {
+  getCallOptions(options?: MindfulnessOptions): MindfulnessOptions {
     // if we have call options, override the defaults or just return the defaults.
     return (options) ? {
       ...this.options,
@@ -268,9 +283,9 @@ export class Logger implements L {
 export class Metrics implements M {
   errors = [];
   layers = [];
-  options: MetricsOptions = {};
+  options: MindfulnessOptions = {};
 
-  constructor(layers = [], options: MetricsOptions = {}) {
+  constructor(layers = [], options: MindfulnessOptions = {}) {
     this.options = {
       alwaysSilent: false,
       silent: false,
@@ -325,7 +340,7 @@ export class Metrics implements M {
    * @param metric The Metric object
    * @param options Current options for this call.
    */
-  async before(metricType: string, metric: MetricInterface, options?: MetricsOptions): Promise<any> {
+  async before(metricType: string, metric: MetricInterface, options?: MindfulnessOptions): Promise<any> {
     const before = async () => (
       new Promise(async (resolve, reject) => {
         if (options.before) {

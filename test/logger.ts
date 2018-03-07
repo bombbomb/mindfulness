@@ -90,9 +90,9 @@ test('Logger handles layer "before" callbacks', async (done) => {
 });
 
 test('Logger handles a call-specific "before" callback', async (done) => {
-  const before = function (message: string, payload?: object) {
+  const before = function (details) {
     return new Promise((resolve) => {
-      const result = { payload, message: `${message}!`, options: this.options };
+      const result = { payload: details.payload, message: `${details.message}!`, options: this.options };
       resolve(result);
     });
   };

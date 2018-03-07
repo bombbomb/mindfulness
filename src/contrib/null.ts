@@ -1,15 +1,16 @@
-import { LoggerInterface, LOG_LEVELS, LoggerOptions, L } from '../interfaces/logger';
+import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import getLogLevelConstant from '../util/logging';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import { MetricsInterface } from '../interfaces/metrics';
 import Metric from '../models/metric';
+import { MindfulnessOptions } from '../interfaces/options';
 
 /**
  * Log messages to nothing.
  */
 export class NullLogger extends ContribLogger implements LoggerInterface {
-  options: LoggerOptions;
+  options: MindfulnessOptions;
 
   /**
    * The log message handler.
@@ -19,7 +20,7 @@ export class NullLogger extends ContribLogger implements LoggerInterface {
    * @param payload Optional additional payload to log
    * @param options Optional call-specific options for this log.
    */
-  async call(level: string, message: any, payload?: any, options?: LoggerOptions): Promise<any> {
+  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
     return Promise.resolve();
   }
 }

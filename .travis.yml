@@ -5,3 +5,5 @@ node_js:
 script:
   - npm test
   - npm run eslint-ci
+env:
+  - NODE_ENV=test ENVIRONMENT=test

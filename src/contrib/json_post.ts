@@ -21,6 +21,12 @@ export class JsonPostHandler {
     this.parentObject = parent;
   }
 
+  /**
+   * Build a message body from a message template.
+   *
+   * @param details Body message details
+   * @param options Request options
+   */
   async buildBody(details: object, options: MindfulnessOptions): Promise<object> {
     const body = {};
 
@@ -55,6 +61,7 @@ export class JsonPostHandler {
           else if (typeof variables[value] !== 'undefined') {
             body[keyName] = variables[value];
           }
+          // try to get a value via lodash.get
           else if (get(details, value)) {
             body[keyName] = get(details, value);
           }
@@ -62,19 +69,12 @@ export class JsonPostHandler {
         else if (value in variables) {
           body[key] = variables[value];
         }
+        // try to get a value via lodash.get
         else if (get(details, value)) {
           body[key] = get(details, value);
         }
       }
     }
-
-    // const keys = Object.keys(body);
-    // keys.forEach((key) => {
-    //   if (body[key] === 'undefined') {
-    //     console.error(process.env);
-    //     throw new Error(`${key} is not allowed to be "undefined"`);
-    //   }
-    // });
 
     return Promise.resolve(body);
   }
@@ -126,7 +126,7 @@ export class JsonPostHandler {
       }
     }
 
-    const thisRequest: { method: string, uri: string, body: (string | object), json?: boolean } = {
+    const thisRequest: { method: string, uri: string, body: (string | object), json?: boolean, jsonReplacer? } = {
       ...thisCallRequest,
       method: 'POST',
       uri: this.getRequestUri(details, options),
@@ -134,6 +134,9 @@ export class JsonPostHandler {
     };
 
     if (typeof thisRequest.body === 'object') {
+      if (options.jsonReplacer) {
+        thisRequest.jsonReplacer = options.jsonReplacer;
+      }
       thisRequest.json = true;
     }
 

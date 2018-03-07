@@ -110,6 +110,41 @@ test('send metrics via post request to https://example.com', async (done) => {
   done();
 });
 
+test('send JSON with JSON replacer', async (done) => {
+  const jsonReplacer = {
+    replacer: (k, v) => {
+      if (k === 'value') {
+        return 123;
+      }
+      return v;
+    },
+  };
+
+  const spy = jest.spyOn(jsonReplacer, 'replacer');
+
+  const m = new Metrics([
+    {
+      type: 'json_post',
+      host: 'https://metrics.example.com',
+      jsonReplacer: jsonReplacer.replacer,
+    },
+  ]);
+
+  const date = new Date();
+  const metricsEndpoint = nock('https://metrics.example.com')
+    .post('/', {
+      environment: process.env.NODE_ENV,
+      type: 'timing',
+      value: 123,
+    })
+    .reply(200, {});
+
+  await m.timing('myMetric', date);
+  expect(spy).toHaveBeenCalled();
+  expect(metricsEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('can debug metrics', async (done) => {
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com', debug: true },
@@ -281,7 +316,7 @@ test('"before" callbacks still build correct structure', async (done) => {
   const beforeCallback = {
     callback: (metricType, metric, options) => {
       const thisMetric = metric;
-      thisMetric.value = metric.value.getTime();
+      thisMetric.value = 123;
       return Promise.resolve({ metricType, metric: thisMetric, options });
     },
   };
@@ -303,7 +338,7 @@ test('"before" callbacks still build correct structure', async (done) => {
     .post('/timing/awesome/myMetric', {
       environment: 'test',
       type: 'timing',
-      value: date.getTime(),
+      value: 123,
     })
     .reply(200, {});
 

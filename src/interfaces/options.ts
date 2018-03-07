@@ -3,10 +3,15 @@ import {
   LoggerBeforeCallback, LoggerAfterCallback, BeforeCallback,
 } from './callbacks';
 
+interface JsonReplacer {
+  (key: string, value: any): any;
+}
+
 export interface MindfulnessOptions {
   before?: (MetricsBeforeCallback | LoggerBeforeCallback | BeforeCallback);
   after?: (MetricsAfterCallback | LoggerAfterCallback);
   requestBodyCallback?: MetricsRequestBodyCallback;
+  jsonReplacer?: JsonReplacer
   [propName: string]: any;
 }
 

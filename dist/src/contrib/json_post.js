@@ -67,6 +67,12 @@ var JsonPostHandler = /** @class */ (function () {
     function JsonPostHandler(parent) {
         this.parentObject = parent;
     }
+    /**
+     * Build a message body from a message template.
+     *
+     * @param details Body message details
+     * @param options Request options
+     */
     JsonPostHandler.prototype.buildBody = function (details, options) {
         return __awaiter(this, void 0, void 0, function () {
             var body, _a, keys, variables, index, key, value, keyName;
@@ -113,13 +119,6 @@ var JsonPostHandler = /** @class */ (function () {
                                 }
                             }
                         }
-                        // const keys = Object.keys(body);
-                        // keys.forEach((key) => {
-                        //   if (body[key] === 'undefined') {
-                        //     console.error(process.env);
-                        //     throw new Error(`${key} is not allowed to be "undefined"`);
-                        //   }
-                        // });
                         return [2 /*return*/, Promise.resolve(body)];
                 }
             });
@@ -183,6 +182,9 @@ var JsonPostHandler = /** @class */ (function () {
                     case 1:
                         thisRequest = __assign.apply(void 0, _a.concat([(_b.body = _c.sent(), _b)]));
                         if (typeof thisRequest.body === 'object') {
+                            if (options.jsonReplacer) {
+                                thisRequest.jsonReplacer = options.jsonReplacer;
+                            }
                             thisRequest.json = true;
                         }
                         return [2 /*return*/, Promise.resolve(thisRequest)];

@@ -31,3 +31,11 @@ test('Create Metric instance from Metric instance', () => {
   const m2 = new Metric(m);
   expect(m2.metric).toBe('metric');
 });
+
+test('Create metric with a date converts it to a timestamp', () => {
+  const date = new Date();
+  const m = new Metric('metric', date);
+
+  expect(m.metric).toBe('metric');
+  expect(m.value).toBe(date.getTime());
+});

@@ -18,7 +18,8 @@ var Metric = /** @class */ (function () {
      * new Metric('category', 'metric', 10);
      * ```
      *
-     * String values would need to use the three argument version.
+     * String values would need to use the three argument version. Date values are converted to
+     * timestamps.
      *
      * @param args Arguments array
      */
@@ -52,6 +53,9 @@ var Metric = /** @class */ (function () {
                 break;
             default:
                 break;
+        }
+        if (this.value && this.value instanceof Date) {
+            this.value = this.value.getTime();
         }
         var _a;
     }

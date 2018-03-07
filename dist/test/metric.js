@@ -31,4 +31,10 @@ test('Create Metric instance from Metric instance', function () {
     var m2 = new metric_1.default(m);
     expect(m2.metric).toBe('metric');
 });
+test('Create metric with a date converts it to a timestamp', function () {
+    var date = new Date();
+    var m = new metric_1.default('metric', date);
+    expect(m.metric).toBe('metric');
+    expect(m.value).toBe(date.getTime());
+});
 //# sourceMappingURL=metric.js.map

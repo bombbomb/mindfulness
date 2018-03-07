@@ -165,6 +165,45 @@ test('send metrics via post request to https://example.com', function (done) { r
         }
     });
 }); });
+test('send JSON with JSON replacer', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var jsonReplacer, spy, m, date, metricsEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                jsonReplacer = {
+                    replacer: function (k, v) {
+                        if (k === 'value') {
+                            return 123;
+                        }
+                        return v;
+                    },
+                };
+                spy = jest.spyOn(jsonReplacer, 'replacer');
+                m = new index_1.Metrics([
+                    {
+                        type: 'json_post',
+                        host: 'https://metrics.example.com',
+                        jsonReplacer: jsonReplacer.replacer,
+                    },
+                ]);
+                date = new Date();
+                metricsEndpoint = nock_1.default('https://metrics.example.com')
+                    .post('/', {
+                    environment: process.env.NODE_ENV,
+                    type: 'timing',
+                    value: 123,
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.timing('myMetric', date)];
+            case 1:
+                _a.sent();
+                expect(spy).toHaveBeenCalled();
+                expect(metricsEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var m, unmute, metricsEndpoint;
     return __generator(this, function (_a) {
@@ -371,7 +410,7 @@ test('"before" callbacks still build correct structure', function (done) { retur
                 beforeCallback = {
                     callback: function (metricType, metric, options) {
                         var thisMetric = metric;
-                        thisMetric.value = metric.value.getTime();
+                        thisMetric.value = 123;
                         return Promise.resolve({ metricType: metricType, metric: thisMetric, options: options });
                     },
                 };
@@ -390,7 +429,7 @@ test('"before" callbacks still build correct structure', function (done) { retur
                     .post('/timing/awesome/myMetric', {
                     environment: 'test',
                     type: 'timing',
-                    value: date.getTime(),
+                    value: 123,
                 })
                     .reply(200, {});
                 return [4 /*yield*/, m.timing('awesome', 'myMetric', date)];

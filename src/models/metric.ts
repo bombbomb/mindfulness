@@ -20,7 +20,8 @@ export default class Metric {
    * new Metric('category', 'metric', 10);
    * ```
    *
-   * String values would need to use the three argument version.
+   * String values would need to use the three argument version. Date values are converted to
+   * timestamps.
    *
    * @param args Arguments array
    */
@@ -52,6 +53,10 @@ export default class Metric {
 
       default:
         break;
+    }
+
+    if (this.value && this.value instanceof Date) {
+      this.value = this.value.getTime();
     }
   }
 

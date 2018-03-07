@@ -18,23 +18,89 @@ const contribMetrics = {
   null: NullMetrics,
 };
 
+class MindfulnessBase {
+  options: MindfulnessOptions = {};
+
+  layers = [];
+  errors = [];
+
+  activateAllLayers() {
+    for (let index = 0; index < this.layers.length; index += 1) {
+      this.layers[index].active = true;
+    }
+    return this;
+  }
+
+  /**
+   * Handle an "after" function.
+   *
+   * Runs after all layers have finished.
+   *
+   * @param results Results from all logging layers
+   */
+  async after(results: any): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      if (this.options.after) {
+        await this.options.after.apply(this, results);
+      }
+      resolve();
+    });
+  }
+
+  /**
+   * Filter the active layers for one call.
+   *
+   * @param filter A string or a callback to filter with
+   */
+  filterLayers(filter: any) {
+    let callback = filter;
+    if (typeof filter === 'string') {
+      callback = layer => layer instanceof contribLoggers[filter];
+    }
+
+    this.layers = this.layers.map((layer) => {
+      const thisLayer = layer;
+      if (typeof layer.active === 'boolean') {
+        thisLayer.active = callback(layer);
+      }
+      return thisLayer;
+    });
+
+    return this;
+  }
+
+  /**
+   * Get the options for a specific call.
+   *
+   * Basically will return an options object for a specific call merged with the logger's
+   * default options.
+   *
+   * @param options Call specific options
+   */
+  getCallOptions(options?: MindfulnessOptions): MindfulnessOptions {
+    // if we have call options, override the defaults or just return the defaults.
+    return (options) ? {
+      ...this.options,
+      ...options,
+    } : { ...this.options };
+  }
+}
+
 /**
  * Logger class.
  *
  * A logger instance may represent one or more layers of logging. Each
  * layer represents an output (console, POST request, file, etc).
  */
-export class Logger implements L {
-  errors = [];
-  layers = [];
-  options: MindfulnessOptions = {};
-
+export class Logger extends MindfulnessBase implements L {
   /**
    * Build our logger object.
    *
    * @param layers The logging layers to include.
    */
   constructor(layers: (string|LoggerLayer)[] = [], options = {}) {
+    super();
+
     this.options = {
       alwaysSilent: true,
       silent: false,
@@ -68,29 +134,6 @@ export class Logger implements L {
       }
 
       this.layers.push(thisLayer);
-    });
-  }
-
-  activateAllLayers() {
-    for (let index = 0; index < this.layers.length; index += 1) {
-      this.layers[index].active = true;
-    }
-    return this;
-  }
-
-  /**
-   * Handle an "after" function.
-   *
-   * Runs after all layers have finished.
-   *
-   * @param results Results from all logging layers
-   */
-  async after(results: any): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      if (this.options.after) {
-        await this.options.after(results);
-      }
-      resolve();
     });
   }
 
@@ -190,44 +233,6 @@ export class Logger implements L {
   }
 
   /**
-   * Filter the active layers for one call.
-   *
-   * @param filter A string or a callback to filter with
-   */
-  filterLayers(filter: any) {
-    let callback = filter;
-    if (typeof filter === 'string') {
-      callback = layer => layer instanceof contribLoggers[filter];
-    }
-
-    this.layers = this.layers.map((layer) => {
-      const thisLayer = layer;
-      if (typeof layer.active === 'boolean') {
-        thisLayer.active = callback(layer);
-      }
-      return thisLayer;
-    });
-
-    return this;
-  }
-
-  /**
-   * Get the options for a specific call.
-   *
-   * Basically will return an options object for a specific call merged with the logger's
-   * default options.
-   *
-   * @param options Call specific options
-   */
-  getCallOptions(options?: MindfulnessOptions): MindfulnessOptions {
-    // if we have call options, override the defaults or just return the defaults.
-    return (options) ? {
-      ...this.options,
-      ...options,
-    } : { ...this.options };
-  }
-
-  /**
    * Log a message to the "log" channel.
    *
    * @param message Message to log
@@ -280,12 +285,15 @@ export class Logger implements L {
   }
 }
 
-export class Metrics implements M {
-  errors = [];
-  layers = [];
-  options: MindfulnessOptions = {};
+/**
+ * Metrics sending class
+ *
+ * Send metrics to a metrics server via console or JSON POST.
+ */
+export class Metrics extends MindfulnessBase implements M {
 
   constructor(layers = [], options: MindfulnessOptions = {}) {
+    super();
     this.options = {
       alwaysSilent: false,
       silent: false,
@@ -316,20 +324,6 @@ export class Metrics implements M {
       }
 
       this.layers.push(layer);
-    });
-  }
-
-  /**
-   * Handle any after metrics handlers.
-   *
-   * @param results Results from metrics handlers.
-   */
-  async after(results: any): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      if (this.options.after) {
-        await this.options.after.apply(this, results);
-      }
-      resolve();
     });
   }
 
@@ -400,10 +394,8 @@ export class Metrics implements M {
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {
       Promise.all(promises)
-        .then((results) => {
-          this.after(results)
-            .then(resolve);
-        })
+        .then(this.after.bind(this))
+        .then(resolve)
         .catch(reject);
     })
       .then(() => {

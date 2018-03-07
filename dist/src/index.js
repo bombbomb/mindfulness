@@ -1,4 +1,14 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -57,13 +67,88 @@ var contribMetrics = {
     json_post: json_post_1.JsonPostMetrics,
     null: null_1.NullMetrics,
 };
+var MindfulnessBase = /** @class */ (function () {
+    function MindfulnessBase() {
+        this.options = {};
+        this.layers = [];
+        this.errors = [];
+    }
+    MindfulnessBase.prototype.activateAllLayers = function () {
+        for (var index = 0; index < this.layers.length; index += 1) {
+            this.layers[index].active = true;
+        }
+        return this;
+    };
+    /**
+     * Handle an "after" function.
+     *
+     * Runs after all layers have finished.
+     *
+     * @param results Results from all logging layers
+     */
+    MindfulnessBase.prototype.after = function (results) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!this.options.after) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, this.options.after.apply(this, results)];
+                                case 1:
+                                    _a.sent();
+                                    _a.label = 2;
+                                case 2:
+                                    resolve();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
+    };
+    /**
+     * Filter the active layers for one call.
+     *
+     * @param filter A string or a callback to filter with
+     */
+    MindfulnessBase.prototype.filterLayers = function (filter) {
+        var callback = filter;
+        if (typeof filter === 'string') {
+            callback = function (layer) { return layer instanceof contribLoggers[filter]; };
+        }
+        this.layers = this.layers.map(function (layer) {
+            var thisLayer = layer;
+            if (typeof layer.active === 'boolean') {
+                thisLayer.active = callback(layer);
+            }
+            return thisLayer;
+        });
+        return this;
+    };
+    /**
+     * Get the options for a specific call.
+     *
+     * Basically will return an options object for a specific call merged with the logger's
+     * default options.
+     *
+     * @param options Call specific options
+     */
+    MindfulnessBase.prototype.getCallOptions = function (options) {
+        // if we have call options, override the defaults or just return the defaults.
+        return (options) ? __assign({}, this.options, options) : __assign({}, this.options);
+    };
+    return MindfulnessBase;
+}());
 /**
  * Logger class.
  *
  * A logger instance may represent one or more layers of logging. Each
  * layer represents an output (console, POST request, file, etc).
  */
-var Logger = /** @class */ (function () {
+var Logger = /** @class */ (function (_super) {
+    __extends(Logger, _super);
     /**
      * Build our logger object.
      *
@@ -72,11 +157,8 @@ var Logger = /** @class */ (function () {
     function Logger(layers, options) {
         if (layers === void 0) { layers = []; }
         if (options === void 0) { options = {}; }
-        var _this = this;
-        this.errors = [];
-        this.layers = [];
-        this.options = {};
-        this.options = __assign({ alwaysSilent: true, silent: false }, options);
+        var _this = _super.call(this) || this;
+        _this.options = __assign({ alwaysSilent: true, silent: false }, options);
         // default for logging is just to use the console
         var callLayers = layers;
         if (layers.length === 0) {
@@ -100,42 +182,8 @@ var Logger = /** @class */ (function () {
             }
             _this.layers.push(thisLayer);
         });
+        return _this;
     }
-    Logger.prototype.activateAllLayers = function () {
-        for (var index = 0; index < this.layers.length; index += 1) {
-            this.layers[index].active = true;
-        }
-        return this;
-    };
-    /**
-     * Handle an "after" function.
-     *
-     * Runs after all layers have finished.
-     *
-     * @param results Results from all logging layers
-     */
-    Logger.prototype.after = function (results) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    if (!this.options.after) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, this.options.after(results)];
-                                case 1:
-                                    _a.sent();
-                                    _a.label = 2;
-                                case 2:
-                                    resolve();
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); })];
-            });
-        });
-    };
     /**
      * Handle a "before" function.
      *
@@ -238,37 +286,6 @@ var Logger = /** @class */ (function () {
         });
     };
     /**
-     * Filter the active layers for one call.
-     *
-     * @param filter A string or a callback to filter with
-     */
-    Logger.prototype.filterLayers = function (filter) {
-        var callback = filter;
-        if (typeof filter === 'string') {
-            callback = function (layer) { return layer instanceof contribLoggers[filter]; };
-        }
-        this.layers = this.layers.map(function (layer) {
-            var thisLayer = layer;
-            if (typeof layer.active === 'boolean') {
-                thisLayer.active = callback(layer);
-            }
-            return thisLayer;
-        });
-        return this;
-    };
-    /**
-     * Get the options for a specific call.
-     *
-     * Basically will return an options object for a specific call merged with the logger's
-     * default options.
-     *
-     * @param options Call specific options
-     */
-    Logger.prototype.getCallOptions = function (options) {
-        // if we have call options, override the defaults or just return the defaults.
-        return (options) ? __assign({}, this.options, options) : __assign({}, this.options);
-    };
-    /**
      * Log a message to the "log" channel.
      *
      * @param message Message to log
@@ -315,17 +332,20 @@ var Logger = /** @class */ (function () {
         return this;
     };
     return Logger;
-}());
+}(MindfulnessBase));
 exports.Logger = Logger;
-var Metrics = /** @class */ (function () {
+/**
+ * Metrics sending class
+ *
+ * Send metrics to a metrics server via console or JSON POST.
+ */
+var Metrics = /** @class */ (function (_super) {
+    __extends(Metrics, _super);
     function Metrics(layers, options) {
         if (layers === void 0) { layers = []; }
         if (options === void 0) { options = {}; }
-        var _this = this;
-        this.errors = [];
-        this.layers = [];
-        this.options = {};
-        this.options = __assign({ alwaysSilent: false, silent: false }, options);
+        var _this = _super.call(this) || this;
+        _this.options = __assign({ alwaysSilent: false, silent: false }, options);
         // default for logging is just to use the console
         var callLayers = layers;
         if (layers.length === 0) {
@@ -348,34 +368,8 @@ var Metrics = /** @class */ (function () {
             }
             _this.layers.push(layer);
         });
+        return _this;
     }
-    /**
-     * Handle any after metrics handlers.
-     *
-     * @param results Results from metrics handlers.
-     */
-    Metrics.prototype.after = function (results) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    if (!this.options.after) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, this.options.after.apply(this, results)];
-                                case 1:
-                                    _a.sent();
-                                    _a.label = 2;
-                                case 2:
-                                    resolve();
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); })];
-            });
-        });
-    };
     /**
      * Process any before handlers.
      *
@@ -455,10 +449,8 @@ var Metrics = /** @class */ (function () {
                         // return a promise that will resolve when all layers are finished
                         return [2 /*return*/, new Promise(function (resolve, reject) {
                                 Promise.all(promises)
-                                    .then(function (results) {
-                                    _this.after(results)
-                                        .then(resolve);
-                                })
+                                    .then(_this.after.bind(_this))
+                                    .then(resolve)
                                     .catch(reject);
                             })
                                 .then(function () {
@@ -514,6 +506,6 @@ var Metrics = /** @class */ (function () {
         return this;
     };
     return Metrics;
-}());
+}(MindfulnessBase));
 exports.Metrics = Metrics;
 //# sourceMappingURL=index.js.map

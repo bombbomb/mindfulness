@@ -48,6 +48,33 @@ class MindfulnessBase {
   }
 
   /**
+   * Error handler.
+   *
+   * Handles general error behavior and will also handle calling
+   * an onError handler if one is present.
+   *
+   * @param error Error
+   */
+  async errorHandler(error): Promise<any> {
+    console.error(`Mindfulness error: ${error}`);
+    this.errors.push(error);
+
+    if (!this.options.alwaysSilent && !this.options.silent) {
+      throw error;
+    }
+
+    this.options.silent = false;
+
+    return new Promise(async (resolve) => {
+      if (this.options.onError) {
+        await this.options.onError.apply(this, error);
+      }
+
+      resolve();
+    });
+  }
+
+  /**
    * Filter the active layers for one call.
    *
    * @param filter A string or a callback to filter with
@@ -222,14 +249,7 @@ export class Logger extends MindfulnessBase implements L {
       .then(() => {
         this.options.silent = false;
       })
-      .catch((err) => {
-        console.error(`Logger error: ${err}`);
-        this.errors.push(err);
-        if (!this.options.alwaysSilent && !this.options.silent) {
-          throw err;
-        }
-        this.options.silent = false;
-      });
+      .catch(this.errorHandler.bind(this));
   }
 
   /**
@@ -401,14 +421,7 @@ export class Metrics extends MindfulnessBase implements M {
       .then(() => {
         this.options.silent = false;
       })
-      .catch((err) => {
-        this.errors.push(err);
-        console.error(`Metrics error: ${err}`);
-        if (!this.options.silent && !this.options.alwaysSilent) {
-          throw err;
-        }
-        this.options.silent = false;
-      });
+      .catch(this.errorHandler.bind(this));
   }
 
   async decrement(...args: any[]) {

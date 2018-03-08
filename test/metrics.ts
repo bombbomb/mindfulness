@@ -1,3 +1,4 @@
+import nock from 'nock';
 import { Metrics } from '../src/index';
 import { MetricInterface } from '../src/interfaces/metrics';
 import { MindfulnessOptions } from '../src/interfaces/options';
@@ -108,6 +109,27 @@ test('Metrics handles "after" calls', async (done) => {
   await m.increment('metric');
 
   expect(afterCalled).toBe(true);
+
+  done();
+});
+
+test('Metrics has an onError hook', async (done) => {
+  const options = {
+    onError: (error) => {
+    },
+  };
+
+  const spy = jest.spyOn(options, 'onError');
+
+  const m = new Metrics([
+    { type: 'json_post', host: 'metrics.example.com' },
+  ], options);
+
+  const endpoint = nock(/example\.com/).post('/').reply(500, {});
+
+  await m.silent().increment('metric');
+
+  expect(spy).toHaveBeenCalled();
 
   done();
 });

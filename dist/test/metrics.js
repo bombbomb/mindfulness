@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+var nock_1 = require("nock");
 var index_1 = require("../src/index");
 var spies = {
     // log: jest.spyOn(global.console, 'log'),
@@ -167,6 +168,29 @@ test('Metrics handles "after" calls', function (done) { return __awaiter(_this, 
             case 1:
                 _a.sent();
                 expect(afterCalled).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
+test('Metrics has an onError hook', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var options, spy, m, endpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                options = {
+                    onError: function (error) {
+                    },
+                };
+                spy = jest.spyOn(options, 'onError');
+                m = new index_1.Metrics([
+                    { type: 'json_post', host: 'metrics.example.com' },
+                ], options);
+                endpoint = nock_1.default(/example\.com/).post('/').reply(500, {});
+                return [4 /*yield*/, m.silent().increment('metric')];
+            case 1:
+                _a.sent();
+                expect(spy).toHaveBeenCalled();
                 done();
                 return [2 /*return*/];
         }

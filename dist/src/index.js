@@ -109,6 +109,42 @@ var MindfulnessBase = /** @class */ (function () {
         });
     };
     /**
+     * Error handler.
+     *
+     * Handles general error behavior and will also handle calling
+     * an onError handler if one is present.
+     *
+     * @param error Error
+     */
+    MindfulnessBase.prototype.errorHandler = function (error) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                console.error("Mindfulness error: " + error);
+                this.errors.push(error);
+                if (!this.options.alwaysSilent && !this.options.silent) {
+                    throw error;
+                }
+                this.options.silent = false;
+                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (!this.options.onError) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, this.options.onError.apply(this, error)];
+                                case 1:
+                                    _a.sent();
+                                    _a.label = 2;
+                                case 2:
+                                    resolve();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
+    };
+    /**
      * Filter the active layers for one call.
      *
      * @param filter A string or a callback to filter with
@@ -273,14 +309,7 @@ var Logger = /** @class */ (function (_super) {
                                 .then(function () {
                                 _this.options.silent = false;
                             })
-                                .catch(function (err) {
-                                console.error("Logger error: " + err);
-                                _this.errors.push(err);
-                                if (!_this.options.alwaysSilent && !_this.options.silent) {
-                                    throw err;
-                                }
-                                _this.options.silent = false;
-                            })];
+                                .catch(this.errorHandler.bind(this))];
                 }
             });
         });
@@ -456,14 +485,7 @@ var Metrics = /** @class */ (function (_super) {
                                 .then(function () {
                                 _this.options.silent = false;
                             })
-                                .catch(function (err) {
-                                _this.errors.push(err);
-                                console.error("Metrics error: " + err);
-                                if (!_this.options.silent && !_this.options.alwaysSilent) {
-                                    throw err;
-                                }
-                                _this.options.silent = false;
-                            })];
+                                .catch(this.errorHandler.bind(this))];
                 }
             });
         });

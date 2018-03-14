@@ -1,5 +1,5 @@
 import nock from 'nock';
-import mute from 'mute';
+import mute from 'jest-mock-console';
 import { Logger } from '../src/index';
 
 const spies = {
@@ -99,7 +99,9 @@ test('log error for payload', async (done) => {
     })
     .reply(200, {});
 
+  const unmute = mute();
   await l.log('Error doing things', new Error('You did everything wrong'));
+  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -156,7 +158,9 @@ test('can change request body', async (done) => {
     })
     .reply(200, {});
 
+  const unmute = mute();
   await l.log('Error doing things', { payload: 234 });
+  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -217,12 +221,14 @@ test('can change request body on a call', async (done) => {
     })
     .reply(200, {});
 
+  const unmute = mute();
   await l.log('Error doing things', { payload: 234 }, {
     requestBodyCallback: (body, details) => ({
       ...body,
       injected: 123,
     }),
   });
+  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -243,7 +249,9 @@ test('log fails on post error', async (done) => {
     })
     .reply(500, {});
 
+  const unmute = mute();
   await expect(l.log('Hello!')).rejects.toThrow();
+  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -307,7 +315,9 @@ describe('log silent()', () => {
       })
       .reply(500, {});
 
+    const unmute = mute();
     await expect(l.silent().log('Hello!')).resolves.not.toThrow();
+    unmute();
     done();
   });
 });

@@ -1,4 +1,5 @@
 import nock from 'nock';
+import mute from 'jest-mock-console';
 import { Metrics } from '../src/index';
 import { MetricInterface } from '../src/interfaces/metrics';
 import { MindfulnessOptions } from '../src/interfaces/options';
@@ -127,7 +128,9 @@ test('Metrics has an onError hook', async (done) => {
 
   const endpoint = nock(/example\.com/).post('/').reply(500, {});
 
+  const unmute = mute();
   await m.silent().increment('metric');
+  unmute();
 
   expect(spy).toHaveBeenCalled();
 

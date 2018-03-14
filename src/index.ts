@@ -1,7 +1,7 @@
 import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
 import { NullLogger, NullMetrics } from './contrib/null';
 import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
-import { L, LoggerLayer } from './interfaces/logger';
+import { L, LoggerLayer, LOG_LEVELS } from './interfaces/logger';
 import { M, MetricInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 import { MindfulnessOptions } from './interfaces/options';
@@ -120,6 +120,8 @@ class MindfulnessBase {
  * layer represents an output (console, POST request, file, etc).
  */
 export class Logger extends MindfulnessBase implements L {
+  static LOG_LEVELS = LOG_LEVELS;
+
   /**
    * Build our logger object.
    *

@@ -45,7 +45,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
-var mute_1 = require("mute");
+var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
 var spies = {
@@ -212,7 +212,7 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
-                unmute = mute_1.default();
+                unmute = jest_mock_console_1.default();
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
@@ -540,7 +540,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
                     value: 10,
                 })
                     .reply(500, {});
-                unmute = mute_1.default();
+                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10))
                         .rejects.toThrowError()];
             case 1:
@@ -573,7 +573,7 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
-                    unmute = mute_1.default();
+                    unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.not.toThrowError()];
                 case 1:
@@ -607,7 +607,7 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
-                    unmute = mute_1.default();
+                    unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.not.toThrowError()];
                 case 1:
@@ -671,11 +671,11 @@ test('default json post failure logs instead of rejects', function (done) { retu
                 correctEndpoint = nock_1.default(/metrics\.example\.com/)
                     .post(/.+/, function (body) { return true; })
                     .reply(500, {});
-                unmute = mute_1.default();
+                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/)];
             case 1:
                 _a.sent();
-                expect(spies.error).toHaveBeenCalled();
+                expect(console.error).toHaveBeenCalled();
                 unmute();
                 done();
                 return [2 /*return*/];

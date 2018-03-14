@@ -362,4 +362,7 @@ test('Logger with type:null layer works', function (done) { return __awaiter(_th
         }
     });
 }); });
+test('Logger exposes LOG_LEVELS', function () {
+    expect(index_1.Logger.LOG_LEVELS).toBeDefined();
+});
 //# sourceMappingURL=logger.js.map

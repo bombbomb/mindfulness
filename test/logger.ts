@@ -248,3 +248,7 @@ test('Logger with type:null layer works', async (done) => {
   await l.log('Things!');
   done();
 });
+
+test('Logger exposes LOG_LEVELS', () => {
+  expect(Logger.LOG_LEVELS).toBeDefined();
+});

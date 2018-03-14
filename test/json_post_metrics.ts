@@ -1,5 +1,5 @@
 import nock from 'nock';
-import mute from 'mute';
+import mute from 'jest-mock-console';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
 
@@ -550,7 +550,7 @@ test('default json post failure logs instead of rejects', async (done) => {
 
   const unmute = mute();
   await expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/);
-  expect(spies.error).toHaveBeenCalled();
+  expect(console.error).toHaveBeenCalled();
   unmute();
 
   done();

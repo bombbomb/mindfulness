@@ -56,6 +56,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var console_1 = require("./contrib/console");
 var null_1 = require("./contrib/null");
 var json_post_1 = require("./contrib/json_post");
+var logger_1 = require("./interfaces/logger");
 var metric_1 = require("./models/metric");
 var contribLoggers = {
     console: console_1.ConsoleLogger,
@@ -360,6 +361,7 @@ var Logger = /** @class */ (function (_super) {
         this.options.silent = true;
         return this;
     };
+    Logger.LOG_LEVELS = logger_1.LOG_LEVELS;
     return Logger;
 }(MindfulnessBase));
 exports.Logger = Logger;

@@ -58,12 +58,11 @@ logger.log('Message', {payload: 123}, {requestBodyCallback: (body, details) => {
 The `Logger` interface also supports "log levels". This allows you to specify the output levels you would like via flags. By default everything is logged.
 
 ```javascript
-import {LOG_LEVELS} from '@bblabs/mindfulness/interfaces/logger';
 const l = new Logger(['console'], {
   // logLevel can be a single level or multiple:
   //   LOG_LEVELS.LOG_ERROR | LOG_LEVELS.LOG_LOG
   // log only errors:
-  logLevel: LOG_LEVELS.LOG_ERROR,
+  logLevel: Logger.LOG_LEVELS.LOG_ERROR,
 });
 ```
 

@@ -50,7 +50,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var Mindfulness = /** @class */ (function () {
     function Mindfulness(options) {
-        this.options = options;
+        this.options = options || {};
     }
     /**
      * Handle a "before" function.

@@ -79,12 +79,13 @@ var ConsoleLogger = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var callOptions, beforeResult, args;
+                        var callOptions, consoleObject, beforeResult, args;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     callOptions = this.getCallOptions(options);
-                                    if (typeof console[level] === 'undefined') {
+                                    consoleObject = callOptions.console || console;
+                                    if (typeof consoleObject[level] === 'undefined') {
                                         return [2 /*return*/, reject(new Error("Invalid log level: " + level))];
                                     }
                                     return [4 /*yield*/, this.before({ message: message, payload: payload }, callOptions)];
@@ -95,7 +96,7 @@ var ConsoleLogger = /** @class */ (function (_super) {
                                         if (beforeResult.payload && typeof beforeResult.payload === 'object') {
                                             args.push(__assign({}, beforeResult.payload));
                                         }
-                                        console[level].apply(this, args);
+                                        consoleObject[level].apply(this, args);
                                     }
                                     return [2 /*return*/, resolve()];
                             }
@@ -124,7 +125,7 @@ var ConsoleMetrics = /** @class */ (function (_super) {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var m, beforeResult, value, message;
+                        var m, beforeResult, value, message, consoleObject;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -144,7 +145,8 @@ var ConsoleMetrics = /** @class */ (function (_super) {
                                         default:
                                             message = "metrics: " + beforeResult.metric.toString() + ": " + beforeResult.metric.value;
                                     }
-                                    console.info(message);
+                                    consoleObject = this.options.console || console;
+                                    consoleObject.info(message);
                                     resolve({ metric: beforeResult.metric });
                                     return [2 /*return*/];
                             }

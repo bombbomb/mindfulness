@@ -24,7 +24,9 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
     return new Promise(async (resolve, reject) => {
       const callOptions = this.getCallOptions(options);
 
-      if (typeof console[level] === 'undefined') {
+      const consoleObject = callOptions.console || console;
+
+      if (typeof consoleObject[level] === 'undefined') {
         return reject(new Error(`Invalid log level: ${level}`));
       }
 
@@ -36,7 +38,7 @@ export class ConsoleLogger extends ContribLogger implements LoggerInterface {
         if (beforeResult.payload && typeof beforeResult.payload === 'object') {
           args.push({ ...beforeResult.payload });
         }
-        console[level].apply(this, args);
+        consoleObject[level].apply(this, args);
       }
       return resolve();
     });
@@ -67,7 +69,8 @@ export class ConsoleMetrics extends ContribMetrics implements MetricsInterface {
           message = `metrics: ${beforeResult.metric.toString()}: ${beforeResult.metric.value}`;
       }
 
-      console.info(message);
+      const consoleObject = this.options.console || console;
+      consoleObject.info(message);
       resolve({ metric: beforeResult.metric });
     });
   }

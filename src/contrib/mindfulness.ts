@@ -10,7 +10,7 @@ export default class Mindfulness {
   type: string;
 
   constructor(options?: MindfulnessOptions) {
-    this.options = options;
+    this.options = options || {};
   }
 
   /**

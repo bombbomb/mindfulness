@@ -1,5 +1,5 @@
 // import request from 'request-promise-native';
-import get from 'lodash.get';
+import { get } from 'lodash';
 import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';

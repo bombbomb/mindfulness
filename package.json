@@ -63,7 +63,7 @@
     ]
   },
   "dependencies": {
-    "lodash.get": "^4.4.2",
+    "lodash": "^4.17.5",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   }

@@ -16,6 +16,7 @@ export default function getMindfulnessVersion(): Promise<string> {
           console.error('Could not parse package.json for mindfulness version');
         }
       }
+
       resolve(version);
     });
   });

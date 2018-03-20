@@ -62,15 +62,6 @@ var ContribLogger = /** @class */ (function (_super) {
         _this.type = 'logger';
         return _this;
     }
-    ContribLogger.prototype.call = function (level, message, payload, options) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve) {
-                        resolve();
-                    })];
-            });
-        });
-    };
     /**
      * Log a message to console.log
      * @param message Message or item to log

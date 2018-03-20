@@ -2,13 +2,6 @@ import nock from 'nock';
 import mute from 'jest-mock-console';
 import { Logger } from '../src/index';
 
-const spies = {
-  // log: jest.spyOn(global.console, 'log'),
-  info: jest.spyOn(global.console, 'info'),
-  // error: jest.spyOn(global.console, 'error'),
-  // warn: jest.spyOn(global.console, 'warn'),
-};
-
 afterEach(() => {
   nock.cleanAll();
 });
@@ -112,7 +105,6 @@ test('can debug', async (done) => {
     { type: 'json_post', host: 'logging.example.com', debug: true },
   ]);
 
-  const unmute = mute();
   const loggingEndpoint = nock('http://logging.example.com')
     .post('/', {
       severity: 'log',
@@ -123,11 +115,16 @@ test('can debug', async (done) => {
     })
     .reply(200, {});
 
-  await l.log('Hello!', { example: 123 });
-  unmute();
 
-  expect(spies.info).toHaveBeenCalled();
+  const c = { ...console };
+  console.info = jest.fn();
+
+  await l.log('Hello!', { example: 123 });
+  expect(console.info).toHaveBeenCalled();
   expect(loggingEndpoint.isDone()).toBe(true);
+
+  console = c;
+
   done();
 });
 
@@ -345,4 +342,28 @@ test('getRequestUri() handles missing leading slash in path', () => {
   ]);
 
   expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: 'test' })).toBe('http://logging.example.com/test');
+});
+
+test('json post honors log levels', async (done) => {
+  const l = new Logger([
+    { type: 'json_post', host: 'logging.example.com', logLevel: Logger.LOG_LEVELS.LOG_LOG },
+  ]);
+
+  const loggingEndpoint = nock('http://logging.example.com')
+    .post('/', {
+      severity: 'log',
+      type: 'log',
+      message: 'Hello!',
+      info: {},
+      environment: 'test',
+    })
+    .reply(200, {});
+
+  await l.log('Hello!');
+
+  // this should get ignored, will throw a nock error if it doesn't...
+  await l.logInfo('Info!');
+
+  expect(loggingEndpoint.isDone()).toBe(true);
+  done();
 });

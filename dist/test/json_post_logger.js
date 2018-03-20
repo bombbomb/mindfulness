@@ -47,10 +47,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var nock_1 = require("nock");
 var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
-var spies = {
-    // log: jest.spyOn(global.console, 'log'),
-    info: jest.spyOn(global.console, 'info'),
-};
 afterEach(function () {
     nock_1.default.cleanAll();
 });
@@ -169,14 +165,13 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
     });
 }); });
 test('can debug', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var l, unmute, loggingEndpoint;
+    var l, loggingEndpoint, c;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com', debug: true },
                 ]);
-                unmute = jest_mock_console_1.default();
                 loggingEndpoint = nock_1.default('http://logging.example.com')
                     .post('/', {
                     severity: 'log',
@@ -186,12 +181,14 @@ test('can debug', function (done) { return __awaiter(_this, void 0, void 0, func
                     environment: 'test',
                 })
                     .reply(200, {});
+                c = __assign({}, console);
+                console.info = jest.fn();
                 return [4 /*yield*/, l.log('Hello!', { example: 123 })];
             case 1:
                 _a.sent();
-                unmute();
-                expect(spies.info).toHaveBeenCalled();
+                expect(console.info).toHaveBeenCalled();
                 expect(loggingEndpoint.isDone()).toBe(true);
+                console = c;
                 done();
                 return [2 /*return*/];
         }
@@ -437,4 +434,35 @@ test('getRequestUri() handles missing leading slash in path', function () {
     ]);
     expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: 'test' })).toBe('http://logging.example.com/test');
 });
+test('json post honors log levels', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var l, loggingEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                l = new index_1.Logger([
+                    { type: 'json_post', host: 'logging.example.com', logLevel: index_1.Logger.LOG_LEVELS.LOG_LOG },
+                ]);
+                loggingEndpoint = nock_1.default('http://logging.example.com')
+                    .post('/', {
+                    severity: 'log',
+                    type: 'log',
+                    message: 'Hello!',
+                    info: {},
+                    environment: 'test',
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, l.log('Hello!')];
+            case 1:
+                _a.sent();
+                // this should get ignored, will throw a nock error if it doesn't...
+                return [4 /*yield*/, l.logInfo('Info!')];
+            case 2:
+                // this should get ignored, will throw a nock error if it doesn't...
+                _a.sent();
+                expect(loggingEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 //# sourceMappingURL=json_post_logger.js.map

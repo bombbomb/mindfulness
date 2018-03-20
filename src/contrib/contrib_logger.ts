@@ -2,7 +2,7 @@ import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
 import Mindfulness from './mindfulness';
 import { MindfulnessOptions } from '../interfaces/options';
 
-export default class ContribLogger extends Mindfulness {
+export default abstract class ContribLogger extends Mindfulness {
   type = 'logger';
 
   constructor(options?: MindfulnessOptions) {
@@ -12,11 +12,7 @@ export default class ContribLogger extends Mindfulness {
     });
   }
 
-  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
-    return new Promise((resolve) => {
-      resolve();
-    });
-  }
+  abstract async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any>
 
   /**
    * Log a message to console.log

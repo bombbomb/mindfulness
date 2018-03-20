@@ -5,7 +5,7 @@ import { Metrics } from '..';
  *
  * Contains some shared functionality used by contrib modules.
  */
-export default class Mindfulness {
+export default abstract class Mindfulness {
   options: MindfulnessOptions;
   type: string;
 

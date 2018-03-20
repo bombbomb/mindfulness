@@ -1,4 +1,14 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -38,6 +48,13 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var mindfulness_1 = require("../src/contrib/mindfulness");
 var json_post_1 = require("../src/contrib/json_post");
+var TestableMindfulness = /** @class */ (function (_super) {
+    __extends(TestableMindfulness, _super);
+    function TestableMindfulness() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return TestableMindfulness;
+}(mindfulness_1.default));
 [
     {
         template: {
@@ -108,7 +125,7 @@ var json_post_1 = require("../src/contrib/json_post");
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    m = new mindfulness_1.default();
+                    m = new TestableMindfulness();
                     j = new json_post_1.JsonPostHandler(m);
                     return [4 /*yield*/, j.buildBody(testCase.object, { messageTemplate: testCase.template })];
                 case 1:

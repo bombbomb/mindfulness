@@ -1,6 +1,9 @@
 import Mindfulness from '../src/contrib/mindfulness';
 import { JsonPostHandler } from '../src/contrib/json_post';
 
+class TestableMindfulness extends Mindfulness {
+}
+
 [
   {
     template: {
@@ -70,7 +73,7 @@ import { JsonPostHandler } from '../src/contrib/json_post';
   },
 ].forEach((testCase, ix) => {
   test(`JsonPostHandler.buildBody test #${ix}`, async () => {
-    const m = new Mindfulness();
+    const m = new TestableMindfulness();
     const j = new JsonPostHandler(m);
 
     const result = await j.buildBody(testCase.object, { messageTemplate: testCase.template });

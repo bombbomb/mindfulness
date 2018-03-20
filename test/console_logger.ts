@@ -1,3 +1,4 @@
+import mute from 'jest-mock-console';
 import { ConsoleLogger } from '../src/contrib/console';
 import { LOG_LEVELS } from '../src/interfaces/logger';
 
@@ -24,9 +25,12 @@ afterAll(() => {
 test('ConsoleLogger logs to the console', async (done) => {
   const l = new ConsoleLogger();
   const message = 'my message';
+  const unmute = mute();
   await l.log(message);
-  expect(spies.log).toHaveBeenCalled();
-  expect(spies.log.mock.calls[0]).toContain(message);
+  expect(console.log).toHaveBeenCalled();
+  // @ts-ignore
+  expect(console.log.mock.calls[0]).toContain(message);
+  unmute();
   done();
 });
 
@@ -68,6 +72,18 @@ test('ConsoleLogger honors log level', async (done) => {
   l.options.logLevel = LOG_LEVELS.LOG_LOG;
   await l.log('message');
   expect(spies.log).toHaveBeenCalledTimes(1);
+
+  done();
+});
+
+test('ConsoleLogger honors multiple log levels', async (done) => {
+  const l = new ConsoleLogger({ logLevel: LOG_LEVELS.LOG_LOG | LOG_LEVELS.LOG_ERROR });
+  await l.log('message');
+  await l.logError('message');
+  await l.logInfo('message');
+  expect(spies.log).toHaveBeenCalledTimes(1);
+  expect(spies.error).toHaveBeenCalledTimes(1);
+  expect(spies.info).toHaveBeenCalledTimes(0);
 
   done();
 });

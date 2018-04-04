@@ -5,6 +5,7 @@ import { L, LoggerLayer, LOG_LEVELS } from './interfaces/logger';
 import { M, MetricInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 import { MindfulnessOptions } from './interfaces/options';
+import RateLimiter from './contrib/rate_limiter';
 
 const contribLoggers = {
   console: ConsoleLogger,
@@ -122,6 +123,8 @@ class MindfulnessBase {
 export class Logger extends MindfulnessBase implements L {
   static LOG_LEVELS = LOG_LEVELS;
 
+  rateLimiter: RateLimiter;
+
   /**
    * Build our logger object.
    *
@@ -163,6 +166,10 @@ export class Logger extends MindfulnessBase implements L {
       }
 
       this.layers.push(thisLayer);
+
+      if (this.options.rateLimit) {
+        this.rateLimiter = new RateLimiter();
+      }
     });
   }
 
@@ -224,6 +231,12 @@ export class Logger extends MindfulnessBase implements L {
 
     const newOptions = beforeResult.options;
     delete newOptions.before;
+
+    const details = { logLevel, ...beforeResult };
+
+    if (this.rateLimiter && !this.rateLimiter.allowed(details, newOptions)) {
+      return Promise.resolve();
+    }
 
     // call the log function on each layer
     const promises = this.layers
@@ -314,6 +327,8 @@ export class Logger extends MindfulnessBase implements L {
  */
 export class Metrics extends MindfulnessBase implements M {
 
+  rateLimiter: RateLimiter;
+
   constructor(layers = [], options: MindfulnessOptions = {}) {
     super();
     this.options = {
@@ -347,6 +362,10 @@ export class Metrics extends MindfulnessBase implements M {
 
       this.layers.push(layer);
     });
+
+    if (this.options.rateLimit) {
+      this.rateLimiter = new RateLimiter();
+    }
   }
 
   /**
@@ -409,6 +428,10 @@ export class Metrics extends MindfulnessBase implements M {
 
     const newOptions = beforeResult.options;
     delete newOptions.before;
+
+    if (this.rateLimiter && !this.rateLimiter.allowed(beforeResult, newOptions)) {
+      return Promise.resolve();
+    }
 
     // call the log function on each layer
     const promises = this.layers.map(layer => layer[metricType](metric, newOptions));

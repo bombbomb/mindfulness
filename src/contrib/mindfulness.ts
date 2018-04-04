@@ -1,5 +1,6 @@
 import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
 import { Metrics } from '..';
+
 /**
  * Parent Mindfulness class.
  *

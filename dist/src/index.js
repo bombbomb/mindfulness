@@ -58,6 +58,7 @@ var null_1 = require("./contrib/null");
 var json_post_1 = require("./contrib/json_post");
 var logger_1 = require("./interfaces/logger");
 var metric_1 = require("./models/metric");
+var rate_limiter_1 = require("./contrib/rate_limiter");
 var contribLoggers = {
     console: console_1.ConsoleLogger,
     json_post: json_post_1.JsonPostLogger,
@@ -218,6 +219,9 @@ var Logger = /** @class */ (function (_super) {
                 thisLayer.active = true;
             }
             _this.layers.push(thisLayer);
+            if (_this.options.rateLimit) {
+                _this.rateLimiter = new rate_limiter_1.default();
+            }
         });
         return _this;
     }
@@ -282,7 +286,7 @@ var Logger = /** @class */ (function (_super) {
     Logger.prototype.call = function (logLevel, message, payload, options) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
-            var beforeResult, newOptions, promises;
+            var beforeResult, newOptions, details, promises;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.before(message, payload, options)];
@@ -290,6 +294,10 @@ var Logger = /** @class */ (function (_super) {
                         beforeResult = _a.sent();
                         newOptions = beforeResult.options;
                         delete newOptions.before;
+                        details = __assign({ logLevel: logLevel }, beforeResult);
+                        if (this.rateLimiter && !this.rateLimiter.allowed(details, newOptions)) {
+                            return [2 /*return*/, Promise.resolve()];
+                        }
                         promises = this.layers
                             .filter(function (layer) { return layer.active === true; })
                             .map(function (layer) { return layer[logLevel](beforeResult.message, beforeResult.payload, newOptions); });
@@ -399,6 +407,9 @@ var Metrics = /** @class */ (function (_super) {
             }
             _this.layers.push(layer);
         });
+        if (_this.options.rateLimit) {
+            _this.rateLimiter = new rate_limiter_1.default();
+        }
         return _this;
     }
     /**
@@ -476,6 +487,9 @@ var Metrics = /** @class */ (function (_super) {
                         beforeResult = _a.sent();
                         newOptions = beforeResult.options;
                         delete newOptions.before;
+                        if (this.rateLimiter && !this.rateLimiter.allowed(beforeResult, newOptions)) {
+                            return [2 /*return*/, Promise.resolve()];
+                        }
                         promises = this.layers.map(function (layer) { return layer[metricType](metric, newOptions); });
                         // return a promise that will resolve when all layers are finished
                         return [2 /*return*/, new Promise(function (resolve, reject) {

@@ -107,6 +107,7 @@ var JsonPostHandler = /** @class */ (function () {
                                     else if (typeof variables[value] !== 'undefined') {
                                         body[keyName] = variables[value];
                                     }
+                                    // try to get a value via lodash.get
                                     else if (lodash_1.get(details, value)) {
                                         body[keyName] = lodash_1.get(details, value);
                                     }
@@ -114,6 +115,7 @@ var JsonPostHandler = /** @class */ (function () {
                                 else if (value in variables) {
                                     body[key] = variables[value];
                                 }
+                                // try to get a value via lodash.get
                                 else if (lodash_1.get(details, value)) {
                                     body[key] = lodash_1.get(details, value);
                                 }

@@ -2,6 +2,10 @@ import nock from 'nock';
 import mute from 'jest-mock-console';
 import { Logger } from '../src/index';
 
+beforeEach(() => {
+  nock.cleanAll();
+});
+
 afterEach(() => {
   nock.cleanAll();
 });
@@ -231,48 +235,40 @@ test('can change request body on a call', async (done) => {
   done();
 });
 
-test('log fails on post error', async (done) => {
+test('log fails on post error', async () => {
   const l = new Logger([
     { type: 'json_post', host: 'logging.example.com' },
-  ], { alwaysSilent: false });
+  ], { alwaysSilent: false, debug: true });
 
-  const loggingEndpoint = nock('http://logging.example.com')
-    .post('/', {
-      severity: 'log',
-      type: 'log',
-      message: 'Hello!',
-      info: {},
-      environment: 'test',
-    })
+  const loggingEndpoint = nock(/example/)
+    .post('/', body => true)
     .reply(500, {});
 
   const unmute = mute();
-  await expect(l.log('Hello!')).rejects.toThrow();
-  unmute();
 
-  expect(loggingEndpoint.isDone()).toBe(true);
-  done();
+  try {
+    const r = await l.log('test');
+    expect(true).toBe(false);
+  }
+  catch (err) {
+    expect(err).toBeDefined();
+  }
+
+  unmute();
 });
 
-test('$level variables is processed in the url', async (done) => {
+test('$level variables is processed in the url', async () => {
   const l = new Logger([
     { type: 'json_post', host: 'logging.example.com', path: '/$level' },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
-    .post('/log', {
-      severity: 'log',
-      type: 'log',
-      message: 'Hello!',
-      info: {},
-      environment: 'test',
-    })
+    .post('/log', () => true)
     .reply(200, {});
 
   await l.log('Hello!');
 
   expect(loggingEndpoint.isDone()).toBe(true);
-  done();
 });
 
 test('logging does not fail when the host includes the scheme', async (done) => {
@@ -297,25 +293,18 @@ test('logging does not fail when the host includes the scheme', async (done) => 
 });
 
 describe('log silent()', () => {
-  test('stops an error from propegating', async (done) => {
+  test('stops an error from propegating', async () => {
     const l = new Logger([
       { type: 'json_post', host: 'logging.example.com' },
-    ]);
+    ], { alwaysSilent: false });
 
     const loggingEndpoint = nock('http://logging.example.com')
-      .post('/', {
-        severity: 'log',
-        type: 'log',
-        message: 'Hello!',
-        info: {},
-        environment: 'test',
-      })
+      .post('/', body => true)
       .reply(500, {});
 
     const unmute = mute();
-    await expect(l.silent().log('Hello!')).resolves.not.toThrow();
+    await expect(l.silent().log('Hello!')).resolves.toMatchObject({ message: '500 - {}' });
     unmute();
-    done();
   });
 });
 

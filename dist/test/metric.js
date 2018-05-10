@@ -19,6 +19,22 @@ describe('Creating Metric instances from arrays', function () {
                 value: null,
             },
         },
+        {
+            test: ['category', 'metric', 10],
+            expected: {
+                metric: 'metric',
+                category: 'category',
+                value: 10,
+            },
+        },
+        {
+            test: ['metric', 10],
+            expected: {
+                metric: 'metric',
+                category: null,
+                value: 10,
+            },
+        },
     ].forEach(function (testCase, ix) {
         test(ix + ": Create Metric instance from " + JSON.stringify(testCase.test), function () {
             var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(testCase.test)))();

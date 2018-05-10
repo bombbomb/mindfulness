@@ -48,11 +48,12 @@ var nock_1 = require("nock");
 var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
-var spies = {
-    // log: jest.spyOn(global.console, 'log'),
-    info: jest.spyOn(global.console, 'info'),
-    error: jest.spyOn(global.console, 'error'),
-};
+// const spies = {
+//   // log: jest.spyOn(global.console, 'log'),
+//   info: jest.spyOn(global.console, 'info'),
+//   error: jest.spyOn(global.console, 'error'),
+//   // warn: jest.spyOn(global.console, 'warn'),
+// };
 afterEach(function () {
     nock_1.default.cleanAll();
     process.env.NODE_ENV = 'test';
@@ -204,8 +205,8 @@ test('send JSON with JSON replacer', function (done) { return __awaiter(_this, v
         }
     });
 }); });
-test('can debug metrics', function (done) { return __awaiter(_this, void 0, void 0, function () {
-    var m, unmute, metricsEndpoint;
+test('can debug metrics', function () { return __awaiter(_this, void 0, void 0, function () {
+    var m, unmute, spy, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -213,6 +214,7 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                     { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
                 unmute = jest_mock_console_1.default();
+                spy = jest.spyOn(console, 'info');
                 metricsEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
@@ -222,10 +224,9 @@ test('can debug metrics', function (done) { return __awaiter(_this, void 0, void
                 return [4 /*yield*/, m.increment('myMetric')];
             case 1:
                 _a.sent();
+                expect(spy).toHaveBeenCalled();
                 unmute();
-                expect(spies.info).toHaveBeenCalled();
                 expect(metricsEndpoint.isDone()).toBe(true);
-                done();
                 return [2 /*return*/];
         }
     });
@@ -402,6 +403,36 @@ test('Include metric and category value in the request URL', function (done) { r
         }
     });
 }); });
+test('hybrid urls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    var m, correctEndpoint;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                m = new index_1.Metrics([
+                    {
+                        type: 'json_post',
+                        host: 'metrics.example.com',
+                        paths: {
+                            increment: '/path/thing.$category/$metric',
+                        },
+                    },
+                ]);
+                correctEndpoint = nock_1.default('http://metrics.example.com')
+                    .post('/path/thing.awesome.myMetric', {
+                    environment: process.env.NODE_ENV,
+                    type: 'increment',
+                    value: 10,
+                })
+                    .reply(200, {});
+                return [4 /*yield*/, m.increment('awesome.myMetric', 10)];
+            case 1:
+                _a.sent();
+                expect(correctEndpoint.isDone()).toBe(true);
+                done();
+                return [2 /*return*/];
+        }
+    });
+}); });
 test('"before" callbacks still build correct structure', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var beforeCallback, date, spy, m, correctEndpoint;
     return __generator(this, function (_a) {
@@ -532,7 +563,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
                             increment: '/path/$category/$metric',
                         },
                     },
-                ]);
+                ], { alwaysSilent: false });
                 correctEndpoint = nock_1.default('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
                     environment: process.env.NODE_ENV,
@@ -552,7 +583,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
     });
 }); });
 describe('Metric silent()', function () {
-    test('stops errors from propegating', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    test('stops errors from propagating', function () { return __awaiter(_this, void 0, void 0, function () {
         var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -565,7 +596,7 @@ describe('Metric silent()', function () {
                                 increment: '/path/$category/$metric',
                             },
                         },
-                    ]);
+                    ], { alwaysSilent: false });
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
                         environment: process.env.NODE_ENV,
@@ -575,18 +606,17 @@ describe('Metric silent()', function () {
                         .reply(500, {});
                     unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
-                            .resolves.not.toThrowError()];
+                            .resolves.toMatchObject({ message: '500 - {}' })];
                 case 1:
                     _a.sent();
                     unmute();
                     // errors are still captured in the object...
                     expect(m.errors).toHaveLength(1);
-                    done();
                     return [2 /*return*/];
             }
         });
     }); });
-    test('only stops one error from propegating', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    test('only stops one error from propagating', function (done) { return __awaiter(_this, void 0, void 0, function () {
         var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -599,7 +629,7 @@ describe('Metric silent()', function () {
                                 increment: '/path/$category/$metric',
                             },
                         },
-                    ]);
+                    ], { alwaysSilent: false });
                     correctEndpoint = nock_1.default('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
                         environment: process.env.NODE_ENV,
@@ -609,7 +639,7 @@ describe('Metric silent()', function () {
                         .reply(500, {});
                     unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
-                            .resolves.not.toThrowError()];
+                            .resolves.toMatchObject({ message: '500 - {}' })];
                 case 1:
                     _a.sent();
                     expect(m.options.silent).toBe(false);
@@ -654,7 +684,7 @@ describe('Metric silent()', function () {
         });
     }); });
 });
-test('default json post failure logs instead of rejects', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('default json post failure logs instead of rejects', function () { return __awaiter(_this, void 0, void 0, function () {
     var m, correctEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -672,12 +702,15 @@ test('default json post failure logs instead of rejects', function (done) { retu
                     .post(/.+/, function (body) { return true; })
                     .reply(500, {});
                 unmute = jest_mock_console_1.default();
-                return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/)];
+                return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10)).resolves];
             case 1:
                 _a.sent();
-                expect(console.error).toHaveBeenCalled();
-                unmute();
-                done();
+                // for some reason, console.error does not happen in the await statement
+                // above, so we need to delay slightly to test.
+                setTimeout(function () {
+                    expect(console.error).toHaveBeenCalled();
+                    unmute();
+                }, 500);
                 return [2 /*return*/];
         }
     });

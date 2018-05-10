@@ -18,12 +18,18 @@ const contribMetrics = {
   null: NullMetrics,
 };
 
-class MindfulnessBase {
+/**
+ * Base mindfulness class used for Logger and Metrics.
+ */
+abstract class MindfulnessBase {
   options: MindfulnessOptions = {};
 
   layers = [];
   errors = [];
 
+  /**
+   * Make sure all layers are active.
+   */
   activateAllLayers() {
     for (let index = 0; index < this.layers.length; index += 1) {
       this.layers[index].active = true;
@@ -48,6 +54,16 @@ class MindfulnessBase {
   }
 
   /**
+   * Deactivate all layers.
+   */
+  deactivateAllLayers() {
+    for (let index = 0; index < this.layers.length; index += 1) {
+      this.layers[index].active = false;
+    }
+    return this;
+  }
+
+  /**
    * Error handler.
    *
    * Handles general error behavior and will also handle calling
@@ -56,21 +72,22 @@ class MindfulnessBase {
    * @param error Error
    */
   async errorHandler(error): Promise<any> {
-    console.error(`Mindfulness error: ${error}`);
-    this.errors.push(error);
+    return new Promise(async (resolve, reject) => {
+      console.error(`Mindfulness error: ${error}`);
+      this.errors.push(error);
 
-    if (!this.options.alwaysSilent && !this.options.silent) {
-      throw error;
-    }
+      if (!this.options.alwaysSilent && !this.options.silent) {
+        console.warn('reject');
+        reject(error);
+        return;
+      }
 
-    this.options.silent = false;
-
-    return new Promise(async (resolve) => {
+      this.options.silent = false;
       if (this.options.onError) {
         await this.options.onError.apply(this, error);
       }
 
-      resolve();
+      resolve(error);
     });
   }
 
@@ -313,16 +330,21 @@ export class Logger extends MindfulnessBase implements L {
  * Send metrics to a metrics server via console or JSON POST.
  */
 export class Metrics extends MindfulnessBase implements M {
-
+  /**
+   * Constructor.
+   *
+   * @param layers Metrics handler layers
+   * @param options Options for this metrics object.
+   */
   constructor(layers = [], options: MindfulnessOptions = {}) {
     super();
     this.options = {
-      alwaysSilent: false,
+      alwaysSilent: true,
       silent: false,
       ...options,
     };
 
-    // default for logging is just to use the console
+    // default for metrics is just to use the console
     let callLayers = layers;
     if (layers.length === 0) {
       callLayers = ['console'];
@@ -400,6 +422,7 @@ export class Metrics extends MindfulnessBase implements M {
 
     const metric = new Metric(...args);
 
+    // fail timing metrics without values
     if (metricType === 'timing' && !metric.value) {
       return Promise.reject(new Error('No value specified for a timing metric'));
     }
@@ -416,6 +439,7 @@ export class Metrics extends MindfulnessBase implements M {
     // return a promise that will resolve when all layers are finished
     return new Promise((resolve, reject) => {
       Promise.all(promises)
+        // call any after functions
         .then(this.after.bind(this))
         .then(resolve)
         .catch(reject);

@@ -18,6 +18,22 @@ describe('Creating Metric instances from arrays', () => {
         value: null,
       },
     },
+    {
+      test: ['category', 'metric', 10],
+      expected: {
+        metric: 'metric',
+        category: 'category',
+        value: 10,
+      },
+    },
+    {
+      test: ['metric', 10],
+      expected: {
+        metric: 'metric',
+        category: null,
+        value: 10,
+      },
+    },
   ].forEach((testCase, ix) => {
     test(`${ix}: Create Metric instance from ${JSON.stringify(testCase.test)}`, () => {
       const m = new Metric(...testCase.test);

@@ -68,12 +68,18 @@ var contribMetrics = {
     json_post: json_post_1.JsonPostMetrics,
     null: null_1.NullMetrics,
 };
+/**
+ * Base mindfulness class used for Logger and Metrics.
+ */
 var MindfulnessBase = /** @class */ (function () {
     function MindfulnessBase() {
         this.options = {};
         this.layers = [];
         this.errors = [];
     }
+    /**
+     * Make sure all layers are active.
+     */
     MindfulnessBase.prototype.activateAllLayers = function () {
         for (var index = 0; index < this.layers.length; index += 1) {
             this.layers[index].active = true;
@@ -110,6 +116,15 @@ var MindfulnessBase = /** @class */ (function () {
         });
     };
     /**
+     * Deactivate all layers.
+     */
+    MindfulnessBase.prototype.deactivateAllLayers = function () {
+        for (var index = 0; index < this.layers.length; index += 1) {
+            this.layers[index].active = false;
+        }
+        return this;
+    };
+    /**
      * Error handler.
      *
      * Handles general error behavior and will also handle calling
@@ -121,23 +136,25 @@ var MindfulnessBase = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                console.error("Mindfulness error: " + error);
-                this.errors.push(error);
-                if (!this.options.alwaysSilent && !this.options.silent) {
-                    throw error;
-                }
-                this.options.silent = false;
-                return [2 /*return*/, new Promise(function (resolve) { return __awaiter(_this, void 0, void 0, function () {
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
+                                    console.error("Mindfulness error: " + error);
+                                    this.errors.push(error);
+                                    if (!this.options.alwaysSilent && !this.options.silent) {
+                                        console.warn('reject');
+                                        reject(error);
+                                        return [2 /*return*/];
+                                    }
+                                    this.options.silent = false;
                                     if (!this.options.onError) return [3 /*break*/, 2];
                                     return [4 /*yield*/, this.options.onError.apply(this, error)];
                                 case 1:
                                     _a.sent();
                                     _a.label = 2;
                                 case 2:
-                                    resolve();
+                                    resolve(error);
                                     return [2 /*return*/];
                             }
                         });
@@ -211,6 +228,7 @@ var Logger = /** @class */ (function (_super) {
                 }
                 thisLayer = new contribLoggers[layer]();
             }
+            // this is a LoggerLayer
             else if (typeof layer === 'object' && layer.type && Object.keys(contribLoggers).indexOf(layer.type) >= 0) {
                 thisLayer = new contribLoggers[layer.type](layer);
             }
@@ -372,12 +390,18 @@ exports.Logger = Logger;
  */
 var Metrics = /** @class */ (function (_super) {
     __extends(Metrics, _super);
+    /**
+     * Constructor.
+     *
+     * @param layers Metrics handler layers
+     * @param options Options for this metrics object.
+     */
     function Metrics(layers, options) {
         if (layers === void 0) { layers = []; }
         if (options === void 0) { options = {}; }
         var _this = _super.call(this) || this;
-        _this.options = __assign({ alwaysSilent: false, silent: false }, options);
-        // default for logging is just to use the console
+        _this.options = __assign({ alwaysSilent: true, silent: false }, options);
+        // default for metrics is just to use the console
         var callLayers = layers;
         if (layers.length === 0) {
             callLayers = ['console'];
@@ -468,6 +492,7 @@ var Metrics = /** @class */ (function (_super) {
                             options = __assign({}, this.options, args[1]);
                         }
                         metric = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
+                        // fail timing metrics without values
                         if (metricType === 'timing' && !metric.value) {
                             return [2 /*return*/, Promise.reject(new Error('No value specified for a timing metric'))];
                         }
@@ -480,6 +505,7 @@ var Metrics = /** @class */ (function (_super) {
                         // return a promise that will resolve when all layers are finished
                         return [2 /*return*/, new Promise(function (resolve, reject) {
                                 Promise.all(promises)
+                                    // call any after functions
                                     .then(_this.after.bind(_this))
                                     .then(resolve)
                                     .catch(reject);

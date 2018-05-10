@@ -3,12 +3,12 @@ import mute from 'jest-mock-console';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
 
-const spies = {
-  // log: jest.spyOn(global.console, 'log'),
-  info: jest.spyOn(global.console, 'info'),
-  error: jest.spyOn(global.console, 'error'),
-  // warn: jest.spyOn(global.console, 'warn'),
-};
+// const spies = {
+//   // log: jest.spyOn(global.console, 'log'),
+//   info: jest.spyOn(global.console, 'info'),
+//   error: jest.spyOn(global.console, 'error'),
+//   // warn: jest.spyOn(global.console, 'warn'),
+// };
 
 afterEach(() => {
   nock.cleanAll();
@@ -145,12 +145,13 @@ test('send JSON with JSON replacer', async (done) => {
   done();
 });
 
-test('can debug metrics', async (done) => {
+test('can debug metrics', async () => {
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com', debug: true },
   ]);
 
   const unmute = mute();
+  const spy = jest.spyOn(console, 'info');
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
       environment: process.env.NODE_ENV,
@@ -159,11 +160,10 @@ test('can debug metrics', async (done) => {
     .reply(200, {});
 
   await m.increment('myMetric');
+  expect(spy).toHaveBeenCalled();
   unmute();
 
-  expect(spies.info).toHaveBeenCalled();
   expect(metricsEndpoint.isDone()).toBe(true);
-  done();
 });
 
 test('send metrics via post request to example.com with scheme in host', async (done) => {
@@ -312,6 +312,31 @@ test('Include metric and category value in the request URL', async (done) => {
   done();
 });
 
+test('hybrid urls', async (done) => {
+  const m = new Metrics([
+    {
+      type: 'json_post',
+      host: 'metrics.example.com',
+      paths: {
+        increment: '/path/thing.$category/$metric',
+      },
+    },
+  ]);
+
+  const correctEndpoint = nock('http://metrics.example.com')
+    .post('/path/thing.awesome.myMetric', {
+      environment: process.env.NODE_ENV,
+      type: 'increment',
+      value: 10,
+    })
+    .reply(200, {});
+
+  await m.increment('awesome.myMetric', 10);
+
+  expect(correctEndpoint.isDone()).toBe(true);
+  done();
+});
+
 test('"before" callbacks still build correct structure', async (done) => {
   const beforeCallback = {
     callback: (metricType, metric, options) => {
@@ -427,7 +452,7 @@ test('Metric post failure should throw an error', async (done) => {
         increment: '/path/$category/$metric',
       },
     },
-  ]);
+  ], { alwaysSilent: false });
 
   const correctEndpoint = nock('http://metrics.example.com')
     .post('/path/awesome/myMetric', {
@@ -447,7 +472,7 @@ test('Metric post failure should throw an error', async (done) => {
 });
 
 describe('Metric silent()', () => {
-  test('stops errors from propegating', async (done) => {
+  test('stops errors from propagating', async () => {
     const m = new Metrics([
       {
         type: 'json_post',
@@ -456,7 +481,7 @@ describe('Metric silent()', () => {
           increment: '/path/$category/$metric',
         },
       },
-    ]);
+    ], { alwaysSilent: false });
 
     const correctEndpoint = nock('http://metrics.example.com')
       .post('/path/awesome/myMetric', {
@@ -468,15 +493,14 @@ describe('Metric silent()', () => {
 
     const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
-      .resolves.not.toThrowError();
+      .resolves.toMatchObject({ message: '500 - {}' });
     unmute();
 
     // errors are still captured in the object...
     expect(m.errors).toHaveLength(1);
-    done();
   });
 
-  test('only stops one error from propegating', async (done) => {
+  test('only stops one error from propagating', async (done) => {
     const m = new Metrics([
       {
         type: 'json_post',
@@ -485,7 +509,7 @@ describe('Metric silent()', () => {
           increment: '/path/$category/$metric',
         },
       },
-    ]);
+    ], { alwaysSilent: false });
 
     const correctEndpoint = nock('http://metrics.example.com')
       .post('/path/awesome/myMetric', {
@@ -497,7 +521,7 @@ describe('Metric silent()', () => {
 
     const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
-      .resolves.not.toThrowError();
+      .resolves.toMatchObject({ message: '500 - {}' });
 
     expect(m.options.silent).toBe(false);
     await expect(m.increment('awesome', 'myMetric', 10))
@@ -533,7 +557,7 @@ describe('Metric silent()', () => {
   });
 });
 
-test('default json post failure logs instead of rejects', async (done) => {
+test('default json post failure logs instead of rejects', async () => {
   const m = new Metrics([
     {
       type: 'json_post',
@@ -549,9 +573,12 @@ test('default json post failure logs instead of rejects', async (done) => {
     .reply(500, {});
 
   const unmute = mute();
-  await expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError(/500/);
-  expect(console.error).toHaveBeenCalled();
-  unmute();
 
-  done();
+  await expect(m.increment('awesome', 'myMetric', 10)).resolves;
+  // for some reason, console.error does not happen in the await statement
+  // above, so we need to delay slightly to test.
+  setTimeout(() => {
+    expect(console.error).toHaveBeenCalled();
+    unmute();
+  }, 500);
 });

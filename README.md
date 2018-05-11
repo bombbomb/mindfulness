@@ -80,12 +80,20 @@ const metrics = new Metrics([
     paths: {
       increment: '/increment',
       // also supports $category and $metric variables to replace path with those items
+      // if $category is blank, it will not be used (and if there's a forward slash in
+      // the url following $category, mindfulness will remove that too)
       timing: '/feature/$category/$metric',
     }
   }
 ]);
 
+// metric with a value
+metrics.increment('metric', 10);
 metrics.increment('category', 'metric');
+
+// metric with a value... if you need the value to be a string, you must specify
+// a category and metric.
+metrics.increment('category', 'metric', 10);
 metrics.timing('category', 'metric', value);
 ```
 

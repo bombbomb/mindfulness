@@ -163,7 +163,7 @@ const l = new Logger([{
 }]);
 ```
 
-The JSON POST functionality will also default to `localhost` if you do not specify a host.
+The JSON POST functionality will default to `localhost` if you do not specify a host.
 
 ## Development
 

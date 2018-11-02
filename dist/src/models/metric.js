@@ -24,6 +24,7 @@ var Metric = /** @class */ (function () {
      * @param args Arguments array
      */
     function Metric() {
+        var _a;
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -57,7 +58,6 @@ var Metric = /** @class */ (function () {
         if (this.value && this.value instanceof Date) {
             this.value = this.value.getTime();
         }
-        var _a;
     }
     Metric.prototype.toArray = function () {
         return [this.metric, this.category, this.value];

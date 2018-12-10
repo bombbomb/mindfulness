@@ -12,7 +12,7 @@ afterEach(() => {
 
 test('log via post request to example.com', async (done) => {
   const l = new Logger([
-    { type: 'json_post', host: 'logging.example.com' },
+    { type: 'json_post', host: 'logging.example.com', debug: true },
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')

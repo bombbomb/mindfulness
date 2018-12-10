@@ -16,13 +16,7 @@ test('log via post request to example.com', async (done) => {
   ]);
 
   const loggingEndpoint = nock('http://logging.example.com')
-    .post('/', {
-      severity: 'log',
-      type: 'log',
-      message: 'Hello!',
-      info: {},
-      environment: 'test',
-    })
+    .post('/', body => body.message === 'Hello!')
     .reply(200, {});
 
   await l.log('Hello!');

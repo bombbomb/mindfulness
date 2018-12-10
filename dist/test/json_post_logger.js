@@ -62,13 +62,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default('http://logging.example.com')
-                    .post('/', {
-                    severity: 'log',
-                    type: 'log',
-                    message: 'Hello!',
-                    info: {},
-                    environment: 'test',
-                })
+                    .post('/', function (body) { return body.message === 'Hello!'; })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
             case 1:

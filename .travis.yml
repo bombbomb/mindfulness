@@ -6,13 +6,3 @@ node_js:
 script:
   - npm run test-coverage
   - npm run eslint-ci
-env:
-  global:
-    - NODE_ENV=test ENVIRONMENT=test
-    - secure: "Llc2dvBjClMFcOa22R3ZG+hpx7J4H5g8tqIZP3u9Blc8fZTXx9GSPxnAn7x4tqbRftGIbsbW434iLPw4CTpcWxqtxeOb1ChaIYii8iRke4TzEpnoy0JlQGA/AVvAxLUzTeZ6Nrcm5c9WjVuqbCld4a7ZEXzBBIMXX9vMHGAiwpTDlNPsPkPbmetU2zSG+i/wjOSXIIsFSTvYXYx/qL7u5R0EzcXSULvPSzBs7Om2ApYaAGtmUsqtiWdewaFbW25s3pGDY/OtgiJ0QWiWem8Bp5Dw/ofPpFLHKxx4p6C2j2t4qAGR/dgmeDPSTk1mJDtZez5rPHeJcUKm0IW7+U9md+3L6Y5J3ysGDrtAlziOQOVyBj8XwlChhBaoIWLkMKLSdhUVZBxpLpGo3dVU82ERzaYCZwR9Wst1D/CZwG8QeTEozXjtqewhw6dnE9g3vvzn9FHF0IRuNvbJqp7NJqpEzUGi55X+mOX6bZE4CngXDk2IWvkMB12ki2VamEMqrx/egt9vrqSxAoWrlc3X54y4QBn0mD72QihmQEX6MASQFDsjlgqru2Y9jzA/y1UE0pruP+eyZIIJ6MOVKC5MOHSSDPKURhQWQWSUPmU3WcHQGcocRhaTIEeBNIpW4yBIKm+cGFDLnARgk+GN5nKW0BBnh60aGaVFRemJMTAOLKdi7/0="
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

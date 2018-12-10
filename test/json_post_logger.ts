@@ -12,7 +12,7 @@ afterEach(() => {
 
 test('log via post request to example.com', async (done) => {
   const l = new Logger([
-    { type: 'json_post', host: 'logging.example.com', debug: true },
+    { type: 'json_post', host: 'logging.example.com' },
   ]);
 
   const loggingEndpoint = nock(/example.com/)
@@ -31,7 +31,6 @@ test('log via post payload request to example.com', async (done) => {
   ]);
 
   const loggingEndpoint = nock(/example.com/)
-    .log(console.log)
     .post('/', {
       severity: 'log',
       type: 'log',

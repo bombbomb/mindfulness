@@ -59,7 +59,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
         switch (_a.label) {
             case 0:
                 l = new index_1.Logger([
-                    { type: 'json_post', host: 'logging.example.com', debug: true },
+                    { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default(/example.com/)
                     .post('/', function (body) { return body.message === 'Hello!'; })
@@ -82,7 +82,6 @@ test('log via post payload request to example.com', function (done) { return __a
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
                 loggingEndpoint = nock_1.default(/example.com/)
-                    .log(console.log)
                     .post('/', {
                     severity: 'log',
                     type: 'log',

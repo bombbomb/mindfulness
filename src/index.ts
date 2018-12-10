@@ -5,11 +5,13 @@ import { L, LoggerLayer, LOG_LEVELS } from './interfaces/logger';
 import { M, MetricInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 import { MindfulnessOptions } from './interfaces/options';
+import { DebugLogger } from './contrib/debug';
 
 const contribLoggers = {
   console: ConsoleLogger,
   json_post: JsonPostLogger,
   null: NullLogger,
+  debug: DebugLogger,
 };
 
 const contribMetrics = {

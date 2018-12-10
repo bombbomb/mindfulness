@@ -10,7 +10,7 @@
     ],
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["node", "@types/jest", "@types/request-promise-native", "@types/nock"]
+    "types": ["node", "@types/jest", "@types/request-promise-native", "@types/nock", "@types/debug"]
   },
   "include": [
     "src/**/*.ts",

@@ -58,10 +58,12 @@ var null_1 = require("./contrib/null");
 var json_post_1 = require("./contrib/json_post");
 var logger_1 = require("./interfaces/logger");
 var metric_1 = require("./models/metric");
+var debug_1 = require("./contrib/debug");
 var contribLoggers = {
     console: console_1.ConsoleLogger,
     json_post: json_post_1.JsonPostLogger,
     null: null_1.NullLogger,
+    debug: debug_1.DebugLogger,
 };
 var contribMetrics = {
     console: console_1.ConsoleMetrics,

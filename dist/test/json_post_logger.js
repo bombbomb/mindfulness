@@ -61,14 +61,8 @@ test('log via post request to example.com', function (done) { return __awaiter(_
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
-                    .post('/', {
-                    severity: 'log',
-                    type: 'log',
-                    message: 'Hello!',
-                    info: {},
-                    environment: 'test',
-                })
+                loggingEndpoint = nock_1.default(/example.com/)
+                    .post('/', function (body) { return body.message === 'Hello!'; })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
             case 1:
@@ -87,7 +81,7 @@ test('log via post payload request to example.com', function (done) { return __a
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock_1.default(/example.com/)
                     .post('/', {
                     severity: 'log',
                     type: 'log',

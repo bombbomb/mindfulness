@@ -15,14 +15,8 @@ test('log via post request to example.com', async (done) => {
     { type: 'json_post', host: 'logging.example.com' },
   ]);
 
-  const loggingEndpoint = nock('http://logging.example.com')
-    .post('/', {
-      severity: 'log',
-      type: 'log',
-      message: 'Hello!',
-      info: {},
-      environment: 'test',
-    })
+  const loggingEndpoint = nock(/example.com/)
+    .post('/', body => body.message === 'Hello!')
     .reply(200, {});
 
   await l.log('Hello!');
@@ -36,7 +30,7 @@ test('log via post payload request to example.com', async (done) => {
     { type: 'json_post', host: 'logging.example.com' },
   ]);
 
-  const loggingEndpoint = nock('http://logging.example.com')
+  const loggingEndpoint = nock(/example.com/)
     .post('/', {
       severity: 'log',
       type: 'log',

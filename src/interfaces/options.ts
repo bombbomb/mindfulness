@@ -11,7 +11,8 @@ export interface MindfulnessOptions {
   before?: (MetricsBeforeCallback | LoggerBeforeCallback | BeforeCallback);
   after?: (MetricsAfterCallback | LoggerAfterCallback);
   requestBodyCallback?: MetricsRequestBodyCallback;
-  jsonReplacer?: JsonReplacer
+  jsonReplacer?: JsonReplacer,
+  namespace?: string,
   [propName: string]: any;
 }
 

@@ -23,6 +23,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/debug": "0.0.31",
     "@types/jest": "^22.0.1",
     "@types/nock": "^9.3.0",
     "@types/request-promise-native": "^1.0.15",
@@ -39,11 +40,10 @@
     "jest-mock-console": "github:PiereDome/jest-mock-console#6a5e831aa7a2b8a53b1af5fd2d230b27299a0e66",
     "mute": "^2.0.6",
     "nock": "^10.0.4",
-    "sinon": "^4.1.5",
     "ts-jest": "^22.4.6",
     "ts-node": "^7.0.1",
     "typescript": "^2.9.2",
-    "typescript-eslint-parser": "^12.0.0"
+    "typescript-eslint-parser": "^21.0.2"
   },
   "jest": {
     "testEnvironment": "node",
@@ -66,6 +66,7 @@
   "dependencies": {
     "lodash": "^4.17.11",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.5",
+    "debug": "^4.1.0"
   }
 }

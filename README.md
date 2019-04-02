@@ -165,6 +165,17 @@ const l = new Logger([{
 
 The JSON POST functionality will default to `localhost` if you do not specify a host.
 
+## Debug (npm) logging
+
+You can also use the (debug package)[https://www.npmjs.com/package/debug] for logging:
+
+```javascript
+const l = new Logger([
+  // similiar to debug('myproject')(message)...
+  { type: 'debug', namespace: 'myproject' },
+]);
+```
+
 ## Development
 
 ```

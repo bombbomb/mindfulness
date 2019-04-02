@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var debug_1 = require("../src/contrib/debug");
-test('ConsoleLogger logs to the console', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('DebugLogger logs to the console', function (done) { return __awaiter(_this, void 0, void 0, function () {
     var l, message, debugInstance;
     return __generator(this, function (_a) {
         switch (_a.label) {

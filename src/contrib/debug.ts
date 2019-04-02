@@ -1,10 +1,6 @@
 import Debug from 'debug';
-import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
-// import getLogLevelConstant from '../util/logging';
+import { LoggerInterface } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
-import ContribMetrics from './contrib_metrics';
-import { MetricsInterface } from '../interfaces/metrics';
-import Metric from '../models/metric';
 import { MindfulnessOptions } from '../interfaces/options';
 
 /**

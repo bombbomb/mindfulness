@@ -1,6 +1,6 @@
 import { DebugLogger } from '../src/contrib/debug';
 
-test('ConsoleLogger logs to the console', async (done) => {
+test('DebugLogger logs to the console', async (done) => {
   const l = new DebugLogger();
   const message = 'my message';
   const debugInstance = jest.fn();

@@ -46,7 +46,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var debug_1 = require("debug");
-// import getLogLevelConstant from '../util/logging';
 var contrib_logger_1 = require("./contrib_logger");
 /**
  * Log messages to the console.

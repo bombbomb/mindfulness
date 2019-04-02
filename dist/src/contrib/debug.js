@@ -46,9 +46,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var debug_1 = require("debug");
+// import getLogLevelConstant from '../util/logging';
 var contrib_logger_1 = require("./contrib_logger");
-var contrib_metrics_1 = require("./contrib_metrics");
-var metric_1 = require("../models/metric");
 /**
  * Log messages to the console.
  */
@@ -59,6 +58,9 @@ var DebugLogger = /** @class */ (function (_super) {
     }
     /**
      * The log message handler.
+     *
+     * This will debug to the namespace property or you can re-use a debug instance
+     * by passing that in as an option.
      *
      * @param level The log level to use.
      * @param message The message or item to log
@@ -73,7 +75,10 @@ var DebugLogger = /** @class */ (function (_super) {
                         var callOptions, debugInstance;
                         return __generator(this, function (_a) {
                             callOptions = this.getCallOptions(options);
-                            debugInstance = debug_1.default(callOptions.namespace);
+                            if (typeof callOptions.debugInstance === 'undefined' && !callOptions.namespace) {
+                                return [2 /*return*/, reject(new Error('For debug, you must specify either debugInstance or namespace options'))];
+                            }
+                            debugInstance = typeof callOptions.debugInstance !== 'undefined' ? callOptions.debugInstance : debug_1.default(callOptions.namespace);
                             debugInstance(message, payload);
                             return [2 /*return*/, resolve()];
                         });
@@ -84,76 +89,4 @@ var DebugLogger = /** @class */ (function (_super) {
     return DebugLogger;
 }(contrib_logger_1.default));
 exports.DebugLogger = DebugLogger;
-/**
- * Log metrics out to the console.
- */
-var ConsoleMetrics = /** @class */ (function (_super) {
-    __extends(ConsoleMetrics, _super);
-    function ConsoleMetrics() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    ConsoleMetrics.prototype.call = function (metricType) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var m, beforeResult, value, message, consoleObject;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(args)))();
-                                    return [4 /*yield*/, this.before({ metricType: metricType, metric: m }, this.options)];
-                                case 1:
-                                    beforeResult = _a.sent();
-                                    value = (beforeResult.metric.value) ? Math.abs(Number(beforeResult.metric.value)) : 1;
-                                    message = '';
-                                    switch (metricType) {
-                                        case 'decrement':
-                                            message = "metrics: " + beforeResult.metric.toString() + ": -" + value;
-                                            break;
-                                        case 'increment':
-                                            message = "metrics: " + beforeResult.metric.toString() + ": +" + value;
-                                            break;
-                                        default:
-                                            message = "metrics: " + beforeResult.metric.toString() + ": " + beforeResult.metric.value;
-                                    }
-                                    consoleObject = this.options.console || console;
-                                    consoleObject.info(message);
-                                    resolve({ metric: beforeResult.metric });
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); })];
-            });
-        });
-    };
-    ConsoleMetrics.prototype.increment = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.call.apply(this, ['increment'].concat(args))];
-            });
-        });
-    };
-    ConsoleMetrics.prototype.timing = function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.call.apply(this, ['timing'].concat(args))];
-            });
-        });
-    };
-    return ConsoleMetrics;
-}(contrib_metrics_1.default));
-exports.ConsoleMetrics = ConsoleMetrics;
 //# sourceMappingURL=debug.js.map

@@ -1,6 +1,6 @@
 {
   "name": "@bblabs/mindfulness",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Simple logging and metrics interfaces",
   "repository": "https://github.com/bombbomb/mindfulness",
   "main": "dist/src/index.js",
@@ -64,9 +64,9 @@
     ]
   },
   "dependencies": {
-    "lodash": "^4.17.11",
+    "debug": "^4.1.0",
+    "lodash": "^4.17.15",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
-    "debug": "^4.1.0"
+    "request-promise-native": "^1.0.5"
   }
 }

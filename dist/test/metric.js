@@ -1,4 +1,11 @@
 "use strict";
+var __spreadArrays = (this && this.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var metric_1 = require("../src/models/metric");
 describe('Creating Metric instances from arrays', function () {
@@ -37,7 +44,7 @@ describe('Creating Metric instances from arrays', function () {
         },
     ].forEach(function (testCase, ix) {
         test(ix + ": Create Metric instance from " + JSON.stringify(testCase.test), function () {
-            var m = new (metric_1.default.bind.apply(metric_1.default, [void 0].concat(testCase.test)))();
+            var m = new (metric_1.default.bind.apply(metric_1.default, __spreadArrays([void 0], testCase.test)))();
             expect(m).toMatchObject(testCase.expected);
         });
     });

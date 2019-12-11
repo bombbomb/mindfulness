@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,9 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var nock_1 = require("nock");
+var nock = require("nock");
 var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 var spies = {
@@ -66,7 +66,7 @@ test('Metrics works with type:null layer', function () {
     var m = new index_1.Metrics([{ type: 'null' }]);
     expect(m.layers).toHaveLength(1);
 });
-test('Metris.increment() sends metric', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metris.increment() sends metric', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -81,7 +81,7 @@ test('Metris.increment() sends metric', function (done) { return __awaiter(_this
         }
     });
 }); });
-test('Metris.timing() sends metric', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metris.timing() sends metric', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -96,7 +96,7 @@ test('Metris.timing() sends metric', function (done) { return __awaiter(_this, v
         }
     });
 }); });
-test('Metrics.timing() fails with no value', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metrics.timing() fails with no value', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -110,7 +110,7 @@ test('Metrics.timing() fails with no value', function (done) { return __awaiter(
         }
     });
 }); });
-test('Metrics handles "before" calls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metrics handles "before" calls', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var before, m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -132,7 +132,7 @@ test('Metrics handles "before" calls', function (done) { return __awaiter(_this,
         }
     });
 }); });
-test('Metrics handles layer "before" calls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metrics handles layer "before" calls', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var before, m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -154,7 +154,7 @@ test('Metrics handles layer "before" calls', function (done) { return __awaiter(
         }
     });
 }); });
-test('Metrics handles "after" calls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metrics handles "after" calls', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var afterCalled, after, m;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -174,7 +174,7 @@ test('Metrics handles "after" calls', function (done) { return __awaiter(_this, 
         }
     });
 }); });
-test('Metrics has an onError hook', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metrics has an onError hook', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var options, spy, m, endpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -187,7 +187,7 @@ test('Metrics has an onError hook', function (done) { return __awaiter(_this, vo
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'metrics.example.com' },
                 ], options);
-                endpoint = nock_1.default(/example\.com/).post('/').reply(500, {});
+                endpoint = nock(/example\.com/).post('/').reply(500, {});
                 unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, m.silent().increment('metric')];
             case 1:

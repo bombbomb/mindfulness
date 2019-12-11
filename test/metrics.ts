@@ -1,4 +1,4 @@
-import nock from 'nock';
+import * as nock from 'nock';
 import mute from 'jest-mock-console';
 import { Metrics } from '../src/index';
 import { MetricInterface } from '../src/interfaces/metrics';

@@ -1,17 +1,21 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -42,9 +46,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var nock_1 = require("nock");
+var nock = require("nock");
 var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
@@ -55,11 +58,11 @@ var metric_1 = require("../src/models/metric");
 //   // warn: jest.spyOn(global.console, 'warn'),
 // };
 afterEach(function () {
-    nock_1.default.cleanAll();
+    nock.cleanAll();
     process.env.NODE_ENV = 'test';
     process.env.ENVIRONMENT = 'test';
 });
-test('JsonPostMetrics.getRequestOptions returns object', function () { return __awaiter(_this, void 0, void 0, function () {
+test('JsonPostMetrics.getRequestOptions returns object', function () { return __awaiter(void 0, void 0, void 0, function () {
     var m, jsonMetrics, obj, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -71,14 +74,14 @@ test('JsonPostMetrics.getRequestOptions returns object', function () { return __
             case 1:
                 result = _a.sent();
                 expect(result)
-                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                    .toMatchObject(__assign(__assign({}, obj), { method: 'POST', uri: 'http://metrics.example.com/', body: {
                         environment: process.env.NODE_ENV,
                     } }));
                 return [2 /*return*/];
         }
     });
 }); });
-test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () { return __awaiter(_this, void 0, void 0, function () {
+test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', function () { return __awaiter(void 0, void 0, void 0, function () {
     var m, jsonMetrics, obj, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -92,14 +95,14 @@ test('JsonPostMetrics.getRequestOptions honors process.env.ENVIRONMENT', functio
             case 1:
                 result = _a.sent();
                 expect(result)
-                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                    .toMatchObject(__assign(__assign({}, obj), { method: 'POST', uri: 'http://metrics.example.com/', body: {
                         environment: 'fake',
                     } }));
                 return [2 /*return*/];
         }
     });
 }); });
-test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function () { return __awaiter(_this, void 0, void 0, function () {
+test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function () { return __awaiter(void 0, void 0, void 0, function () {
     var m, jsonMetrics, obj, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -113,14 +116,14 @@ test('JsonPostMetrics.getRequestOptions honors process.env.NODE_ENV', function (
             case 1:
                 result = _a.sent();
                 expect(result)
-                    .toMatchObject(__assign({}, obj, { method: 'POST', uri: 'http://metrics.example.com/', body: {
+                    .toMatchObject(__assign(__assign({}, obj), { method: 'POST', uri: 'http://metrics.example.com/', body: {
                         environment: 'fake',
                     } }));
                 return [2 /*return*/];
         }
     });
 }); });
-test('send metrics via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('send metrics via post request to example.com', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -128,7 +131,7 @@ test('send metrics via post request to example.com', function (done) { return __
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -143,7 +146,7 @@ test('send metrics via post request to example.com', function (done) { return __
         }
     });
 }); });
-test('send metrics via post request to https://example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('send metrics via post request to https://example.com', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -151,7 +154,7 @@ test('send metrics via post request to https://example.com', function (done) { r
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'https://metrics.example.com' },
                 ]);
-                metricsEndpoint = nock_1.default('https://metrics.example.com')
+                metricsEndpoint = nock('https://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -166,7 +169,7 @@ test('send metrics via post request to https://example.com', function (done) { r
         }
     });
 }); });
-test('send JSON with JSON replacer', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('send JSON with JSON replacer', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var jsonReplacer, spy, m, date, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -188,7 +191,7 @@ test('send JSON with JSON replacer', function (done) { return __awaiter(_this, v
                     },
                 ]);
                 date = new Date();
-                metricsEndpoint = nock_1.default('https://metrics.example.com')
+                metricsEndpoint = nock('https://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'timing',
@@ -205,7 +208,7 @@ test('send JSON with JSON replacer', function (done) { return __awaiter(_this, v
         }
     });
 }); });
-test('can debug metrics', function () { return __awaiter(_this, void 0, void 0, function () {
+test('can debug metrics', function () { return __awaiter(void 0, void 0, void 0, function () {
     var m, unmute, spy, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -215,7 +218,7 @@ test('can debug metrics', function () { return __awaiter(_this, void 0, void 0, 
                 ]);
                 unmute = jest_mock_console_1.default();
                 spy = jest.spyOn(console, 'info');
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -231,7 +234,7 @@ test('can debug metrics', function () { return __awaiter(_this, void 0, void 0, 
         }
     });
 }); });
-test('send metrics via post request to example.com with scheme in host', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('send metrics via post request to example.com with scheme in host', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -239,7 +242,7 @@ test('send metrics via post request to example.com with scheme in host', functio
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'http://metrics.example.com' },
                 ]);
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -254,7 +257,7 @@ test('send metrics via post request to example.com with scheme in host', functio
         }
     });
 }); });
-test('Includes data defaults', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Includes data defaults', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -262,7 +265,7 @@ test('Includes data defaults', function (done) { return __awaiter(_this, void 0,
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'http://metrics.example.com', dataDefaults: { xsrc: 'example' } },
                 ]);
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -278,7 +281,7 @@ test('Includes data defaults', function (done) { return __awaiter(_this, void 0,
         }
     });
 }); });
-test('Can modify the request body with requestBodyCallback', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Can modify the request body with requestBodyCallback', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -288,12 +291,12 @@ test('Can modify the request body with requestBodyCallback', function (done) { r
                         type: 'json_post',
                         host: 'metrics.example.com',
                         requestBodyCallback: function (body, details) {
-                            var newBody = __assign({}, body, { newElement: 123 });
+                            var newBody = __assign(__assign({}, body), { newElement: 123 });
                             return newBody;
                         },
                     },
                 ]);
-                metricsEndpoint = nock_1.default('http://metrics.example.com')
+                metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -309,7 +312,7 @@ test('Can modify the request body with requestBodyCallback', function (done) { r
         }
     });
 }); });
-test('Increment requests to a different URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Increment requests to a different URL', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, incorrectEndpoint, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -323,10 +326,10 @@ test('Increment requests to a different URL', function (done) { return __awaiter
                         },
                     },
                 ]);
-                incorrectEndpoint = nock_1.default('http://metrics.example.com')
+                incorrectEndpoint = nock('http://metrics.example.com')
                     .post('/')
                     .reply(200, {});
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/increment', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -343,7 +346,7 @@ test('Increment requests to a different URL', function (done) { return __awaiter
         }
     });
 }); });
-test('Include metric value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Include metric value in the request URL', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -357,7 +360,7 @@ test('Include metric value in the request URL', function (done) { return __await
                         },
                     },
                 ]);
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -373,7 +376,7 @@ test('Include metric value in the request URL', function (done) { return __await
         }
     });
 }); });
-test('Include metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Include metric and category value in the request URL', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -387,7 +390,7 @@ test('Include metric and category value in the request URL', function (done) { r
                         },
                     },
                 ]);
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -403,7 +406,7 @@ test('Include metric and category value in the request URL', function (done) { r
         }
     });
 }); });
-test('hybrid urls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('hybrid urls', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -417,7 +420,7 @@ test('hybrid urls', function (done) { return __awaiter(_this, void 0, void 0, fu
                         },
                     },
                 ]);
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/thing.awesome.myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -433,7 +436,7 @@ test('hybrid urls', function (done) { return __awaiter(_this, void 0, void 0, fu
         }
     });
 }); });
-test('"before" callbacks still build correct structure', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('"before" callbacks still build correct structure', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var beforeCallback, date, spy, m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -456,7 +459,7 @@ test('"before" callbacks still build correct structure', function (done) { retur
                         },
                     },
                 ], { before: beforeCallback.callback });
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/timing/awesome/myMetric', {
                     environment: 'test',
                     type: 'timing',
@@ -473,7 +476,7 @@ test('"before" callbacks still build correct structure', function (done) { retur
         }
     });
 }); });
-test('"before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('"before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var beforeCallback, spy, m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -495,7 +498,7 @@ test('"before" callbacks can change metric and category value in the request URL
                         },
                     },
                 ], { before: beforeCallback.callback });
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/awesome/prefix.myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -512,7 +515,7 @@ test('"before" callbacks can change metric and category value in the request URL
         }
     });
 }); });
-test('layer "before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('layer "before" callbacks can change metric and category value in the request URL', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var beforeCallback, m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -534,7 +537,7 @@ test('layer "before" callbacks can change metric and category value in the reque
                         before: beforeCallback.callback,
                     },
                 ]);
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/awesome/prefix.myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -550,7 +553,7 @@ test('layer "before" callbacks can change metric and category value in the reque
         }
     });
 }); });
-test('Metric post failure should throw an error', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Metric post failure should throw an error', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var m, correctEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -564,7 +567,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
                         },
                     },
                 ], { alwaysSilent: false });
-                correctEndpoint = nock_1.default('http://metrics.example.com')
+                correctEndpoint = nock('http://metrics.example.com')
                     .post('/path/awesome/myMetric', {
                     environment: process.env.NODE_ENV,
                     type: 'increment',
@@ -583,7 +586,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
     });
 }); });
 describe('Metric silent()', function () {
-    test('stops errors from propagating', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('stops errors from propagating', function () { return __awaiter(void 0, void 0, void 0, function () {
         var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -597,7 +600,7 @@ describe('Metric silent()', function () {
                             },
                         },
                     ], { alwaysSilent: false });
-                    correctEndpoint = nock_1.default('http://metrics.example.com')
+                    correctEndpoint = nock('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
                         environment: process.env.NODE_ENV,
                         type: 'increment',
@@ -616,7 +619,7 @@ describe('Metric silent()', function () {
             }
         });
     }); });
-    test('only stops one error from propagating', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    test('only stops one error from propagating', function (done) { return __awaiter(void 0, void 0, void 0, function () {
         var m, correctEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -630,7 +633,7 @@ describe('Metric silent()', function () {
                             },
                         },
                     ], { alwaysSilent: false });
-                    correctEndpoint = nock_1.default('http://metrics.example.com')
+                    correctEndpoint = nock('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
                         environment: process.env.NODE_ENV,
                         type: 'increment',
@@ -653,7 +656,7 @@ describe('Metric silent()', function () {
             }
         });
     }); });
-    test('does not stop successful calls', function (done) { return __awaiter(_this, void 0, void 0, function () {
+    test('does not stop successful calls', function (done) { return __awaiter(void 0, void 0, void 0, function () {
         var m, correctEndpoint;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -667,7 +670,7 @@ describe('Metric silent()', function () {
                             },
                         },
                     ]);
-                    correctEndpoint = nock_1.default('http://metrics.example.com')
+                    correctEndpoint = nock('http://metrics.example.com')
                         .post('/path/awesome/myMetric', {
                         environment: process.env.NODE_ENV,
                         type: 'increment',
@@ -684,7 +687,7 @@ describe('Metric silent()', function () {
         });
     }); });
 });
-test('default json post failure logs instead of rejects', function () { return __awaiter(_this, void 0, void 0, function () {
+test('default json post failure logs instead of rejects', function () { return __awaiter(void 0, void 0, void 0, function () {
     var m, correctEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -698,7 +701,7 @@ test('default json post failure logs instead of rejects', function () { return _
                         },
                     },
                 ]);
-                correctEndpoint = nock_1.default(/metrics\.example\.com/)
+                correctEndpoint = nock(/metrics\.example\.com/)
                     .post(/.+/, function (body) { return true; })
                     .reply(500, {});
                 unmute = jest_mock_console_1.default();

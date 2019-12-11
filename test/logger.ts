@@ -1,4 +1,4 @@
-import nock from 'nock';
+import * as nock from 'nock';
 import { Logger } from '../src/index';
 import { JsonPostLogger } from '../src/contrib/json_post';
 

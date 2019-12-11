@@ -1,17 +1,21 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -42,18 +46,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var nock_1 = require("nock");
+var nock = require("nock");
 var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 beforeEach(function () {
-    nock_1.default.cleanAll();
+    nock.cleanAll();
 });
 afterEach(function () {
-    nock_1.default.cleanAll();
+    nock.cleanAll();
 });
-test('log via post request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('log via post request to example.com', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -61,7 +64,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default(/example.com/)
+                loggingEndpoint = nock(/example.com/)
                     .post('/', function (body) { return body.message === 'Hello!'; })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
@@ -73,7 +76,7 @@ test('log via post request to example.com', function (done) { return __awaiter(_
         }
     });
 }); });
-test('log via post payload request to example.com', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('log via post payload request to example.com', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -81,7 +84,7 @@ test('log via post payload request to example.com', function (done) { return __a
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default(/example.com/)
+                loggingEndpoint = nock(/example.com/)
                     .post('/', {
                     severity: 'log',
                     type: 'log',
@@ -99,7 +102,7 @@ test('log via post payload request to example.com', function (done) { return __a
         }
     });
 }); });
-test('log object for message', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('log object for message', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -107,7 +110,7 @@ test('log object for message', function (done) { return __awaiter(_this, void 0,
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toEqual({
                         severity: 'log',
@@ -128,7 +131,7 @@ test('log object for message', function (done) { return __awaiter(_this, void 0,
         }
     });
 }); });
-test('log error for payload', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('log error for payload', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -136,7 +139,7 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toMatchObject({
                         severity: 'log',
@@ -161,7 +164,7 @@ test('log error for payload', function (done) { return __awaiter(_this, void 0, 
         }
     });
 }); });
-test('can debug', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('can debug', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint, c;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -169,7 +172,7 @@ test('can debug', function (done) { return __awaiter(_this, void 0, void 0, func
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com', debug: true },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', {
                     severity: 'log',
                     type: 'log',
@@ -191,7 +194,7 @@ test('can debug', function (done) { return __awaiter(_this, void 0, void 0, func
         }
     });
 }); });
-test('can change request body', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('can change request body', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -200,10 +203,10 @@ test('can change request body', function (done) { return __awaiter(_this, void 0
                     {
                         type: 'json_post',
                         host: 'logging.example.com',
-                        requestBodyCallback: function (body, details) { return (__assign({}, body, { injected: 123 })); },
+                        requestBodyCallback: function (body, details) { return (__assign(__assign({}, body), { injected: 123 })); },
                     },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toMatchObject({
                         severity: 'log',
@@ -228,7 +231,7 @@ test('can change request body', function (done) { return __awaiter(_this, void 0
         }
     });
 }); });
-test('can include data defaults', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('can include data defaults', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -240,7 +243,7 @@ test('can include data defaults', function (done) { return __awaiter(_this, void
                         dataDefaults: { xsrc: 'example' },
                     },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toMatchObject({
                         severity: 'log',
@@ -264,7 +267,7 @@ test('can include data defaults', function (done) { return __awaiter(_this, void
         }
     });
 }); });
-test('can change request body on a call', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('can change request body on a call', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint, unmute;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -275,7 +278,7 @@ test('can change request body on a call', function (done) { return __awaiter(_th
                         host: 'logging.example.com',
                     },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toMatchObject({
                         severity: 'log',
@@ -292,7 +295,7 @@ test('can change request body on a call', function (done) { return __awaiter(_th
                     .reply(200, {});
                 unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, l.log('Error doing things', { payload: 234 }, {
-                        requestBodyCallback: function (body, details) { return (__assign({}, body, { injected: 123 })); },
+                        requestBodyCallback: function (body, details) { return (__assign(__assign({}, body), { injected: 123 })); },
                     })];
             case 1:
                 _a.sent();
@@ -303,7 +306,7 @@ test('can change request body on a call', function (done) { return __awaiter(_th
         }
     });
 }); });
-test('log fails on post error', function () { return __awaiter(_this, void 0, void 0, function () {
+test('log fails on post error', function () { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint, unmute, r, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -311,7 +314,7 @@ test('log fails on post error', function () { return __awaiter(_this, void 0, vo
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com' },
                 ], { alwaysSilent: false, debug: true });
-                loggingEndpoint = nock_1.default(/example/)
+                loggingEndpoint = nock(/example/)
                     .post('/', function (body) { return true; })
                     .reply(500, {});
                 unmute = jest_mock_console_1.default();
@@ -333,7 +336,7 @@ test('log fails on post error', function () { return __awaiter(_this, void 0, vo
         }
     });
 }); });
-test('$level variables is processed in the url', function () { return __awaiter(_this, void 0, void 0, function () {
+test('$level variables is processed in the url', function () { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -341,7 +344,7 @@ test('$level variables is processed in the url', function () { return __awaiter(
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com', path: '/$level' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/log', function () { return true; })
                     .reply(200, {});
                 return [4 /*yield*/, l.log('Hello!')];
@@ -352,7 +355,7 @@ test('$level variables is processed in the url', function () { return __awaiter(
         }
     });
 }); });
-test('logging does not fail when the host includes the scheme', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('logging does not fail when the host includes the scheme', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -360,7 +363,7 @@ test('logging does not fail when the host includes the scheme', function (done) 
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'http://logging.example.com' },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', {
                     severity: 'log',
                     type: 'log',
@@ -379,7 +382,7 @@ test('logging does not fail when the host includes the scheme', function (done) 
     });
 }); });
 describe('log silent()', function () {
-    test('stops an error from propegating', function () { return __awaiter(_this, void 0, void 0, function () {
+    test('stops an error from propegating', function () { return __awaiter(void 0, void 0, void 0, function () {
         var l, loggingEndpoint, unmute;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -387,7 +390,7 @@ describe('log silent()', function () {
                     l = new index_1.Logger([
                         { type: 'json_post', host: 'logging.example.com' },
                     ], { alwaysSilent: false });
-                    loggingEndpoint = nock_1.default('http://logging.example.com')
+                    loggingEndpoint = nock('http://logging.example.com')
                         .post('/', function (body) { return true; })
                         .reply(500, {});
                     unmute = jest_mock_console_1.default();
@@ -419,7 +422,7 @@ test('getRequestUri() handles missing leading slash in path', function () {
     ]);
     expect(l.layers[0].json.getRequestUri({ level: 'log', message: 'hi', payload: {} }, { path: 'test' })).toBe('http://logging.example.com/test');
 });
-test('json post honors log levels', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('json post honors log levels', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -427,7 +430,7 @@ test('json post honors log levels', function (done) { return __awaiter(_this, vo
                 l = new index_1.Logger([
                     { type: 'json_post', host: 'logging.example.com', logLevel: index_1.Logger.LOG_LEVELS.LOG_LOG },
                 ]);
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', {
                     severity: 'log',
                     type: 'log',

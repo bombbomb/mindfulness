@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,9 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var nock_1 = require("nock");
+var nock = require("nock");
 var index_1 = require("../src/index");
 var json_post_1 = require("../src/contrib/json_post");
 var spies = {
@@ -48,7 +48,7 @@ afterEach(function () {
     Object.keys(spies).forEach(function (spy) {
         spies[spy].mockReset();
     });
-    nock_1.default.cleanAll();
+    nock.cleanAll();
 });
 afterAll(function () {
     Object.keys(spies).forEach(function (spy) {
@@ -56,7 +56,7 @@ afterAll(function () {
         spies[spy].mockRestore();
     });
 });
-test('Logger with console logs to console', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger with console logs to console', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -71,7 +71,7 @@ test('Logger with console logs to console', function (done) { return __awaiter(_
         }
     });
 }); });
-test('Logger with no arguments gets console layer', function () { return __awaiter(_this, void 0, void 0, function () {
+test('Logger with no arguments gets console layer', function () { return __awaiter(void 0, void 0, void 0, function () {
     var l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -99,7 +99,7 @@ test('Logger with POST layer gets correct layer', function () {
 test('Logger with incorrect layer throws error', function () {
     var l = new index_1.Logger([{ type: 'fake_logger' }]);
 });
-test('Logger handles "before" callbacks', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger handles "before" callbacks', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var before, l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -121,7 +121,7 @@ test('Logger handles "before" callbacks', function (done) { return __awaiter(_th
         }
     });
 }); });
-test('Logger handles layer "before" callbacks', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger handles layer "before" callbacks', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var before, l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -142,7 +142,7 @@ test('Logger handles layer "before" callbacks', function (done) { return __await
         }
     });
 }); });
-test('Logger handles a call-specific "before" callback', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger handles a call-specific "before" callback', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var before, l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -169,7 +169,7 @@ test('Logger handles a call-specific "before" callback', function (done) { retur
         }
     });
 }); });
-test('Logger handlers "after" callbacks', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger handlers "after" callbacks', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var after, l, spy;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -194,12 +194,12 @@ test('Logger handlers "after" callbacks', function (done) { return __awaiter(_th
         }
     });
 }); });
-test('Logger alwaysSilent option stops all request errors', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger alwaysSilent option stops all request errors', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var loggingEndpoint, l;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .persist(true)
                     .post('/')
                     .reply(500, {});
@@ -215,10 +215,10 @@ test('Logger alwaysSilent option stops all request errors', function (done) { re
         }
     });
 }); });
-test('Logger without alwaysSilent fails on request errors', function () { return __awaiter(_this, void 0, void 0, function () {
+test('Logger without alwaysSilent fails on request errors', function () { return __awaiter(void 0, void 0, void 0, function () {
     var loggingEndpoint, l;
     return __generator(this, function (_a) {
-        loggingEndpoint = nock_1.default('http://logging.example.com')
+        loggingEndpoint = nock('http://logging.example.com')
             .persist(true)
             .post('/')
             .reply(500, {});
@@ -250,12 +250,12 @@ test('Logger filterLayers with callback', function () {
     expect(l.layers[0].active).toBe(false);
     expect(l.layers[1].active).toBe(true);
 });
-test('Logger calls can specify which layer to use for this call', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger calls can specify which layer to use for this call', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var loggingEndpoint, l;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/')
                     .reply(200, {});
                 l = new index_1.Logger(['console', { type: 'json_post', host: 'http://logging.example.com' }]);
@@ -269,12 +269,12 @@ test('Logger calls can specify which layer to use for this call', function (done
         }
     });
 }); });
-test('Logger calls can specify which layer to use for this call only', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger calls can specify which layer to use for this call only', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var loggingEndpoint, l, index;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .persist()
                     .post('/')
                     .reply(200, {});
@@ -298,13 +298,13 @@ test('Logger calls can specify which layer to use for this call only', function 
         }
     });
 }); });
-test('logError with error stack', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('logError with error stack', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var message, loggingEndpoint, l, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 message = 'Nothing ever works';
-                loggingEndpoint = nock_1.default('http://logging.example.com')
+                loggingEndpoint = nock('http://logging.example.com')
                     .post('/', function (req) {
                     expect(req).toMatchObject({
                         message: message,
@@ -333,7 +333,7 @@ test('logError with error stack', function (done) { return __awaiter(_this, void
         }
     });
 }); });
-test('Logger with null layer works', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger with null layer works', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -348,7 +348,7 @@ test('Logger with null layer works', function (done) { return __awaiter(_this, v
         }
     });
 }); });
-test('Logger with type:null layer works', function (done) { return __awaiter(_this, void 0, void 0, function () {
+test('Logger with type:null layer works', function (done) { return __awaiter(void 0, void 0, void 0, function () {
     var l;
     return __generator(this, function (_a) {
         switch (_a.label) {

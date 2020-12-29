@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - "node"
   - "12"
-  - "10"
+  - "14"
 script:
   - npm run test-coverage
   - npm run eslint-ci

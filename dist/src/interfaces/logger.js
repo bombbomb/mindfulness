@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.LOG_LEVELS = void 0;
 exports.LOG_LEVELS = {
     LOG_NONE: 0,
     LOG_LOG: 1,

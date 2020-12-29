@@ -27,22 +27,14 @@
     "@types/jest": "^22.0.1",
     "@types/nock": "^9.3.1",
     "@types/request-promise-native": "^1.0.17",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-jest": "^25.0.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "babel-preset-env": "^1.7.0",
     "eslint": "^4.15.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.19.1",
-    "express": "^4.17.1",
-    "jest": "^24.9.0",
-    "jest-mock-console": "github:PiereDome/jest-mock-console#6a5e831aa7a2b8a53b1af5fd2d230b27299a0e66",
-    "mute": "^2.0.6",
+    "jest": "^26.6.3",
     "nock": "^11.7.0",
-    "ts-jest": "^24.2.0",
+    "ts-jest": "^26.4.4",
     "ts-node": "^7.0.1",
-    "typescript": "^3.7.3",
+    "typescript": "^3.9.7",
     "typescript-eslint-parser": "^21.0.2"
   },
   "jest": {
@@ -65,7 +57,7 @@
   },
   "dependencies": {
     "debug": "^4.1.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.8"
   }

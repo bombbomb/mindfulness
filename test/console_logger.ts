@@ -1,4 +1,3 @@
-import mute from 'jest-mock-console';
 import { ConsoleLogger } from '../src/contrib/console';
 import { LOG_LEVELS } from '../src/interfaces/logger';
 
@@ -25,12 +24,10 @@ afterAll(() => {
 test('ConsoleLogger logs to the console', async (done) => {
   const l = new ConsoleLogger();
   const message = 'my message';
-  const unmute = mute();
   await l.log(message);
   expect(console.log).toHaveBeenCalled();
   // @ts-ignore
   expect(console.log.mock.calls[0]).toContain(message);
-  unmute();
   done();
 });
 

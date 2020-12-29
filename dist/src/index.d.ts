@@ -19,7 +19,7 @@ declare abstract class MindfulnessBase {
      *
      * @param results Results from all logging layers
      */
-    after(results: any): Promise<any>;
+    after(results: any): Promise<void>;
     /**
      * Deactivate all layers.
      */

@@ -1,5 +1,4 @@
 import * as nock from 'nock';
-import mute from 'jest-mock-console';
 import { Logger } from '../src/index';
 
 beforeEach(() => {
@@ -7,6 +6,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.resetAllMocks();
   nock.cleanAll();
 });
 
@@ -90,9 +90,7 @@ test('log error for payload', async (done) => {
     })
     .reply(200, {});
 
-  const unmute = mute();
   await l.log('Error doing things', new Error('You did everything wrong'));
-  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -113,15 +111,11 @@ test('can debug', async (done) => {
     })
     .reply(200, {});
 
-
-  const c = { ...console };
-  console.info = jest.fn();
+  jest.spyOn(console, 'info');
 
   await l.log('Hello!', { example: 123 });
   expect(console.info).toHaveBeenCalled();
   expect(loggingEndpoint.isDone()).toBe(true);
-
-  console = c;
 
   done();
 });
@@ -153,9 +147,7 @@ test('can change request body', async (done) => {
     })
     .reply(200, {});
 
-  const unmute = mute();
   await l.log('Error doing things', { payload: 234 });
-  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -216,14 +208,12 @@ test('can change request body on a call', async (done) => {
     })
     .reply(200, {});
 
-  const unmute = mute();
   await l.log('Error doing things', { payload: 234 }, {
     requestBodyCallback: (body, details) => ({
       ...body,
       injected: 123,
     }),
   });
-  unmute();
 
   expect(loggingEndpoint.isDone()).toBe(true);
   done();
@@ -238,8 +228,6 @@ test('log fails on post error', async () => {
     .post('/', body => true)
     .reply(500, {});
 
-  const unmute = mute();
-
   try {
     const r = await l.log('test');
     expect(true).toBe(false);
@@ -247,8 +235,6 @@ test('log fails on post error', async () => {
   catch (err) {
     expect(err).toBeDefined();
   }
-
-  unmute();
 });
 
 test('$level variables is processed in the url', async () => {
@@ -296,9 +282,7 @@ describe('log silent()', () => {
       .post('/', body => true)
       .reply(500, {});
 
-    const unmute = mute();
     await expect(l.silent().log('Hello!')).resolves.toMatchObject({ message: '500 - {}' });
-    unmute();
   });
 });
 

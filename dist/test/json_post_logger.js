@@ -48,12 +48,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock = require("nock");
-var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 beforeEach(function () {
     nock.cleanAll();
 });
 afterEach(function () {
+    jest.resetAllMocks();
     nock.cleanAll();
 });
 test('log via post request to example.com', function (done) { return __awaiter(void 0, void 0, void 0, function () {
@@ -132,7 +132,7 @@ test('log object for message', function (done) { return __awaiter(void 0, void 0
     });
 }); });
 test('log error for payload', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var l, loggingEndpoint, unmute;
+    var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -153,11 +153,9 @@ test('log error for payload', function (done) { return __awaiter(void 0, void 0,
                     return true;
                 })
                     .reply(200, {});
-                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, l.log('Error doing things', new Error('You did everything wrong'))];
             case 1:
                 _a.sent();
-                unmute();
                 expect(loggingEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];
@@ -165,7 +163,7 @@ test('log error for payload', function (done) { return __awaiter(void 0, void 0,
     });
 }); });
 test('can debug', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var l, loggingEndpoint, c;
+    var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -181,21 +179,19 @@ test('can debug', function (done) { return __awaiter(void 0, void 0, void 0, fun
                     environment: 'test',
                 })
                     .reply(200, {});
-                c = __assign({}, console);
-                console.info = jest.fn();
+                jest.spyOn(console, 'info');
                 return [4 /*yield*/, l.log('Hello!', { example: 123 })];
             case 1:
                 _a.sent();
                 expect(console.info).toHaveBeenCalled();
                 expect(loggingEndpoint.isDone()).toBe(true);
-                console = c;
                 done();
                 return [2 /*return*/];
         }
     });
 }); });
 test('can change request body', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var l, loggingEndpoint, unmute;
+    var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -220,11 +216,9 @@ test('can change request body', function (done) { return __awaiter(void 0, void 
                     return true;
                 })
                     .reply(200, {});
-                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, l.log('Error doing things', { payload: 234 })];
             case 1:
                 _a.sent();
-                unmute();
                 expect(loggingEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];
@@ -268,7 +262,7 @@ test('can include data defaults', function (done) { return __awaiter(void 0, voi
     });
 }); });
 test('can change request body on a call', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var l, loggingEndpoint, unmute;
+    var l, loggingEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -293,13 +287,11 @@ test('can change request body on a call', function (done) { return __awaiter(voi
                     return true;
                 })
                     .reply(200, {});
-                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, l.log('Error doing things', { payload: 234 }, {
                         requestBodyCallback: function (body, details) { return (__assign(__assign({}, body), { injected: 123 })); },
                     })];
             case 1:
                 _a.sent();
-                unmute();
                 expect(loggingEndpoint.isDone()).toBe(true);
                 done();
                 return [2 /*return*/];
@@ -307,7 +299,7 @@ test('can change request body on a call', function (done) { return __awaiter(voi
     });
 }); });
 test('log fails on post error', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var l, loggingEndpoint, unmute, r, err_1;
+    var l, loggingEndpoint, r, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -317,7 +309,6 @@ test('log fails on post error', function () { return __awaiter(void 0, void 0, v
                 loggingEndpoint = nock(/example/)
                     .post('/', function (body) { return true; })
                     .reply(500, {});
-                unmute = jest_mock_console_1.default();
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
@@ -330,9 +321,7 @@ test('log fails on post error', function () { return __awaiter(void 0, void 0, v
                 err_1 = _a.sent();
                 expect(err_1).toBeDefined();
                 return [3 /*break*/, 4];
-            case 4:
-                unmute();
-                return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -383,7 +372,7 @@ test('logging does not fail when the host includes the scheme', function (done) 
 }); });
 describe('log silent()', function () {
     test('stops an error from propegating', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var l, loggingEndpoint, unmute;
+        var l, loggingEndpoint;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -393,11 +382,9 @@ describe('log silent()', function () {
                     loggingEndpoint = nock('http://logging.example.com')
                         .post('/', function (body) { return true; })
                         .reply(500, {});
-                    unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(l.silent().log('Hello!')).resolves.toMatchObject({ message: '500 - {}' })];
                 case 1:
                     _a.sent();
-                    unmute();
                     return [2 /*return*/];
             }
         });

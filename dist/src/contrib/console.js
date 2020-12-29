@@ -67,6 +67,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
     return r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ConsoleMetrics = exports.ConsoleLogger = void 0;
 var logger_1 = require("../interfaces/logger");
 var logging_1 = require("../util/logging");
 var contrib_logger_1 = require("./contrib_logger");

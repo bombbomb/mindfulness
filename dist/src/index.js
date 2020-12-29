@@ -67,6 +67,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
     return r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Metrics = exports.Logger = void 0;
 var console_1 = require("./contrib/console");
 var null_1 = require("./contrib/null");
 var json_post_1 = require("./contrib/json_post");

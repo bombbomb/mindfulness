@@ -48,7 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var nock = require("nock");
-var jest_mock_console_1 = require("jest-mock-console");
 var index_1 = require("../src/index");
 var metric_1 = require("../src/models/metric");
 // const spies = {
@@ -58,6 +57,7 @@ var metric_1 = require("../src/models/metric");
 //   // warn: jest.spyOn(global.console, 'warn'),
 // };
 afterEach(function () {
+    jest.resetAllMocks();
     nock.cleanAll();
     process.env.NODE_ENV = 'test';
     process.env.ENVIRONMENT = 'test';
@@ -209,14 +209,13 @@ test('send JSON with JSON replacer', function (done) { return __awaiter(void 0, 
     });
 }); });
 test('can debug metrics', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var m, unmute, spy, metricsEndpoint;
+    var m, spy, metricsEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 m = new index_1.Metrics([
                     { type: 'json_post', host: 'metrics.example.com', debug: true },
                 ]);
-                unmute = jest_mock_console_1.default();
                 spy = jest.spyOn(console, 'info');
                 metricsEndpoint = nock('http://metrics.example.com')
                     .post('/', {
@@ -228,7 +227,6 @@ test('can debug metrics', function () { return __awaiter(void 0, void 0, void 0,
             case 1:
                 _a.sent();
                 expect(spy).toHaveBeenCalled();
-                unmute();
                 expect(metricsEndpoint.isDone()).toBe(true);
                 return [2 /*return*/];
         }
@@ -554,7 +552,7 @@ test('layer "before" callbacks can change metric and category value in the reque
     });
 }); });
 test('Metric post failure should throw an error', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var m, correctEndpoint, unmute;
+    var m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -574,12 +572,10 @@ test('Metric post failure should throw an error', function (done) { return __awa
                     value: 10,
                 })
                     .reply(500, {});
-                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10))
                         .rejects.toThrowError()];
             case 1:
                 _a.sent();
-                unmute();
                 done();
                 return [2 /*return*/];
         }
@@ -587,7 +583,7 @@ test('Metric post failure should throw an error', function (done) { return __awa
 }); });
 describe('Metric silent()', function () {
     test('stops errors from propagating', function () { return __awaiter(void 0, void 0, void 0, function () {
-        var m, correctEndpoint, unmute;
+        var m, correctEndpoint;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -607,12 +603,10 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
-                    unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.toMatchObject({ message: '500 - {}' })];
                 case 1:
                     _a.sent();
-                    unmute();
                     // errors are still captured in the object...
                     expect(m.errors).toHaveLength(1);
                     return [2 /*return*/];
@@ -620,7 +614,7 @@ describe('Metric silent()', function () {
         });
     }); });
     test('only stops one error from propagating', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-        var m, correctEndpoint, unmute;
+        var m, correctEndpoint;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -640,7 +634,6 @@ describe('Metric silent()', function () {
                         value: 10,
                     })
                         .reply(500, {});
-                    unmute = jest_mock_console_1.default();
                     return [4 /*yield*/, expect(m.silent().increment('awesome', 'myMetric', 10))
                             .resolves.toMatchObject({ message: '500 - {}' })];
                 case 1:
@@ -650,7 +643,6 @@ describe('Metric silent()', function () {
                             .rejects.toThrowError()];
                 case 2:
                     _a.sent();
-                    unmute();
                     done();
                     return [2 /*return*/];
             }
@@ -688,7 +680,7 @@ describe('Metric silent()', function () {
     }); });
 });
 test('default json post failure logs instead of rejects', function () { return __awaiter(void 0, void 0, void 0, function () {
-    var m, correctEndpoint, unmute;
+    var m, correctEndpoint;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -704,7 +696,7 @@ test('default json post failure logs instead of rejects', function () { return _
                 correctEndpoint = nock(/metrics\.example\.com/)
                     .post(/.+/, function (body) { return true; })
                     .reply(500, {});
-                unmute = jest_mock_console_1.default();
+                console.error = jest.fn();
                 return [4 /*yield*/, expect(m.increment('awesome', 'myMetric', 10)).resolves];
             case 1:
                 _a.sent();
@@ -712,7 +704,6 @@ test('default json post failure logs instead of rejects', function () { return _
                 // above, so we need to delay slightly to test.
                 setTimeout(function () {
                     expect(console.error).toHaveBeenCalled();
-                    unmute();
                 }, 500);
                 return [2 /*return*/];
         }

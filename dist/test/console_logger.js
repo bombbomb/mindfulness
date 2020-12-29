@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var jest_mock_console_1 = require("jest-mock-console");
 var console_1 = require("../src/contrib/console");
 var logger_1 = require("../src/interfaces/logger");
 var spies = {
@@ -57,20 +56,18 @@ afterAll(function () {
     });
 });
 test('ConsoleLogger logs to the console', function (done) { return __awaiter(void 0, void 0, void 0, function () {
-    var l, message, unmute;
+    var l, message;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 l = new console_1.ConsoleLogger();
                 message = 'my message';
-                unmute = jest_mock_console_1.default();
                 return [4 /*yield*/, l.log(message)];
             case 1:
                 _a.sent();
                 expect(console.log).toHaveBeenCalled();
                 // @ts-ignore
                 expect(console.log.mock.calls[0]).toContain(message);
-                unmute();
                 done();
                 return [2 /*return*/];
         }

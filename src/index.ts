@@ -46,7 +46,7 @@ abstract class MindfulnessBase {
    *
    * @param results Results from all logging layers
    */
-  async after(results: any): Promise<any> {
+  async after(results: any): Promise<void> {
     return new Promise(async (resolve, reject) => {
       if (this.options.after) {
         await this.options.after.apply(this, results);

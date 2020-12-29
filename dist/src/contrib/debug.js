@@ -49,6 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DebugLogger = void 0;
 var debug_1 = require("debug");
 var contrib_logger_1 = require("./contrib_logger");
 /**

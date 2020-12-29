@@ -1,5 +1,4 @@
 import * as nock from 'nock';
-import mute from 'jest-mock-console';
 import { Metrics } from '../src/index';
 import Metric from '../src/models/metric';
 
@@ -11,6 +10,7 @@ import Metric from '../src/models/metric';
 // };
 
 afterEach(() => {
+  jest.resetAllMocks();
   nock.cleanAll();
   process.env.NODE_ENV = 'test';
   process.env.ENVIRONMENT = 'test';
@@ -150,7 +150,6 @@ test('can debug metrics', async () => {
     { type: 'json_post', host: 'metrics.example.com', debug: true },
   ]);
 
-  const unmute = mute();
   const spy = jest.spyOn(console, 'info');
   const metricsEndpoint = nock('http://metrics.example.com')
     .post('/', {
@@ -161,7 +160,6 @@ test('can debug metrics', async () => {
 
   await m.increment('myMetric');
   expect(spy).toHaveBeenCalled();
-  unmute();
 
   expect(metricsEndpoint.isDone()).toBe(true);
 });
@@ -463,10 +461,8 @@ test('Metric post failure should throw an error', async (done) => {
     .reply(500, {});
 
 
-  const unmute = mute();
   await expect(m.increment('awesome', 'myMetric', 10))
     .rejects.toThrowError();
-  unmute();
 
   done();
 });
@@ -491,10 +487,8 @@ describe('Metric silent()', () => {
       })
       .reply(500, {});
 
-    const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
       .resolves.toMatchObject({ message: '500 - {}' });
-    unmute();
 
     // errors are still captured in the object...
     expect(m.errors).toHaveLength(1);
@@ -519,14 +513,12 @@ describe('Metric silent()', () => {
       })
       .reply(500, {});
 
-    const unmute = mute();
     await expect(m.silent().increment('awesome', 'myMetric', 10))
       .resolves.toMatchObject({ message: '500 - {}' });
 
     expect(m.options.silent).toBe(false);
     await expect(m.increment('awesome', 'myMetric', 10))
       .rejects.toThrowError();
-    unmute();
 
     done();
   });
@@ -571,14 +563,11 @@ test('default json post failure logs instead of rejects', async () => {
   const correctEndpoint = nock(/metrics\.example\.com/)
     .post(/.+/, body => true)
     .reply(500, {});
-
-  const unmute = mute();
-
+  console.error = jest.fn();
   await expect(m.increment('awesome', 'myMetric', 10)).resolves;
   // for some reason, console.error does not happen in the await statement
   // above, so we need to delay slightly to test.
   setTimeout(() => {
     expect(console.error).toHaveBeenCalled();
-    unmute();
   }, 500);
 });

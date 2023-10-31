@@ -1,12 +1,13 @@
 import { MindfulnessOptions, DetailsInterface } from './options';
 import { MetricInterface } from './metrics';
+import { LoggerBeforeResult } from './logger';
 
 export interface BeforeCallback {
   (details: DetailsInterface, options: MindfulnessOptions): Promise<DetailsInterface>;
 }
 
 export interface MetricsBeforeCallback {
-  (metricType: string, metric: MetricInterface, options: MindfulnessOptions): Promise<any>;
+  (metricType: string, metric: MetricInterface, options: MindfulnessOptions): Promise<unknown>;
 }
 
 export interface MetricsAfterCallback {
@@ -14,11 +15,11 @@ export interface MetricsAfterCallback {
 }
 
 export interface MetricsRequestBodyCallback {
-  (body: object, details: object): object;
+  (body: object, details: object): Record<string, unknown>;
 }
 
 export interface LoggerBeforeCallback {
-  (message: string, payload?: any, options?: MindfulnessOptions): Promise<{ message: string, payload: any, options: object }>;
+  (message: string, payload?: unknown, options?: MindfulnessOptions): Promise<LoggerBeforeResult>;
 }
 
 export interface LoggerAfterCallback {

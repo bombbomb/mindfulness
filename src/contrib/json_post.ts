@@ -1,20 +1,20 @@
-// import request from 'request-promise-native';
+/* eslint-disable lines-between-class-members */
 import { get } from 'lodash';
-import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
+import { LoggerInterface, LOG_LEVELS } from '../interfaces/logger';
 import ContribLogger from './contrib_logger';
 import ContribMetrics from './contrib_metrics';
 import getLogLevelConstant from '../util/logging';
-import { MetricsInterface, M } from '../interfaces/metrics';
+import { MetricsInterface } from '../interfaces/metrics';
 import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
 import Metric from '../models/metric';
 import getMindfulnessVersion from '../util/version';
 import Mindfulness from './mindfulness';
-
-// need to use require() syntax because this package does not define default...
-const request = require('request-promise-native');
+import { MetricsRequestBodyCallback } from '../interfaces/callbacks';
+import { ResponseError } from '../errors/ResponseError';
 
 export class JsonPostHandler {
   parentObject: Mindfulness;
+
   version: string;
 
   constructor(parent: Mindfulness) {
@@ -27,7 +27,7 @@ export class JsonPostHandler {
    * @param details Body message details
    * @param options Request options
    */
-  async buildBody(details: object, options: MindfulnessOptions): Promise<object> {
+  async buildBody(details: object, options: MindfulnessOptions): Promise<Record<string, unknown>> {
     const body = {};
 
     if (!this.version) {
@@ -87,10 +87,10 @@ export class JsonPostHandler {
    * @param payload Current payload
    * @param options Call-specific options
    */
-  async getRequestBody(details: DetailsInterface, options: MindfulnessOptions = {}): Promise<object> {
+  async getRequestBody(details: DetailsInterface, options: MindfulnessOptions = {}): Promise<BodyInit> {
     const dataDefaults = (options.dataDefaults) ? options.dataDefaults : {};
     const builtBody = await this.buildBody(details, options);
-    let body = {
+    let body: ReturnType<MetricsRequestBodyCallback> = {
       ...builtBody,
       ...dataDefaults,
     };
@@ -102,7 +102,7 @@ export class JsonPostHandler {
       });
     }
 
-    return body;
+    return JSON.stringify(body, options.jsonReplacer ?? undefined);
   }
 
   /**
@@ -113,7 +113,7 @@ export class JsonPostHandler {
    * @param metric The metric being updated
    * @param options Call-specific options.
    */
-  async getRequestOptions(callRequest: object, details: DetailsInterface, options: MindfulnessOptions): Promise<object> {
+  async getRequestOptions(callRequest: RequestInit, details: DetailsInterface, options: MindfulnessOptions): Promise<RequestInit> {
     let thisCallRequest = callRequest;
 
     if (options.requestOptionsCallback) {
@@ -126,21 +126,13 @@ export class JsonPostHandler {
       }
     }
 
-    const thisRequest: { method: string, uri: string, body: (string | object), json?: boolean, jsonReplacer? } = {
+    const thisRequest: RequestInit = {
       ...thisCallRequest,
       method: 'POST',
-      uri: this.getRequestUri(details, options),
       body: await this.getRequestBody(details, options),
     };
 
-    if (typeof thisRequest.body === 'object') {
-      if (options.jsonReplacer) {
-        thisRequest.jsonReplacer = options.jsonReplacer;
-      }
-      thisRequest.json = true;
-    }
-
-    return Promise.resolve(thisRequest);
+    return thisRequest;
   }
 
   /**
@@ -150,7 +142,7 @@ export class JsonPostHandler {
    * @param options An object of options for this call.
    */
   getRequestPath(details: DetailsInterface, options: MindfulnessOptions) {
-    if (typeof details.metricType !== 'undefined') {
+    if (typeof details.metricType === 'string') {
       if (typeof options.paths !== 'undefined' && typeof options.paths[details.metricType] !== 'undefined') {
         return options.paths[details.metricType];
       }
@@ -211,21 +203,20 @@ export class JsonPostHandler {
     return url;
   }
 
-  async post(details: object, options: MindfulnessOptions): Promise<any> {
+  async post(details: DetailsInterface, options: MindfulnessOptions) {
     if (!this.version) {
       this.version = await getMindfulnessVersion();
     }
 
     const requestOptions: object = await this.getRequestOptions({
-      json: true,
-      resolveWithFullResponse: true,
       headers: {
         'User-Agent': `mindfulness/${this.version}`,
       },
     }, details, options);
 
     this.parentObject.debug('mindfulness logging', { requestOptions });
-    return request(requestOptions);
+    // eslint-disable-next-line no-return-await
+    return await fetch(this.getRequestUri(details, options), requestOptions);
   }
 }
 
@@ -260,29 +251,30 @@ export class JsonPostLogger extends ContribLogger implements LoggerInterface {
    * @param payload The payload to include
    * @param options Call-specific options
    */
-  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const callOptions = this.getCallOptions(options);
+  async call(level: string, message: unknown, payload?: unknown, options?: MindfulnessOptions): Promise<Response | null> {
+    const callOptions = this.getCallOptions(options);
 
-      // call & wait for our before handlers
-      const beforeResult = await this.before({ message, payload }, callOptions);
+    // call & wait for our before handlers
+    const beforeResult = await this.before({ message, payload }, callOptions);
 
-      if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
-        const thisMessage = this.getMessage(beforeResult.message);
-        const thisPayload = this.getPayload(beforeResult.payload);
-        try {
-          const response = await this.json.post({ level, message: thisMessage, payload: thisPayload }, callOptions);
-          resolve(response);
+    if (callOptions.logLevel !== LOG_LEVELS.LOG_NONE && callOptions.logLevel & getLogLevelConstant(level)) {
+      const thisMessage = this.getMessage(beforeResult.message);
+      const thisPayload = this.getPayload(beforeResult.payload);
+      try {
+        const response = await this.json.post({ level, message: thisMessage, payload: thisPayload }, callOptions);
+        if (!response.ok) {
+          throw new ResponseError('Received non-OK status from JSON post', response);
         }
-        catch (e) {
-          this.debug('mindfulness logging error', e);
-          reject(e);
-        }
+        return response;
       }
-      else {
-        resolve();
+      catch (e) {
+        this.debug('mindfulness logging error', e);
+        throw e;
       }
-    });
+    }
+
+    // not logged due to log levels
+    return null;
   }
 
   getMessage(message) {
@@ -340,22 +332,26 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
    * @param metric The metric being updated
    * @param options Call-specific options
    */
-  async call(metricType: string, metric: Metric, options?: MindfulnessOptions): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const callOptions = this.getCallOptions(options);
+  async call<CallType extends Exclude<keyof MetricsInterface, 'active'>>(metricType: CallType, metric: Metric, options?: MindfulnessOptions): Promise<Response | null> {
+    const callOptions = this.getCallOptions(options);
 
-      // call & wait for our before handlers
-      const beforeResult = await this.before({ metricType, metric }, callOptions);
+    // call & wait for our before handlers
+    const beforeResult = await this.before({ metricType, metric }, callOptions);
 
-      try {
-        const response = await this.json.post({ metricType: beforeResult.metricType, metric: beforeResult.metric }, callOptions);
-        resolve(response);
+    try {
+      const resultMetricType = 'metricType' in beforeResult && typeof beforeResult.metricType === 'string'
+        ? beforeResult.metricType
+        : metricType;
+      const response = await this.json.post({ metricType: resultMetricType, metric: beforeResult.metric }, callOptions);
+      if (!response.ok) {
+        throw new ResponseError('Error from post', response);
       }
-      catch (e) {
-        this.debug('mindfulness metrics error', e);
-        reject(e);
-      }
-    });
+      return response;
+    }
+    catch (e) {
+      this.debug('mindfulness metrics error', e);
+      throw e;
+    }
   }
 
   debug(...args) {
@@ -364,35 +360,27 @@ export class JsonPostMetrics extends ContribMetrics implements MetricsInterface 
     }
   }
 
-  /**
-   * Used to create the list of arguments each metric function uses
-   *
-   * @param args Arguments array
-   */
-  settleArguments(...args: any[]): {args: any[], metric: Metric, options: object} {
-    const m = new Metric(...args);
-    let { options } = this;
-
-    // in cases where the first argument is a Metric object and the second one is an object,
-    // we'll assume that it we're getting: (metric, options)
-    if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
-      [, options] = args;
-    }
-
-    return {
-      args,
-      metric: m,
-      options,
-    };
+  async decrement(metricOrCategory: string, subMetric: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async decrement(metricOrCategory: string, subMetric: string, options?: Partial<MindfulnessOptions>)
+  async decrement(metricOrCategory: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async decrement(metricOrCategory: Metric | string, subMetric = null, value: unknown = 1, options: Partial<MindfulnessOptions> = {}): Promise<unknown> {
+    const thisMetric = metricOrCategory instanceof Metric ? metricOrCategory : new Metric(metricOrCategory, subMetric, value);
+    return this.call('decrement', thisMetric, options);
   }
 
-  async increment(...args: any[]): Promise<any> {
-    const { args: callArgs, metric, options } = this.settleArguments(...args);
-    return this.call('increment', metric, options);
+  async increment(metricOrCategory: string, subMetric: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async increment(metricOrCategory: string, subMetric: string, options?: Partial<MindfulnessOptions>)
+  async increment(metricOrCategory: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async increment(metricOrCategory: Metric | string, subMetric = null, value: unknown = 1, options: Partial<MindfulnessOptions> = {}): Promise<unknown> {
+    const thisMetric = metricOrCategory instanceof Metric ? metricOrCategory : new Metric(metricOrCategory, subMetric, value);
+    return this.call('increment', thisMetric, options);
   }
 
-  async timing(...args: any[]): Promise<any> {
-    const { args: callArgs, metric, options } = this.settleArguments(...args);
-    return this.call('timing', metric, options);
+  async timing(metricOrCategory: string, subMetric: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async timing(metricOrCategory: string, subMetric: string, options?: Partial<MindfulnessOptions>)
+  async timing(metricOrCategory: string, value: unknown, options?: Partial<MindfulnessOptions>)
+  async timing(metricOrCategory: Metric | string, subMetric = null, value: unknown = 1, options: Partial<MindfulnessOptions> = {}): Promise<unknown> {
+    const thisMetric = metricOrCategory instanceof Metric ? metricOrCategory : new Metric(metricOrCategory, subMetric, value);
+    return this.call('timing', thisMetric, options);
   }
 }

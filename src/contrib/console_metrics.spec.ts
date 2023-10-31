@@ -1,4 +1,4 @@
-import { Metrics } from '../src/index';
+import { Metrics } from '../index';
 
 const spies = {
   log: jest.spyOn(global.console, 'log'),

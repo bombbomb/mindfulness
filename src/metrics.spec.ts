@@ -1,14 +1,21 @@
-import * as nock from 'nock';
-import { Metrics } from '../src/index';
-import { MetricInterface } from '../src/interfaces/metrics';
-import { MindfulnessOptions } from '../src/interfaces/options';
+import { Metrics } from './index';
+import { MetricInterface } from './interfaces/metrics';
+import { MindfulnessOptions } from './interfaces/options';
 
 const spies = {
-  // log: jest.spyOn(global.console, 'log'),
   info: jest.spyOn(global.console, 'info'),
-  // error: jest.spyOn(global.console, 'error'),
-  // warn: jest.spyOn(global.console, 'warn'),
 };
+
+const mockIncrement = jest.fn().mockImplementation(() => Promise.resolve());
+
+jest.mock('./contrib/json_post', () => ({
+  JsonPostMetrics: class {
+    increment = mockIncrement;
+  },
+  JsonPostLogger: class {
+    increment = mockIncrement;
+  },
+}));
 
 afterEach(() => {
   Object.keys(spies).forEach((spy) => {
@@ -21,6 +28,10 @@ afterAll(() => {
     spies[spy].mockReset();
     spies[spy].mockRestore();
   });
+});
+
+beforeEach(() => {
+  mockIncrement.mockReset();
 });
 
 test('Metrics with no layers defaults to console', () => {
@@ -38,27 +49,24 @@ test('Metrics works with type:null layer', () => {
   expect(m.layers).toHaveLength(1);
 });
 
-test('Metris.increment() sends metric', async (done) => {
+test('Metrics.increment() sends metric', async () => {
   const m = new Metrics();
   await m.increment('metric');
   expect(spies.info).toHaveBeenCalled();
-  done();
 });
 
-test('Metris.timing() sends metric', async (done) => {
+test('Metrics.timing() sends metric', async () => {
   const m = new Metrics();
   await m.timing('metric', 100);
   expect(spies.info).toHaveBeenCalled();
-  done();
 });
 
-test('Metrics.timing() fails with no value', async (done) => {
+test('Metrics.timing() fails with no value', async () => {
   const m = new Metrics();
   await expect(m.timing('metric')).rejects.toThrow(/value/);
-  done();
 });
 
-test('Metrics handles "before" calls', async (done) => {
+test('Metrics handles "before" calls', async () => {
   const before = (metricType: string, metric: MetricInterface, options: MindfulnessOptions) => (
     new Promise((resolve) => {
       const thisMetric = metric;
@@ -73,11 +81,9 @@ test('Metrics handles "before" calls', async (done) => {
   await m.increment('metric');
 
   expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
-
-  done();
 });
 
-test('Metrics handles layer "before" calls', async (done) => {
+test('Metrics handles layer "before" calls', async () => {
   const before = (metricType: string, metric: MetricInterface, options: MindfulnessOptions) => (
     new Promise((resolve) => {
       const thisMetric = metric;
@@ -92,13 +98,11 @@ test('Metrics handles layer "before" calls', async (done) => {
   await m.increment('metric');
 
   expect(spies.info.mock.calls[0][0]).toMatch(/prefix\.metric.+10$/);
-
-  done();
 });
 
-test('Metrics handles "after" calls', async (done) => {
+test('Metrics handles "after" calls', async () => {
   let afterCalled = false;
-  const after = results => (
+  const after = (results) => (
     new Promise((resolve) => {
       afterCalled = true;
       resolve(results);
@@ -109,27 +113,21 @@ test('Metrics handles "after" calls', async (done) => {
   await m.increment('metric');
 
   expect(afterCalled).toBe(true);
-
-  done();
 });
 
-test('Metrics has an onError hook', async (done) => {
+test('Metrics has an onError hook', async () => {
   const options = {
-    onError: (error) => {
-    },
+    onError: jest.fn(),
   };
-
-  const spy = jest.spyOn(options, 'onError');
 
   const m = new Metrics([
     { type: 'json_post', host: 'metrics.example.com' },
   ], options);
 
-  const endpoint = nock(/example\.com/).post('/').reply(500, {});
+  mockIncrement.mockRejectedValue(new Error());
 
   await m.silent().increment('metric');
 
-  expect(spy).toHaveBeenCalled();
-
-  done();
+  expect(options.onError).toHaveBeenCalled();
+  expect(mockIncrement).toHaveBeenCalled();
 });

@@ -5,8 +5,9 @@ import { MindfulnessOptions, DetailsInterface } from '../interfaces/options';
  *
  * Contains some shared functionality used by contrib modules.
  */
-export default abstract class Mindfulness {
+export default abstract class Mindfulness<BeforeResult = unknown> {
   options: MindfulnessOptions;
+
   type: string;
 
   constructor(options?: MindfulnessOptions) {
@@ -22,79 +23,57 @@ export default abstract class Mindfulness {
    * @param payload The payload being logged
    * @param options The settings for this call
    */
-  async before(details: DetailsInterface, options?: object): Promise<any> {
-    const before = async () => (
-      new Promise(async (resolve, reject) => {
-        const callOptions = this.getCallOptions(options);
+  async before(details: DetailsInterface, options?: Partial<MindfulnessOptions>): Promise<BeforeResult> {
+    const before = async () => {
+      const callOptions = this.getCallOptions(options);
 
-        if (!callOptions.before) {
-          return resolve({ ...details });
-        }
+      if (!callOptions.before) {
+        return { ...details };
+      }
 
-        const args = [];
-        switch (this.type) {
-          // logger
-          case 'logger':
+      const args = [];
+      switch (this.type) {
+        // logger
+        case 'logger':
 
-            if (callOptions && callOptions.before) {
-              switch (callOptions.before.length) {
-                case 3:
-                  args.push(details.message);
-                  args.push(details.payload);
-                  break;
+          if (callOptions && callOptions.before) {
+            switch (callOptions.before.length) {
+              case 3:
+                args.push(details.message);
+                args.push(details.payload);
+                break;
 
-                default:
-                  args.push({ ...details });
-              }
+              default:
+                args.push({ ...details });
             }
+          }
 
-            break;
+          break;
 
-          // metrics
-          default:
+        // metrics
+        default:
 
-            if (callOptions && callOptions.before) {
-              switch (callOptions.before.length) {
-                case 3:
-                  args.push(details.metricType);
-                  args.push(details.metric);
-                  break;
+          if (callOptions && callOptions.before) {
+            // switch based on the number of arguments for this function...
+            switch (callOptions.before.length) {
+              case 3:
+                args.push(details.metricType);
+                args.push(details.metric);
+                break;
 
-                default:
-                  args.push({ ...details });
-              }
+              default:
+                args.push({ ...details });
             }
+          }
 
-            break;
-        }
+          break;
+      }
 
-        args.push(callOptions);
+      args.push(callOptions);
 
-        const result = await callOptions.before.apply(this, args);
-        return resolve({ ...result });
-
-        // // // logger
-        // // if (callOptions && <LoggerBeforeCallback>callOptions.before) {
-        // //   const args = [details.level, details.message, details.payload];
-        // //   const result = await <LoggerBeforeCallback>callOptions.before(details.message, details.payload, callOptions);
-        // //   return resolve({ message: result.message, payload: result.payload, options: callOptions });
-        // // }
-        // // else if (callOptions && <MetricsBeforeCallback>callOptions.before) {
-        // //   const args = [details.metricType, details.metric];
-        // //   const result = await callOptions.before(...args, callOptions);
-        // //   return resolve({ metricType: result.metricType, metric: result.metric, options: callOptions });
-        // // }
-        // // else if (callOptions && <BeforeCallback>callOptions.before) {
-        // //   const result = await callOptions.before(details, callOptions);
-        // //   return resolve(result, callOptions);
-        // // }
-
-        // if (details.message) {
-        //   return resolve({ message: details.message, payload: details.payload, options: callOptions });
-        // }
-        // return resolve({ metricType: details.metricType, metric: details.metric, options: callOptions });
-      })
-    );
+      const result = await callOptions.before.apply(this, args);
+      return { ...result };
+    };
 
     return before();
   }

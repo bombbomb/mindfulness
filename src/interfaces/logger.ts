@@ -1,10 +1,17 @@
-import { LoggerAfterCallback, LoggerBeforeCallback } from './callbacks';
+import type { MindfulnessOptions } from './options';
 
 export interface LoggerInterface {
-  log(message: any, payload?: any, options?: object): Promise<any>
-  logError(message: any, payload?: any, options?: object): Promise<string>
-  logInfo(message: any, payload?: any, options?: object): Promise<string>
-  logWarn(message: any, payload?: any, options?: object): Promise<string>
+  active: boolean;
+  log(message: unknown, payload?: unknown, options?: object): Promise<unknown>
+  logError(message: unknown, payload?: unknown, options?: object): Promise<unknown>
+  logInfo(message: unknown, payload?: unknown, options?: object): Promise<unknown>
+  logWarn(message: unknown, payload?: unknown, options?: object): Promise<unknown>
+}
+
+export type LoggerBeforeResult = {
+  message: string;
+  payload: unknown;
+  options: MindfulnessOptions;
 }
 
 export const LOG_LEVELS = {
@@ -20,11 +27,11 @@ export interface LoggerLayer {
   type: string;
   handler?: LoggerInterface;
   logLevel?: number;
-  [propName: string]: any;
+  [propName: string]: unknown;
 }
 
 export interface L {
   layers: object[];
-  before: (message: string, payload?: any) => Promise<{ message: string, payload: any, options: object }>;
-  after: (err: object) => Promise<any>;
+  before: (message: string, payload?: unknown, options?: MindfulnessOptions) => Promise<LoggerBeforeResult>;
+  after: (err: object) => Promise<unknown>;
 }

@@ -1,8 +1,10 @@
-import { LoggerInterface, LOG_LEVELS, L } from '../interfaces/logger';
+import { LOG_LEVELS, LoggerBeforeResult } from '../interfaces/logger';
 import Mindfulness from './mindfulness';
 import { MindfulnessOptions } from '../interfaces/options';
 
-export default abstract class ContribLogger extends Mindfulness {
+export default abstract class ContribLogger extends Mindfulness<LoggerBeforeResult> {
+  active = false;
+
   type = 'logger';
 
   constructor(options?: MindfulnessOptions) {
@@ -12,7 +14,7 @@ export default abstract class ContribLogger extends Mindfulness {
     });
   }
 
-  abstract async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any>
+  abstract call(level: string, message: unknown, payload?: unknown, options?: MindfulnessOptions): Promise<unknown>
 
   /**
    * Log a message to console.log
@@ -20,7 +22,7 @@ export default abstract class ContribLogger extends Mindfulness {
    * @param payload Additional payload to log
    * @param options Optional call-specific options
    */
-  async log(message: any, payload?: object, options?: MindfulnessOptions): Promise<any> {
+  async log(message: unknown, payload?: object, options?: MindfulnessOptions): Promise<unknown> {
     return this.call('log', message, payload, options);
   }
 
@@ -30,7 +32,7 @@ export default abstract class ContribLogger extends Mindfulness {
    * @param payload Additional payload to log
    * @param options Optional call-specific options
    */
-  async logError(message: any, payload?: object, options?: MindfulnessOptions): Promise<any> {
+  async logError(message: unknown, payload?: object, options?: MindfulnessOptions): Promise<unknown> {
     return this.call('error', message, payload, options);
   }
 
@@ -40,7 +42,7 @@ export default abstract class ContribLogger extends Mindfulness {
    * @param payload Additional payload to log
    * @param options Optional call-specific options
    */
-  async logInfo(message: any, payload?: object, options?: MindfulnessOptions): Promise<any> {
+  async logInfo(message: unknown, payload?: object, options?: MindfulnessOptions): Promise<unknown> {
     return this.call('info', message, payload, options);
   }
 
@@ -50,7 +52,7 @@ export default abstract class ContribLogger extends Mindfulness {
    * @param payload Additional payload to log
    * @param options Optional call-specific options
    */
-  async logWarn(message: any, payload?: object): Promise<any> {
+  async logWarn(message: unknown, payload?: object): Promise<unknown> {
     return this.call('warn', message, payload);
   }
 }

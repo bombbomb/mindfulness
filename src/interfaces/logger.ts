@@ -1,4 +1,5 @@
 import type { MindfulnessOptions } from './options';
+import { contribLoggers } from '../contrib';
 
 export interface LoggerInterface {
   active: boolean;
@@ -24,7 +25,7 @@ export const LOG_LEVELS = {
 };
 
 export interface LoggerLayer {
-  type: string;
+  type: keyof typeof contribLoggers;
   handler?: LoggerInterface;
   logLevel?: number;
   [propName: string]: unknown;

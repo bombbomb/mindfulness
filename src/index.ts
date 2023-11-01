@@ -1,14 +1,10 @@
-import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
-import { NullLogger, NullMetrics } from './contrib/null';
-import { JsonPostMetrics } from './contrib/JsonPostMetrics';
-import { JsonPostLogger } from './contrib/JsonPostLogger';
+import { contribLoggers, contribMetrics } from './contrib';
 import {
  L, LoggerLayer, LOG_LEVELS, LoggerInterface, LoggerBeforeResult,
 } from './interfaces/logger';
 import { M, MetricInterface, MetricsInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 import { MindfulnessOptions } from './interfaces/options';
-import { DebugLogger } from './contrib/debug';
 import { MetricsRequestBodyCallback } from './interfaces/callbacks';
 
 type FilterFunction = (layer: unknown) => boolean;
@@ -23,19 +19,6 @@ type MetricLayer = {
   dataDefaults?: MindfulnessOptions['dataDefaults'];
   paths?: MindfulnessOptions['paths'];
  }
-
-const contribLoggers = {
-  console: ConsoleLogger,
-  json_post: JsonPostLogger,
-  null: NullLogger,
-  debug: DebugLogger,
-} as const;
-
-const contribMetrics = {
-  console: ConsoleMetrics,
-  json_post: JsonPostMetrics,
-  null: NullMetrics,
-} as const;
 
 /**
  * Base mindfulness class used for Logger and Metrics.
@@ -179,19 +162,24 @@ export class Logger extends MindfulnessBase implements L {
       callLayers = ['console'];
     }
 
+    const contribLoggerKeys = Object.keys(contribLoggers);
+
     // add any layers that may exist
     callLayers.forEach((layer) => {
       let thisLayer: LoggerInterface|null = null;
 
       // user passed in a string
       if (typeof layer === 'string') {
-        if (Object.keys(contribLoggers).indexOf(layer) < 0) {
+        if (!contribLoggerKeys.includes(layer)) {
           throw new Error(`Could not find layer type: ${layer}`);
         }
         thisLayer = new contribLoggers[layer]() as unknown as LoggerInterface;
       }
       // this is a LoggerLayer
-      else if (typeof layer === 'object' && layer.type && Object.keys(contribLoggers).indexOf(layer.type) >= 0) {
+      else if (typeof layer === 'object' && layer.type) {
+        if (!contribLoggerKeys.includes(layer.type)) {
+          throw new Error(`Could not find layer type: ${layer}`);
+        }
         thisLayer = new contribLoggers[layer.type](layer);
       }
 

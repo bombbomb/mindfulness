@@ -1,6 +1,7 @@
 import { Logger } from './index';
 import { JsonPostLogger } from './contrib/JsonPostLogger';
 import { ConsoleLogger } from './contrib/console';
+import { contribLoggers } from './contrib';
 
 const spies = {
   log: jest.spyOn(global.console, 'log'),
@@ -26,11 +27,10 @@ afterAll(() => {
   });
 });
 
-test('Logger with console logs to console', async (done) => {
+test('Logger with console logs to console', async () => {
   const l = new Logger(['console']);
   await l.log('my message');
   expect(spies.log).toHaveBeenCalled();
-  done();
 });
 
 test('Logger with no arguments gets console layer', async () => {
@@ -53,7 +53,7 @@ test('Logger with POST layer gets correct layer', () => {
 });
 
 test('Logger with incorrect layer throws error', () => {
-  expect(() => new Logger([{ type: 'fake_logger' }])).toThrowError();
+  expect(() => new Logger([{ type: 'fake_logger' as keyof typeof contribLoggers }])).toThrowError();
 });
 
 test('Logger handles "before" callbacks', async () => {

@@ -1,4 +1,4 @@
-import Metric from '../src/models/metric';
+import Metric from './metric';
 
 describe('Creating Metric instances from arrays', () => {
   [

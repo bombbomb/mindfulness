@@ -8,10 +8,13 @@ const spies = {
 
 const mockIncrement = jest.fn().mockImplementation(() => Promise.resolve());
 
-jest.mock('./contrib/json_post', () => ({
+jest.mock('./contrib/JsonPostMetrics', () => ({
   JsonPostMetrics: class {
     increment = mockIncrement;
   },
+}));
+
+jest.mock('./contrib/JsonPostLogger', () => ({
   JsonPostLogger: class {
     increment = mockIncrement;
   },

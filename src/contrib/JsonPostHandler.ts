@@ -212,9 +212,6 @@ export class JsonPostHandler {
     // eslint-disable-next-line no-return-await
     const promise = fetch(requestUrl, requestOptions);
     const response = await promise;
-    if (response === undefined) {
-      throw new Error('WTH');
-    }
     return response;
   }
 }

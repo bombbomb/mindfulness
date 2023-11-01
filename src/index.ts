@@ -1,24 +1,24 @@
-import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
-import { NullLogger, NullMetrics } from './contrib/null';
-import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
-import { L, LoggerLayer, LOG_LEVELS } from './interfaces/logger';
-import { M, MetricInterface } from './interfaces/metrics';
+import { contribLoggers, contribMetrics } from './contrib';
+import {
+ L, LoggerLayer, LOG_LEVELS, LoggerInterface, LoggerBeforeResult,
+} from './interfaces/logger';
+import { M, MetricInterface, MetricsInterface } from './interfaces/metrics';
 import Metric from './models/metric';
 import { MindfulnessOptions } from './interfaces/options';
-import { DebugLogger } from './contrib/debug';
+import { MetricsRequestBodyCallback } from './interfaces/callbacks';
 
-const contribLoggers = {
-  console: ConsoleLogger,
-  json_post: JsonPostLogger,
-  null: NullLogger,
-  debug: DebugLogger,
-};
+type FilterFunction = (layer: unknown) => boolean;
 
-const contribMetrics = {
-  console: ConsoleMetrics,
-  json_post: JsonPostMetrics,
-  null: NullMetrics,
-};
+type MetricLayer = {
+  type: 'console' | 'json_post' | 'null';
+  host?: string;
+  debug?: boolean;
+  before?: (metricType: string, metric: MetricInterface, options: MindfulnessOptions) => Promise<unknown>;
+  jsonReplacer?(key: string, value: unknown): unknown;
+  requestBodyCallback?: MetricsRequestBodyCallback;
+  dataDefaults?: MindfulnessOptions['dataDefaults'];
+  paths?: MindfulnessOptions['paths'];
+ }
 
 /**
  * Base mindfulness class used for Logger and Metrics.
@@ -26,7 +26,8 @@ const contribMetrics = {
 abstract class MindfulnessBase {
   options: MindfulnessOptions = {};
 
-  layers = [];
+  layers: (LoggerInterface|MetricsInterface)[] = [];
+
   errors = [];
 
   /**
@@ -46,12 +47,14 @@ abstract class MindfulnessBase {
    *
    * @param results Results from all logging layers
    */
-  async after(results: any): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  async after(results: unknown): Promise<void> {
+    return new Promise((resolve) => {
       if (this.options.after) {
-        await this.options.after.apply(this, results);
+        this.options.after.apply(this, results).then(resolve);
       }
-      resolve();
+      else {
+        resolve();
+      }
     });
   }
 
@@ -73,24 +76,22 @@ abstract class MindfulnessBase {
    *
    * @param error Error
    */
-  async errorHandler(error): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+  async errorHandler(error): Promise<unknown> {
+    if (!this.options.silent) {
       console.error(`Mindfulness error: ${error}`);
-      this.errors.push(error);
+    }
+    this.errors.push(error);
 
-      if (!this.options.alwaysSilent && !this.options.silent) {
-        console.warn('reject');
-        reject(error);
-        return;
-      }
+    if (!this.options.alwaysSilent && !this.options.silent) {
+      console.warn('reject');
+      throw error;
+    }
 
-      this.options.silent = false;
-      if (this.options.onError) {
-        await this.options.onError.apply(this, error);
-      }
-
-      resolve(error);
-    });
+    this.options.silent = false;
+    if (this.options.onError) {
+      await this.options.onError.apply(this, error);
+    }
+    return error;
   }
 
   /**
@@ -98,15 +99,15 @@ abstract class MindfulnessBase {
    *
    * @param filter A string or a callback to filter with
    */
-  filterLayers(filter: any) {
+  filterLayers(filter: string | FilterFunction) {
     let callback = filter;
     if (typeof filter === 'string') {
-      callback = layer => layer instanceof contribLoggers[filter];
+      callback = (layer) => layer instanceof contribLoggers[filter];
     }
 
     this.layers = this.layers.map((layer) => {
       const thisLayer = layer;
-      if (typeof layer.active === 'boolean') {
+      if (typeof layer.active === 'boolean' && typeof callback === 'function') {
         thisLayer.active = callback(layer);
       }
       return thisLayer;
@@ -146,7 +147,7 @@ export class Logger extends MindfulnessBase implements L {
    *
    * @param layers The logging layers to include.
    */
-  constructor(layers: (string|LoggerLayer)[] = [], options = {}) {
+  constructor(layers: (keyof typeof contribLoggers|LoggerLayer)[] = [], options = {}) {
     super();
 
     this.options = {
@@ -161,27 +162,34 @@ export class Logger extends MindfulnessBase implements L {
       callLayers = ['console'];
     }
 
+    const contribLoggerKeys = Object.keys(contribLoggers);
+
     // add any layers that may exist
     callLayers.forEach((layer) => {
-      let thisLayer = layer;
+      let thisLayer: LoggerInterface|null = null;
 
       // user passed in a string
       if (typeof layer === 'string') {
-        if (Object.keys(contribLoggers).indexOf(layer) < 0) {
+        if (!contribLoggerKeys.includes(layer)) {
           throw new Error(`Could not find layer type: ${layer}`);
         }
-        thisLayer = new contribLoggers[layer]();
+        thisLayer = new contribLoggers[layer]() as unknown as LoggerInterface;
       }
       // this is a LoggerLayer
-      else if (typeof layer === 'object' && layer.type && Object.keys(contribLoggers).indexOf(layer.type) >= 0) {
+      else if (typeof layer === 'object' && layer.type) {
+        if (!contribLoggerKeys.includes(layer.type)) {
+          throw new Error(`Could not find layer type: ${layer}`);
+        }
         thisLayer = new contribLoggers[layer.type](layer);
       }
 
-      if (typeof thisLayer === 'object') {
+      if (thisLayer) {
         thisLayer.active = true;
       }
 
-      this.layers.push(thisLayer);
+      if (thisLayer) {
+        this.layers.push(thisLayer);
+      }
     });
   }
 
@@ -194,36 +202,34 @@ export class Logger extends MindfulnessBase implements L {
    * @param payload The payload being logged
    * @param options The settings for this call
    */
-  async before(message: any, payload?: object, options?: object): Promise<any> {
-    const before = async () => (
-      new Promise(async (resolve, reject) => {
-        const callOptions = this.getCallOptions(options);
+  async before(message: unknown, payload?: unknown, options?: MindfulnessOptions): Promise<LoggerBeforeResult> {
+    const before = async () => {
+      const callOptions = this.getCallOptions(options);
 
-        // make sure we're not passing a reference if we don't need to...
-        const thisPayload = payload;
+      // make sure we're not passing a reference if we don't need to...
+      const thisPayload = payload;
 
-        if (callOptions && callOptions.before) {
-          const args = [];
+      if (callOptions && callOptions.before) {
+        const args = [];
 
-          switch (callOptions.before.length) {
-            case 3:
-              args.push(message);
-              args.push(payload);
-              break;
+        switch (callOptions.before.length) {
+          case 3:
+            args.push(message);
+            args.push(payload);
+            break;
 
-            default:
-              args.push({ message, payload });
-          }
-
-          args.push(callOptions);
-
-          const result = await callOptions.before.apply(this, args);
-          return resolve({ ...result });
+          default:
+            args.push({ message, payload });
         }
 
-        return resolve({ message, payload: thisPayload, options: callOptions });
-      })
-    );
+        args.push(callOptions);
+
+        const result = await callOptions.before.apply(this, args);
+        return result;
+      }
+
+      return { message, payload: thisPayload, options: callOptions };
+    };
 
     return before();
   }
@@ -236,18 +242,19 @@ export class Logger extends MindfulnessBase implements L {
    * @param logLevel Log level to use for this message
    * @param message The message
    * @param payload optional payload object
+   * @param options optional options
    */
-  async call(logLevel: string, message: any, payload?: any, options?: object) {
+  async call(logLevel: string, message: unknown, payload?: unknown, options?: Partial<MindfulnessOptions>) {
     // call & wait for our before handlers
     const beforeResult = await this.before(message, payload, options);
 
-    const newOptions = beforeResult.options;
+    const newOptions = typeof beforeResult === 'object' && 'options' in beforeResult ? beforeResult.options : options;
     delete newOptions.before;
 
     // call the log function on each layer
     const promises = this.layers
-      .filter(layer => layer.active === true)
-      .map(layer => layer[logLevel](
+      .filter((layer) => layer.active === true)
+      .map((layer) => layer[logLevel](
         beforeResult.message,
         beforeResult.payload,
         newOptions,
@@ -279,7 +286,7 @@ export class Logger extends MindfulnessBase implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  log(message: any, payload?: any, options?: object) {
+  log(message: unknown, payload?: unknown, options?: object) {
     return this.call('log', message, payload, options);
   }
 
@@ -289,7 +296,7 @@ export class Logger extends MindfulnessBase implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logError(message: any, payload?: any, options?: object) {
+  logError(message: unknown, payload?: unknown, options?: object) {
     return this.call('logError', message, payload, options);
   }
 
@@ -299,7 +306,7 @@ export class Logger extends MindfulnessBase implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logInfo(message: any, payload?: any, options?: object) {
+  logInfo(message: unknown, payload?: unknown, options?: object) {
     return this.call('logInfo', message, payload, options);
   }
 
@@ -309,14 +316,14 @@ export class Logger extends MindfulnessBase implements L {
    * @param message Message to log
    * @param payload Option payload to include
    */
-  logWarn(message: any, payload?: any, options?: object) {
+  logWarn(message: unknown, payload?: unknown, options?: object) {
     return this.call('logWarn', message, payload, options);
   }
 
   /**
    * Alias for logWarn
    */
-  logWarning(message: any, payload?: any, options?: object) {
+  logWarning(message: unknown, payload?: unknown, options?: object) {
     return this.logWarn(message, payload, options);
   }
 
@@ -332,13 +339,15 @@ export class Logger extends MindfulnessBase implements L {
  * Send metrics to a metrics server via console or JSON POST.
  */
 export class Metrics extends MindfulnessBase implements M {
+  layers: MetricsInterface[] = [];
+
   /**
    * Constructor.
    *
    * @param layers Metrics handler layers
    * @param options Options for this metrics object.
    */
-  constructor(layers = [], options: MindfulnessOptions = {}) {
+  constructor(layers: (keyof typeof contribMetrics|MetricLayer)[] = [], options: MindfulnessOptions = {}) {
     super();
     this.options = {
       alwaysSilent: true,
@@ -359,17 +368,14 @@ export class Metrics extends MindfulnessBase implements M {
         if (Object.keys(contribMetrics).indexOf(layer) < 0) {
           throw new Error(`Could not find layer type: ${layer}`);
         }
-        this.layers.push(new contribMetrics[layer]());
+        this.layers.push(new contribMetrics[layer]() as unknown as MetricsInterface);
         return;
       }
 
       // this is a MetricLayer
       if (layer.type && Object.keys(contribMetrics).indexOf(layer.type) >= 0) {
-        this.layers.push(new contribMetrics[layer.type](layer));
-        return;
+        this.layers.push(new contribMetrics[layer.type](layer) as unknown as MetricsInterface);
       }
-
-      this.layers.push(layer);
     });
   }
 
@@ -380,18 +386,15 @@ export class Metrics extends MindfulnessBase implements M {
    * @param metric The Metric object
    * @param options Current options for this call.
    */
-  async before(metricType: string, metric: MetricInterface, options?: MindfulnessOptions): Promise<any> {
-    const before = async () => (
-      new Promise(async (resolve, reject) => {
-        if (options.before) {
-          const result = await options.before.apply(this, [metricType, metric, options]);
-          return resolve({ metric: result.metric, options: result.options });
-        }
+  async before(metricType: string, metric: MetricInterface, options?: MindfulnessOptions): Promise<{ metric: MetricInterface, options: MindfulnessOptions }> {
+    const before = async (): Promise<{ metric: MetricInterface, options: MindfulnessOptions }> => {
+      if (options.before) {
+        const result = await options.before.apply(this, [metricType, metric, options]);
+        return { metric: result.metric, options: result.options };
+      }
 
-        return resolve({ metric, options });
-      })
-    );
-
+      return { metric, options };
+    };
     return before();
   }
 
@@ -401,21 +404,15 @@ export class Metrics extends MindfulnessBase implements M {
    * This will handle the before & after functionality and pass this
    * on to each metric layer as needed.
    *
-   * @param metricType The metric type being called
+   * @param callType The metric type being called
    * @param args Args
    */
-  async call(metricType: string, ...args: any[]): Promise<any> {
-    if (['increment', 'timing'].indexOf(metricType) < 0) {
-      return Promise.reject(new Error(`Invalid metric type: ${metricType}`));
-    }
-
-    const { length } = args;
-
+  async call<CallType extends Exclude<keyof MetricsInterface, 'active'>>(callType: CallType, ...args: unknown[]): Promise<Awaited<ReturnType<MetricsInterface[CallType]>>[]> {
     let { options } = this;
-    if (length <= 0) {
-      throw new Error(`Invalid arguments for ${metricType}`);
+    if (args.length <= 0) {
+      throw new Error(`Invalid arguments for ${callType}`);
     }
-    else if (length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
+    else if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
       options = {
         ...this.options,
         ...args[1],
@@ -425,42 +422,42 @@ export class Metrics extends MindfulnessBase implements M {
     const metric = new Metric(...args);
 
     // fail timing metrics without values
-    if (metricType === 'timing' && !metric.value) {
-      return Promise.reject(new Error('No value specified for a timing metric'));
+    if (callType === 'timing' && !metric.value) {
+      throw new Error('No value specified for a timing metric');
     }
 
     // call & wait for our before handlers
-    const beforeResult = await this.before(metricType, metric, options);
+    const beforeResult = await this.before(callType, metric, options);
 
     const newOptions = beforeResult.options;
     delete newOptions.before;
 
-    // call the log function on each layer
-    const promises = this.layers.map(layer => layer[metricType](metric, newOptions));
-
-    // return a promise that will resolve when all layers are finished
-    return new Promise((resolve, reject) => {
-      Promise.all(promises)
-        // call any after functions
-        .then(this.after.bind(this))
-        .then(resolve)
-        .catch(reject);
-    })
-      .then(() => {
-        this.options.silent = false;
-      })
-      .catch(this.errorHandler.bind(this));
+    try {
+      // call the given `metricType` method on the metric layer
+      const promises = this.layers
+        .map((layer) => (layer[callType])(metric, newOptions));
+      const all = await Promise.all(promises);
+      await this.after(all);
+      return all as Awaited<ReturnType<MetricsInterface[CallType]>>[];
+    }
+    catch (error) {
+      await this.errorHandler(error);
+    }
+    finally {
+      this.options.silent = false;
+    }
+    return [];
   }
 
-  async decrement(...args: any[]) {
+  async decrement(...args: unknown[]) {
     return this.call('decrement', ...args);
   }
 
-  async increment(...args: any[]): Promise<any> {
+  async increment(...args: unknown[]): Promise<unknown> {
     return this.call('increment', ...args);
   }
 
-  async timing(...args: any[]): Promise<any> {
+  async timing(...args: unknown[]): Promise<unknown> {
     return this.call('timing', ...args);
   }
 

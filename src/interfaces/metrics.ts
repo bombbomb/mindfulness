@@ -1,18 +1,25 @@
-import Metric from '../models/metric';
+import type { MindfulnessOptions } from './options';
 
-export interface MetricInterface {
-  metric: string,
-  feature?: string,
-  value?: any,
+export type MetricInterface = {
+  metric: string;
+  feature?: string;
+  value?: unknown;
 }
+
+export type MetricsBeforeResult = {
+  metric: MetricInterface;
+  options: MindfulnessOptions;
+};
 
 export interface M {
   layers: object[];
-  before: (metricType: string, metric: MetricInterface) => Promise<{ metric: MetricInterface, options: object }>;
-  after: (err: object) => Promise<any>;
+  before: (metricType: string, metric: MetricInterface) => Promise<MetricsBeforeResult>;
+  after: (err: object) => Promise<unknown>;
 }
 
 export interface MetricsInterface {
-  increment(...args: any[]): Promise<any>;
-  timing(...args: any[]): Promise<any>;
+  active: boolean;
+  decrement(...args: unknown[]): Promise<unknown>;
+  increment(...args: unknown[]): Promise<unknown>;
+  timing(...args: unknown[]): Promise<unknown>;
 }

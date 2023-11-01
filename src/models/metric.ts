@@ -5,8 +5,10 @@
  */
 export default class Metric {
   category: string = null;
+
   metric: string = null;
-  value: any = null;
+
+  value: unknown = null;
 
   /**
    * Creates a new metric value.
@@ -60,7 +62,7 @@ export default class Metric {
     }
   }
 
-  toArray(): [string, string, any] {
+  toArray(): [string, string, unknown] {
     return [this.metric, this.category, this.value];
   }
 

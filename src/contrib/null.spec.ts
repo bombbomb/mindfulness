@@ -1,5 +1,4 @@
-import { NullLogger } from '../src/contrib/null';
-import { LOG_LEVELS } from '../src/interfaces/logger';
+import { NullLogger } from './null';
 
 const spies = {
   log: jest.spyOn(global.console, 'log'),
@@ -21,10 +20,9 @@ afterAll(() => {
   });
 });
 
-test('NullLoger does not log to console', async (done) => {
+test('NullLogger does not log to console', async () => {
   const l = new NullLogger();
   const message = 'my message';
   await l.log(message);
   expect(spies.log).toHaveBeenCalledTimes(0);
-  done();
 });

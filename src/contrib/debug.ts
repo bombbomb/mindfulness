@@ -20,16 +20,13 @@ export class DebugLogger extends ContribLogger implements LoggerInterface {
    * @param payload Optional additional payload to log
    * @param options Optional call-specific options for this log.
    */
-  async call(level: string, message: any, payload?: any, options?: MindfulnessOptions): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const callOptions = this.getCallOptions(options);
-      if (typeof callOptions.debugInstance === 'undefined' && !callOptions.namespace) {
-        return reject(new Error('For debug, you must specify either debugInstance or namespace options'));
-      }
+  async call(level: string, message: unknown, payload?: unknown, options?: MindfulnessOptions): Promise<void> {
+    const callOptions = this.getCallOptions(options);
+    if (!callOptions.debugInstance && !callOptions.namespace) {
+      throw new Error('For debug, you must specify either debugInstance or namespace options');
+    }
 
-      const debugInstance = typeof callOptions.debugInstance !== 'undefined' ? callOptions.debugInstance : Debug(callOptions.namespace);
-      debugInstance(message, payload);
-      return resolve();
-    });
+    const debugInstance = typeof callOptions.debugInstance !== 'undefined' ? callOptions.debugInstance : Debug(callOptions.namespace);
+    debugInstance(message, payload);
   }
 }

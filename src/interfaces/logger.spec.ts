@@ -1,4 +1,4 @@
-import { LOG_LEVELS } from '../src/interfaces/logger';
+import { LOG_LEVELS } from './logger';
 
 test('LOG_LEVELS.LOG_ALL contains all types', () => {
   expect(LOG_LEVELS.LOG_ALL & LOG_LEVELS.LOG_LOG).toBeGreaterThan(0);

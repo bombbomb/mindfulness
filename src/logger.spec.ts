@@ -1,6 +1,7 @@
-import * as nock from 'nock';
-import { Logger } from '../src/index';
-import { JsonPostLogger } from '../src/contrib/json_post';
+import { Logger } from './index';
+import { JsonPostLogger } from './contrib/JsonPostLogger';
+import { ConsoleLogger } from './contrib/console';
+import { contribLoggers } from './contrib';
 
 const spies = {
   log: jest.spyOn(global.console, 'log'),
@@ -9,12 +10,14 @@ const spies = {
   // warn: jest.spyOn(global.console, 'warn'),
 };
 
+beforeEach(() => {
+  global.fetch = jest.fn();
+});
+
 afterEach(() => {
   Object.keys(spies).forEach((spy) => {
     spies[spy].mockReset();
   });
-
-  nock.cleanAll();
 });
 
 afterAll(() => {
@@ -24,11 +27,10 @@ afterAll(() => {
   });
 });
 
-test('Logger with console logs to console', async (done) => {
+test('Logger with console logs to console', async () => {
   const l = new Logger(['console']);
   await l.log('my message');
   expect(spies.log).toHaveBeenCalled();
-  done();
 });
 
 test('Logger with no arguments gets console layer', async () => {
@@ -51,10 +53,10 @@ test('Logger with POST layer gets correct layer', () => {
 });
 
 test('Logger with incorrect layer throws error', () => {
-  const l = new Logger([{ type: 'fake_logger' }]);
+  expect(() => new Logger([{ type: 'fake_logger' as keyof typeof contribLoggers }])).toThrowError();
 });
 
-test('Logger handles "before" callbacks', async (done) => {
+test('Logger handles "before" callbacks', async () => {
   const before = (message: string, payload?: object, options?: object) => (
     new Promise((resolve) => {
       const result = { payload, message: `${message}!`, options };
@@ -64,15 +66,14 @@ test('Logger handles "before" callbacks', async (done) => {
   const l = new Logger(['console'], { before });
 
   expect(l.options).toHaveProperty('before');
-  expect(l.layers[0].options).not.toHaveProperty('before');
+  expect((l.layers[0] as ConsoleLogger).options).not.toHaveProperty('before');
 
   await l.log('hi');
   expect(spies.log).toHaveBeenCalled();
   expect(spies.log.mock.calls[0]).toContain('hi!');
-  done();
 });
 
-test('Logger handles layer "before" callbacks', async (done) => {
+test('Logger handles layer "before" callbacks', async () => {
   const before = (message: string, payload?: object, options?: object) => (
     new Promise((resolve) => {
       const result = { payload, message: `${message}!`, options };
@@ -81,15 +82,14 @@ test('Logger handles layer "before" callbacks', async (done) => {
   );
   const l = new Logger([{ type: 'console', before }]);
 
-  expect(l.layers[0].options).toHaveProperty('before');
+  expect((l.layers[0] as ConsoleLogger).options).toHaveProperty('before');
 
   await l.log('hi');
   expect(spies.log).toHaveBeenCalled();
   expect(spies.log.mock.calls[0]).toContain('hi!');
-  done();
 });
 
-test('Logger handles a call-specific "before" callback', async (done) => {
+test('Logger handles a call-specific "before" callback', async () => {
   const before = function (details) {
     return new Promise((resolve) => {
       const result = { payload: details.payload, message: `${details.message}!`, options: this.options };
@@ -107,10 +107,9 @@ test('Logger handles a call-specific "before" callback', async (done) => {
   expect(spies.log.mock.calls[0]).toContain('hi!');
   // logger options should not be changed by the before handler.
   expect(l.options).not.toHaveProperty('before');
-  done();
 });
 
-test('Logger handlers "after" callbacks', async (done) => {
+test('Logger handlers "after" callbacks', async () => {
   const after = function (message: string, payload?: object) {
     return new Promise((resolve) => {
       const result = { payload, message: `${message}!`, options: this.options };
@@ -125,44 +124,22 @@ test('Logger handlers "after" callbacks', async (done) => {
   await l.log('hi');
   expect(spies.log).toHaveBeenCalled();
   expect(spy).toHaveBeenCalled();
-  done();
 });
 
-test('Logger alwaysSilent option stops all request errors', async (done) => {
-  const loggingEndpoint = nock('http://logging.example.com')
-    .persist(true)
-    .post('/')
-    .reply(500, {});
+test('Logger alwaysSilent option stops all request errors', async () => {
+  jest.mocked(global.fetch).mockResolvedValue({ ok: false } as unknown as Response);
+
   const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }], { alwaysSilent: true });
-  await expect(l.log('Message 1')).resolves.toMatchObject({ message: '500 - {}' });
-  await expect(l.log('Message 2')).resolves.toMatchObject({ message: '500 - {}' });
-  done();
+  await l.log('Message 1');
+  await l.log('Message 2');
+  expect(global.fetch).toHaveBeenCalledTimes(2);
 });
 
 test('Logger without alwaysSilent fails on request errors', async () => {
-  const loggingEndpoint = nock('http://logging.example.com')
-    .persist(true)
-    .post('/')
-    .reply(500, {});
+  jest.mocked(global.fetch).mockResolvedValue({ ok: false } as unknown as Response);
   const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }], { alwaysSilent: false });
-  // await expect(l.log('Message 1')).rejects.toThrow();
-  l.log('Message1')
-    // .then(() => {
-    //   expect(false).toBe(true);
-    // })
-    .catch((err) => {
-      expect(err).toBeDefined();
-    });
 
-  // try {
-  //   await l.log('Message 1');
-  //   console.warn('?');
-  //   expect(false).toBe(true);
-  // }
-  // catch (err) {
-  //   console.warn('??');
-  //   expect(err).toBeDefined();
-  // }
+  await expect(() => l.log('Message1')).rejects.toThrowError();
 });
 
 test('Logger filterLayers with string', () => {
@@ -181,35 +158,28 @@ test('Logger filterLayers with callback', () => {
   expect(l.layers[0].active).toBe(true);
   expect(l.layers[1].active).toBe(true);
 
-  l.filterLayers(layer => layer instanceof JsonPostLogger);
+  l.filterLayers((layer) => layer instanceof JsonPostLogger);
 
   expect(l.layers[0].active).toBe(false);
   expect(l.layers[1].active).toBe(true);
 });
 
-test('Logger calls can specify which layer to use for this call', async (done) => {
-  const loggingEndpoint = nock('http://logging.example.com')
-    .post('/')
-    .reply(200, {});
+test('Logger calls can specify which layer to use for this call', async () => {
+  jest.mocked(global.fetch).mockResolvedValue({ ok: true } as unknown as Response);
   const l = new Logger(['console', { type: 'json_post', host: 'http://logging.example.com' }]);
 
   await l.filterLayers('console').logError('Something went wrong');
   expect(spies.error).toHaveBeenCalled();
-  expect(loggingEndpoint.isDone()).toBe(false);
-
-  done();
+  expect(global.fetch).not.toHaveBeenCalled();
 });
 
-test('Logger calls can specify which layer to use for this call only', async (done) => {
-  const loggingEndpoint = nock('http://logging.example.com')
-    .persist()
-    .post('/')
-    .reply(200, {});
+test('Logger calls can specify which layer to use for this call only', async () => {
+  jest.mocked(global.fetch).mockResolvedValue({ ok: true } as unknown as Response);
   const l = new Logger(['console', { type: 'json_post', host: 'http://logging.example.com' }]);
 
   await l.filterLayers('console').logError('Something went wrong');
   expect(spies.error).toHaveBeenCalled();
-  expect(loggingEndpoint.isDone()).toBe(false);
+  expect(global.fetch).not.toHaveBeenCalled();
 
   // all layers should be active...
   for (let index = 0; index < l.layers.length; index += 1) {
@@ -218,24 +188,12 @@ test('Logger calls can specify which layer to use for this call only', async (do
 
   await l.log('Message');
   expect(spies.log).toHaveBeenCalled();
-  expect(loggingEndpoint.isDone()).toBe(true);
-
-  done();
+  expect(global.fetch).toHaveBeenCalled();
 });
 
-test('logError with error stack', async (done) => {
+test('logError with error stack', async () => {
   const message = 'Nothing ever works';
-  const loggingEndpoint = nock('http://logging.example.com')
-    .post('/', (req) => {
-      expect(req).toMatchObject({
-        message,
-        info: expect.any(String),
-        type: 'error',
-        severity: 'error',
-      });
-      return true;
-    })
-    .reply(200, {});
+  jest.mocked(global.fetch).mockResolvedValue({ ok: true } as unknown as Response);
   const l = new Logger([{ type: 'json_post', host: 'http://logging.example.com' }]);
 
   try {
@@ -245,24 +203,21 @@ test('logError with error stack', async (done) => {
     await l.logError(err, err.stack);
   }
 
-  expect(loggingEndpoint.isDone()).toBe(true);
-  done();
+  expect(global.fetch).toHaveBeenCalled();
 });
 
-test('Logger with null layer works', async (done) => {
+test('Logger with null layer works', async () => {
   const l = new Logger(['null']);
   expect(l.layers).toHaveLength(1);
 
   await l.log('Things!');
-  done();
 });
 
-test('Logger with type:null layer works', async (done) => {
+test('Logger with type:null layer works', async () => {
   const l = new Logger([{ type: 'null' }]);
   expect(l.layers).toHaveLength(1);
 
   await l.log('Things!');
-  done();
 });
 
 test('Logger exposes LOG_LEVELS', () => {

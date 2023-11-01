@@ -1,6 +1,6 @@
 import { Metrics } from '../index';
 import Metric from '../models/metric';
-import { JsonPostMetrics } from './json_post';
+import { JsonPostMetrics } from './JsonPostMetrics';
 
 interface ExtendedExpect extends jest.Expect {
   jsonContaining(...args: unknown[]): jest.CustomMatcherResult
@@ -16,6 +16,7 @@ expect.extend({ jsonContaining });
 
 beforeEach(() => {
   global.fetch = jest.fn();
+  console.warn = jest.fn();
 });
 
 afterEach(() => {
@@ -376,59 +377,21 @@ test('layer "before" callbacks can change metric and category value in the reque
   expect(global.fetch).toHaveBeenCalledWith('http://metrics.example.com/path/awesome/prefix.myMetric', expect.anything());
 });
 
-test.only('Metric post failure should throw an error', async () => {
-  const m = new Metrics([
-    {
-      type: 'json_post',
-      host: 'metrics.example.com',
-      paths: {
-        increment: '/path/$category/$metric',
-      },
-    },
-  ], { alwaysSilent: false });
-
-  jest.mocked(global.fetch).mockResolvedValue({ ok: false, status: 500 } as unknown as Response);
-
-  // const correctEndpoint = nock('http://metrics.example.com')
-  //   .post('/path/awesome/myMetric', {
-  //     environment: process.env.NODE_ENV,
-  //     type: 'increment',
-  //     value: 10,
-  //   })
-  //   .reply(500, {});
-
-  async function increment() {
-    return m.increment('test');
-  }
-
-  await expect(increment()).resolves.toThrowError();
-
-  // await expect((() => m.increment('awesome', 'myMetric', 10))())
-  //   .rejects.toThrowError();
-});
-
 describe('Metric silent()', () => {
   test('stops errors from propagating', async () => {
     const m = new Metrics([
       {
         type: 'json_post',
         host: 'metrics.example.com',
-        paths: {
-          increment: '/path/$category/$metric',
-        },
       },
     ], { alwaysSilent: false });
 
-    // const correctEndpoint = nock('http://metrics.example.com')
-    //   .post('/path/awesome/myMetric', {
-    //     environment: process.env.NODE_ENV,
-    //     type: 'increment',
-    //     value: 10,
-    //   })
-    //   .reply(500, {});
+    const errorHandlerSpy = jest.spyOn(m, 'errorHandler');
+    jest.spyOn(global, 'fetch').mockResolvedValue({ ok: false } as unknown as Response);
 
-    await expect(m.silent().increment('awesome', 'myMetric', 10))
-      .resolves.toMatchObject({ message: '500 - {}' });
+    await m.silent().increment('awesome', 'myMetric', 10);
+    expect(global.fetch).toHaveBeenCalled();
+    expect(errorHandlerSpy).toHaveBeenCalled();
 
     // errors are still captured in the object...
     expect(m.errors).toHaveLength(1);
@@ -445,20 +408,17 @@ describe('Metric silent()', () => {
       },
     ], { alwaysSilent: false });
 
-    // const correctEndpoint = nock('http://metrics.example.com')
-    //   .post('/path/awesome/myMetric', {
-    //     environment: process.env.NODE_ENV,
-    //     type: 'increment',
-    //     value: 10,
-    //   })
-    //   .reply(500, {});
+    jest.mocked(global.fetch).mockResolvedValue({ ok: false } as unknown as Response);
 
-    await expect(m.silent().increment('awesome', 'myMetric', 10))
-      .resolves.toMatchObject({ message: '500 - {}' });
+    const errorHandlerSpy = jest.spyOn(m, 'errorHandler');
 
+    await m.silent().increment('awesome', 'myMetric', 10);
+    expect(errorHandlerSpy).toHaveBeenCalledTimes(1);
     expect(m.options.silent).toBe(false);
-    await expect(m.increment('awesome', 'myMetric', 10))
-      .rejects.toThrowError();
+
+    // now it should call the error handler
+    await expect(m.increment('awesome', 'myMetric', 10)).rejects.toThrowError();
+    expect(errorHandlerSpy).toHaveBeenCalledTimes(2);
   });
 
   test('does not stop successful calls', async () => {
@@ -472,16 +432,10 @@ describe('Metric silent()', () => {
       },
     ]);
 
-    // const correctEndpoint = nock('http://metrics.example.com')
-    //   .post('/path/awesome/myMetric', {
-    //     environment: process.env.NODE_ENV,
-    //     type: 'increment',
-    //     value: 10,
-    //   })
-    //   .reply(200, {});
+    jest.mocked(global.fetch).mockResolvedValue({ ok: true } as unknown as Response);
 
-    await expect(m.silent().increment('awesome', 'myMetric', 10))
-      .resolves.not.toThrowError();
+    await m.silent().increment('awesome', 'myMetric', 10);
+    expect(global.fetch).toHaveBeenCalled();
   });
 });
 
@@ -496,14 +450,7 @@ test('default json post failure logs instead of rejects', async () => {
     },
   ]);
 
-  // const correctEndpoint = nock(/metrics\.example\.com/)
-  //   .post(/.+/, (body) => true)
-  //   .reply(500, {});
   console.error = jest.fn();
-  await expect(m.increment('awesome', 'myMetric', 10)).resolves;
-  // for some reason, console.error does not happen in the await statement
-  // above, so we need to delay slightly to test.
-  setTimeout(() => {
-    expect(console.error).toHaveBeenCalled();
-  }, 500);
+  await m.increment('awesome', 'myMetric', 10);
+  expect(console.error).toHaveBeenCalled();
 });

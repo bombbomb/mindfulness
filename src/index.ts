@@ -1,6 +1,7 @@
 import { ConsoleLogger, ConsoleMetrics } from './contrib/console';
 import { NullLogger, NullMetrics } from './contrib/null';
-import { JsonPostLogger, JsonPostMetrics } from './contrib/json_post';
+import { JsonPostMetrics } from './contrib/JsonPostMetrics';
+import { JsonPostLogger } from './contrib/JsonPostLogger';
 import {
  L, LoggerLayer, LOG_LEVELS, LoggerInterface, LoggerBeforeResult,
 } from './interfaces/logger';
@@ -419,13 +420,11 @@ export class Metrics extends MindfulnessBase implements M {
    * @param args Args
    */
   async call<CallType extends Exclude<keyof MetricsInterface, 'active'>>(callType: CallType, ...args: unknown[]): Promise<Awaited<ReturnType<MetricsInterface[CallType]>>[]> {
-    const { length } = args;
-
     let { options } = this;
-    if (length <= 0) {
+    if (args.length <= 0) {
       throw new Error(`Invalid arguments for ${callType}`);
     }
-    else if (length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
+    else if (args.length === 2 && args[0] instanceof Metric && typeof args[1] === 'object') {
       options = {
         ...this.options,
         ...args[1],
@@ -450,11 +449,11 @@ export class Metrics extends MindfulnessBase implements M {
       const promises = this.layers
         .map((layer) => (layer[callType])(metric, newOptions));
       const all = await Promise.all(promises);
-      this.after(all);
+      await this.after(all);
       return all as Awaited<ReturnType<MetricsInterface[CallType]>>[];
     }
     catch (error) {
-      this.errorHandler(error);
+      await this.errorHandler(error);
     }
     finally {
       this.options.silent = false;

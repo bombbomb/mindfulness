@@ -1,5 +1,5 @@
 import Mindfulness from './mindfulness';
-import { JsonPostHandler } from './json_post';
+import { JsonPostHandler } from './JsonPostHandler';
 
 class TestableMindfulness extends Mindfulness {
 }

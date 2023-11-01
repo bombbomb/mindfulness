@@ -1,5 +1,5 @@
 import { Logger } from '../index';
-import { JsonPostLogger } from './json_post';
+import { JsonPostLogger } from './JsonPostLogger';
 
 beforeEach(() => {
   global.fetch = jest.fn();
